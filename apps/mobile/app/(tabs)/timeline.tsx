@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import type { TimelineGroup } from '@momeants/types';
-import { ScreenShell } from '../../src/components/core';
+import { ScreenShell, EmptyState, Skeleton } from '../../src/components/core';
 import { useApi } from '../../src/context/ApiContext';
 import { colors, fontFamily, fontSize, spacing, radii } from '@momeants/design';
 
@@ -27,10 +27,32 @@ export default function TimelineScreen() {
 
   if (loading) {
     return (
-      <ScreenShell>
-        <View style={styles.loadingCenter}>
-          <ActivityIndicator color={colors.auraPurple} />
+      <ScreenShell edges={['top']}>
+        <View style={styles.header}>
+          <Text style={styles.title}>Timeline</Text>
+          <Text style={styles.year}>{selectedYear}</Text>
         </View>
+        <View style={styles.skeletonGrid}>
+          {[0,1,2,3,4,5,6,7,8].map((i) => (
+            <Skeleton key={i} width={110} height={140} borderRadius={16} />
+          ))}
+        </View>
+      </ScreenShell>
+    );
+  }
+
+  if (groups.length === 0) {
+    return (
+      <ScreenShell edges={['top']}>
+        <View style={styles.header}>
+          <Text style={styles.title}>Timeline</Text>
+          <Text style={styles.year}>{selectedYear}</Text>
+        </View>
+        <EmptyState
+          icon="📅"
+          title="No memories yet"
+          body="Your moments will appear here, grouped by day."
+        />
       </ScreenShell>
     );
   }
@@ -93,7 +115,13 @@ export default function TimelineScreen() {
 }
 
 const styles = StyleSheet.create({
-  loadingCenter: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  skeletonGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.md,
+  },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',

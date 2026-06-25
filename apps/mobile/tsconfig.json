@@ -2,10 +2,16 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "jsx": "react-native",
+    "strict": true,
     "paths": {
       "@momeants/types": ["../../packages/types/src"],
+      "@momeants/types/*": ["../../packages/types/src/*"],
       "@momeants/design": ["../../packages/design/src"],
-      "@momeants/api": ["../../packages/api/src"]
+      "@momeants/design/*": ["../../packages/design/src/*"],
+      "@momeants/api": ["../../packages/api/src"],
+      "@momeants/api/*": ["../../packages/api/src/*"],
+      "@momeants/utils": ["../../packages/utils/src"],
+      "@momeants/utils/*": ["../../packages/utils/src/*"]
     }
   },
   "include": ["**/*.ts", "**/*.tsx", ".expo/types/**/*.ts", "expo-env.d.ts"]

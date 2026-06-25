@@ -1,15 +1,19 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import type { Moment, CircleMember, SparkDelivery } from '@momeants/types';
 import { ScreenShell } from '../../src/components/core';
+import { HomeScreenSkeleton } from '../../src/components/core/SkeletonLoader';
+import { EmptyState } from '../../src/components/core/EmptyState';
 import { MemoryHeroCard, MemoryMiniCard } from '../../src/components/memory';
 import { CloseCircleStrip } from '../../src/components/circle';
 import { SparkCard } from '../../src/components/spark/SparkCard';
 import { useApi } from '../../src/context/ApiContext';
+import { useRouter } from 'expo-router';
 import { colors, fontFamily, fontSize, spacing } from '@momeants/design';
 
 export default function HomeScreen() {
   const api = useApi();
+  const router = useRouter();
   const [hero, setHero] = useState<Moment | null>(null);
   const [recent, setRecent] = useState<Moment[]>([]);
   const [resurfaced, setResurfaced] = useState<Moment | null>(null);
@@ -36,10 +40,25 @@ export default function HomeScreen() {
 
   if (loading) {
     return (
-      <ScreenShell>
-        <View style={styles.loadingCenter}>
-          <ActivityIndicator color={colors.auraPurple} />
+      <ScreenShell edges={['top']}>
+        <View style={styles.skeletonPad}>
+          <HomeScreenSkeleton />
         </View>
+      </ScreenShell>
+    );
+  }
+
+  if (!hero) {
+    return (
+      <ScreenShell edges={['top']}>
+        <Text style={styles.wordmark}>momeants</Text>
+        <EmptyState
+          icon="📷"
+          title="No moments yet"
+          body="Capture your first moment — a photo, a feeling, a place."
+          actionLabel="Capture a moment"
+          onAction={() => router.push('/capture')}
+        />
       </ScreenShell>
     );
   }
@@ -101,7 +120,7 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  loadingCenter: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  skeletonPad: { flex: 1, paddingTop: spacing.md },
   scroll: { paddingTop: spacing.md, gap: spacing.xl },
   wordmark: {
     color: colors.auraPurple,

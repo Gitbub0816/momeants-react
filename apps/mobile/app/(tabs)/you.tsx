@@ -74,6 +74,7 @@ export default function YouScreen() {
               { label: 'Resurfacing controls', icon: '✦', route: '/resurfacing-controls' },
               { label: 'Spark settings', icon: '⚡', route: '/spark-settings' },
               { label: 'Notifications', icon: '◎', route: '/notifications' },
+              { label: 'Delete account', icon: '⚠', route: '/delete-account' },
             ].map((item, i) => (
               <TouchableOpacity
                 key={item.label}

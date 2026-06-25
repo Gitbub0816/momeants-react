@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import type { CircleMember, CircleMoment } from '@momeants/types';
-import { ScreenShell } from '../../src/components/core';
+import { ScreenShell, EmptyState, CircleAvatarSkeleton, Skeleton } from '../../src/components/core';
 import { CircleAvatar, CircleMomentCard } from '../../src/components/circle';
 import { useApi } from '../../src/context/ApiContext';
 import { colors, fontFamily, fontSize, spacing } from '@momeants/design';
@@ -22,10 +22,34 @@ export default function CircleScreen() {
 
   if (loading) {
     return (
-      <ScreenShell>
-        <View style={styles.loadingCenter}>
-          <ActivityIndicator color={colors.auraPurple} />
-        </View>
+      <ScreenShell edges={['top']}>
+        <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+          <Text style={styles.title}>Your Circle</Text>
+          <View style={styles.skeletonRow}>
+            {[0,1,2,3].map((i) => (
+              <View key={i} style={{ alignItems: 'center', gap: 6 }}>
+                <CircleAvatarSkeleton />
+                <Skeleton width={48} height={10} borderRadius={4} />
+              </View>
+            ))}
+          </View>
+          {[0,1,2].map((i) => (
+            <Skeleton key={i} height={140} borderRadius={20} style={{ marginBottom: 12 }} />
+          ))}
+        </ScrollView>
+      </ScreenShell>
+    );
+  }
+
+  if (members.length === 0) {
+    return (
+      <ScreenShell edges={['top']}>
+        <EmptyState
+          icon="🫂"
+          title="Your circle is empty"
+          body="Invite the people who matter most to join your circle."
+          actionLabel="Find people"
+        />
       </ScreenShell>
     );
   }
@@ -73,7 +97,7 @@ export default function CircleScreen() {
 }
 
 const styles = StyleSheet.create({
-  loadingCenter: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  skeletonRow: { flexDirection: 'row', gap: spacing.lg, paddingVertical: spacing.sm },
   scroll: { paddingTop: spacing.md, paddingHorizontal: spacing.lg, gap: spacing.xl },
   title: { color: colors.textPrimary, fontFamily: 'PlayfairDisplay_700Bold', fontSize: fontSize.display },
   subtitle: { color: colors.textMuted, fontFamily: fontFamily.sans, fontSize: fontSize.body, marginTop: -spacing.md },

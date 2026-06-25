@@ -16,6 +16,8 @@ import {
 } from '@expo-google-fonts/playfair-display';
 import { ApiProvider } from '../src/context/ApiContext';
 import { AuthProvider, useAuth } from '../src/context/AuthContext';
+import { ErrorBoundary } from '../src/components/core/ErrorBoundary';
+import { OfflineBanner } from '../src/components/core/OfflineBanner';
 import { colors } from '@momeants/design';
 
 SplashScreen.preventAutoHideAsync();
@@ -29,7 +31,6 @@ function RootNavigator() {
     if (isLoading) return;
     const inAuth = segments[0] === '(auth)';
     const inOnboarding = segments[0] === '(onboarding)';
-    const inTabs = segments[0] === '(tabs)';
 
     if (!userId && !inAuth) {
       router.replace('/(auth)/welcome');
@@ -47,12 +48,18 @@ function RootNavigator() {
       <Stack.Screen name="(tabs)" />
       <Stack.Screen name="moment/[id]" options={{ presentation: 'fullScreenModal' }} />
       <Stack.Screen name="capture" options={{ presentation: 'fullScreenModal' }} />
+      <Stack.Screen name="spark/[id]" options={{ presentation: 'modal', headerShown: true }} />
+      <Stack.Screen name="spark-settings" options={{ presentation: 'modal', headerShown: true }} />
+      <Stack.Screen name="edit-profile" options={{ presentation: 'modal', headerShown: true }} />
+      <Stack.Screen name="resurfacing-controls" options={{ presentation: 'modal', headerShown: true }} />
+      <Stack.Screen name="notifications" options={{ presentation: 'modal', headerShown: true }} />
+      <Stack.Screen name="delete-account" options={{ presentation: 'modal', headerShown: true }} />
     </Stack>
   );
 }
 
 export default function RootLayout() {
-  const [fontsLoaded] = useFonts({
+  const [fontsLoaded, fontError] = useFonts({
     Inter_400Regular,
     Inter_500Medium,
     Inter_600SemiBold,
@@ -62,21 +69,24 @@ export default function RootLayout() {
   });
 
   useEffect(() => {
-    if (fontsLoaded) {
+    if (fontsLoaded || fontError) {
       SplashScreen.hideAsync();
     }
-  }, [fontsLoaded]);
+  }, [fontsLoaded, fontError]);
 
-  if (!fontsLoaded) return null;
+  if (!fontsLoaded && !fontError) return null;
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <ApiProvider>
-        <AuthProvider>
-          <StatusBar style="light" />
-          <RootNavigator />
-        </AuthProvider>
-      </ApiProvider>
+      <ErrorBoundary>
+        <ApiProvider>
+          <AuthProvider>
+            <StatusBar style="light" />
+            <RootNavigator />
+            <OfflineBanner />
+          </AuthProvider>
+        </ApiProvider>
+      </ErrorBoundary>
     </GestureHandlerRootView>
   );
 }
