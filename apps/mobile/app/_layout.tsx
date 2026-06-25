@@ -54,6 +54,9 @@ function RootNavigator() {
       <Stack.Screen name="resurfacing-controls" options={{ presentation: 'modal', headerShown: true }} />
       <Stack.Screen name="notifications" options={{ presentation: 'modal', headerShown: true }} />
       <Stack.Screen name="delete-account" options={{ presentation: 'modal', headerShown: true }} />
+      <Stack.Screen name="messages/[id]" options={{ presentation: 'card', headerShown: true }} />
+      <Stack.Screen name="clique/[id]" options={{ presentation: 'card', headerShown: true }} />
+      <Stack.Screen name="(auth)/forgot-password" options={{ headerShown: false }} />
     </Stack>
   );
 }

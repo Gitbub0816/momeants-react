@@ -10,6 +10,8 @@ const TAB_ICONS: Record<string, string> = {
   timeline: '◷',
   capture: '+',
   circle: '◎',
+  messages: '💬',
+  calendar: '📅',
   you: '○',
 };
 
@@ -18,6 +20,8 @@ const TAB_LABELS: Record<string, string> = {
   timeline: 'Timeline',
   capture: 'Capture',
   circle: 'Circle',
+  messages: 'Messages',
+  calendar: 'Calendar',
   you: 'You',
 };
 

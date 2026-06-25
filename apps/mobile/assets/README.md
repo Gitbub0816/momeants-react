@@ -1,21 +1,27 @@
 # App Assets
 
-Replace these placeholder references with your actual assets before submitting to stores.
+## ✅ Icon provided
+The final app icon has been delivered (dark cosmic background, purple/orange neon M arc, heart + petal mark, star sparkles).
+
+Save it as:
+- `icon.png` — 1024×1024 PNG (provided icon, no additional rounding needed)
+- `adaptive-icon.png` — 1024×1024 PNG (same, Android crops to circle automatically)
+- `splash.png` — center the mark on `#050711` background, 2048×2048
 
 | File | Size | Purpose |
 |------|------|---------|
-| `icon.png` | 1024×1024 | App icon (no transparency, no rounded corners — iOS adds them) |
-| `splash.png` | 1284×2778 | Splash screen image |
+| `icon.png` | 1024×1024 | App icon — **place provided icon here** |
+| `splash.png` | 2048×2048 | Splash screen — icon centered on #050711 |
 | `adaptive-icon.png` | 1024×1024 | Android adaptive icon foreground |
 | `favicon.png` | 48×48 | Web favicon |
 
-## Brand guidance
-- Background: `#050711` (ink900)
-- Icon: the ✦ sparkle mark in aura gradient (`#78A7FF` → `#B57CFF` → `#FF7AC8`)
-- No text on icon — the mark alone
-- Splash: wordmark "momeants" in Playfair Display on `#050711` background
+## Icon description
+Dark glossy rounded square. Cosmic #050711 background with subtle star field.
+Purple neon arc (left, `#B57CFF`) + orange neon arc (right, `#FF8C42`) forming an M shape.
+Center: heart shape with two leaf petals below, gradient purple→orange.
+Star sparkles in corners.
 
-## Generate with
+## Generate variants with
 ```bash
 npx expo-image-utils icon icon.png
 ```

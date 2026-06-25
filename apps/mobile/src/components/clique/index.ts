@@ -1,0 +1,1 @@
+export { CliqueCard } from './CliqueCard';

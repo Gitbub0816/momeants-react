@@ -1,0 +1,56 @@
+import type { Clique } from '@momeants/types';
+
+export const DEMO_CLIQUES: Clique[] = [
+  {
+    id: 'clique-family',
+    name: 'Ellis Family',
+    type: 'family',
+    emoji: '👨‍👩‍👧',
+    ownerId: 'me',
+    members: [
+      { id: 'm1', userId: 'me', displayName: 'Jordan Ellis', isOwner: true, joinedAt: '2024-01-01T00:00:00Z', hasNewMoment: false },
+      { id: 'm2', userId: 'u2', displayName: 'Mom Ellis', avatarUri: 'https://i.pravatar.cc/150?u=mom', relationship: 'Mom', isOwner: false, joinedAt: '2024-01-01T00:00:00Z', hasNewMoment: true },
+      { id: 'm3', userId: 'u3', displayName: 'Dad Ellis', avatarUri: 'https://i.pravatar.cc/150?u=dad', relationship: 'Dad', isOwner: false, joinedAt: '2024-01-01T00:00:00Z', hasNewMoment: false },
+      { id: 'm4', userId: 'u4', displayName: 'Sam Ellis', avatarUri: 'https://i.pravatar.cc/150?u=sam', relationship: 'Sibling', isOwner: false, joinedAt: '2024-02-15T00:00:00Z', hasNewMoment: true },
+    ],
+    memberCount: 4,
+    momentCount: 38,
+    activeSparks: 1,
+    lastActivityAt: '2024-11-12T18:00:00Z',
+    createdAt: '2024-01-01T00:00:00Z',
+  },
+  {
+    id: 'clique-besties',
+    name: 'The Crew',
+    type: 'besties',
+    emoji: '🫂',
+    ownerId: 'me',
+    members: [
+      { id: 'b1', userId: 'me', displayName: 'Jordan', isOwner: true, joinedAt: '2024-03-01T00:00:00Z' },
+      { id: 'b2', userId: 'u5', displayName: 'Ava Chen', avatarUri: 'https://i.pravatar.cc/150?u=ava', isOwner: false, joinedAt: '2024-03-01T00:00:00Z', hasNewMoment: true },
+      { id: 'b3', userId: 'u6', displayName: 'Noah Kim', avatarUri: 'https://i.pravatar.cc/150?u=noah', isOwner: false, joinedAt: '2024-03-01T00:00:00Z' },
+      { id: 'b4', userId: 'u7', displayName: 'Mia Torres', avatarUri: 'https://i.pravatar.cc/150?u=mia', isOwner: false, joinedAt: '2024-04-10T00:00:00Z', hasNewMoment: false },
+    ],
+    memberCount: 4,
+    momentCount: 22,
+    activeSparks: 2,
+    lastActivityAt: '2024-11-14T10:00:00Z',
+    createdAt: '2024-03-01T00:00:00Z',
+  },
+  {
+    id: 'clique-couple',
+    name: 'Us ♡',
+    type: 'couple',
+    emoji: '💑',
+    ownerId: 'me',
+    members: [
+      { id: 'c1', userId: 'me', displayName: 'Jordan', isOwner: true, joinedAt: '2023-06-15T00:00:00Z' },
+      { id: 'c2', userId: 'u8', displayName: 'Alex Rivera', avatarUri: 'https://i.pravatar.cc/150?u=alex', relationship: 'Partner', isOwner: false, joinedAt: '2023-06-15T00:00:00Z', hasNewMoment: true },
+    ],
+    memberCount: 2,
+    momentCount: 91,
+    activeSparks: 1,
+    lastActivityAt: '2024-11-15T08:30:00Z',
+    createdAt: '2023-06-15T00:00:00Z',
+  },
+];

@@ -11,6 +11,8 @@ export default function TabsLayout() {
       <Tabs.Screen name="timeline" />
       <Tabs.Screen name="capture" />
       <Tabs.Screen name="circle" />
+      <Tabs.Screen name="messages" />
+      <Tabs.Screen name="calendar" />
       <Tabs.Screen name="you" />
     </Tabs>
   );

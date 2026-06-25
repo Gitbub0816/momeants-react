@@ -73,6 +73,9 @@ export default function SignInScreen() {
 
           <View style={styles.actions}>
             <MomeantsButton label="Sign in" onPress={handleSignIn} loading={loading} />
+            <TouchableOpacity onPress={() => router.push('/(auth)/forgot-password')} style={styles.switchLink}>
+              <Text style={styles.switchText}>Forgot your password? <Text style={styles.switchTextAccent}>Reset it</Text></Text>
+            </TouchableOpacity>
             <TouchableOpacity onPress={() => router.push('/(auth)/create-account')} style={styles.switchLink}>
               <Text style={styles.switchText}>Don't have an account? <Text style={styles.switchTextAccent}>Create one</Text></Text>
             </TouchableOpacity>
