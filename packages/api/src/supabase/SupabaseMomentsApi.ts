@@ -12,12 +12,75 @@ import type {
   OnboardingData,
   CircleMember,
   CircleMoment,
+  SparkDelivery,
+  SparkSettings,
+  Spark,
 } from '@momeants/types';
 import type { Database, MomentDetailRow } from './database.types';
 
 type SB = SupabaseClient<Database>;
 
 // ─── ROW → DOMAIN MAPPERS ────────────────────────────────────────────────────
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function rowToSpark(r: any): Spark {
+  return {
+    id: r.id,
+    title: r.title,
+    description: r.description,
+    body: r.body,
+    category: r.category,
+    gameType: r.game_type,
+    estimatedMinutes: r.estimated_minutes,
+    minPlayers: r.min_players,
+    maxPlayers: r.max_players,
+    requiresPhoto: r.requires_photo,
+    requiresConversation: r.requires_conversation,
+    requiresLocation: r.requires_location,
+    holiday: r.holiday ?? undefined,
+    season: r.season ?? undefined,
+    relationshipTypes: r.relationship_types ?? [],
+    memoryPotential: r.memory_potential,
+    conversationScore: r.conversation_score,
+    emotionalWeight: r.emotional_weight,
+    noveltyScore: r.novelty_score,
+    completionCta: r.completion_cta,
+    prompts: r.prompts ?? undefined,
+    tags: r.tags ?? [],
+  };
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function rowToSparkDelivery(r: any): SparkDelivery {
+  return {
+    id: r.delivery_id ?? r.id,
+    sparkId: r.spark_id,
+    spark: rowToSpark(r),
+    userId: r.user_id,
+    status: r.status,
+    deliveredAt: r.delivered_at,
+    acceptedAt: r.accepted_at ?? undefined,
+    completedAt: r.completed_at ?? undefined,
+    resultMomentId: r.result_moment_id ?? undefined,
+    recommendationReason: r.recommendation_reason ?? undefined,
+  };
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function rowToSparkDeliveryFromJoin(r: any): SparkDelivery {
+  return {
+    id: r.id,
+    sparkId: r.spark_id,
+    spark: rowToSpark(r.spark),
+    userId: r.user_id,
+    status: r.status,
+    deliveredAt: r.delivered_at,
+    acceptedAt: r.accepted_at ?? undefined,
+    completedAt: r.completed_at ?? undefined,
+    resultMomentId: r.result_moment_id ?? undefined,
+    recommendationReason: r.recommendation_reason ?? undefined,
+  };
+}
 
 function rowToMoment(row: MomentDetailRow, myReactions: Record<string, boolean> = {}): Moment {
   const reactions: MomentReaction[] = Object.entries(row.reaction_counts).map(
@@ -369,6 +432,132 @@ export class SupabaseMomentsApi implements MomentsApi {
         caption: r.caption ?? undefined,
         createdAt: r.created_at,
       }));
+  }
+
+  // ── Sparks ────────────────────────────────────────────────────────────────
+
+  async getTodaySpark(): Promise<SparkDelivery | null> {
+    const { data: { user } } = await this.sb.auth.getUser();
+    if (!user) return null;
+
+    const rows = await this.sb.rpc('get_today_spark', { p_user_id: user.id });
+    if (rows.error || !rows.data || rows.data.length === 0) return null;
+
+    const r = rows.data[0];
+    return rowToSparkDelivery(r);
+  }
+
+  async acceptSpark(deliveryId: string): Promise<void> {
+    const { error } = await this.sb
+      .from('spark_deliveries')
+      .update({ status: 'accepted', accepted_at: new Date().toISOString() })
+      .eq('id', deliveryId);
+    if (error) throw error;
+  }
+
+  async dismissSpark(deliveryId: string): Promise<void> {
+    const { error } = await this.sb
+      .from('spark_deliveries')
+      .update({ status: 'dismissed' })
+      .eq('id', deliveryId);
+    if (error) throw error;
+  }
+
+  async completeSpark(deliveryId: string, momentId?: string): Promise<void> {
+    const { error } = await this.sb
+      .from('spark_deliveries')
+      .update({
+        status: 'completed',
+        completed_at: new Date().toISOString(),
+        ...(momentId ? { result_moment_id: momentId } : {}),
+      })
+      .eq('id', deliveryId);
+    if (error) throw error;
+  }
+
+  async getSparkHistory(limit = 20): Promise<SparkDelivery[]> {
+    const { data: { user } } = await this.sb.auth.getUser();
+    if (!user) return [];
+
+    const { data, error } = await this.sb
+      .from('spark_deliveries')
+      .select(`
+        id, spark_id, user_id, status, delivered_at, accepted_at, completed_at,
+        result_moment_id, recommendation_reason,
+        spark:spark_library (*)
+      `)
+      .eq('user_id', user.id)
+      .order('delivered_at', { ascending: false })
+      .limit(limit);
+
+    if (error) throw error;
+    return (data ?? []).map(rowToSparkDeliveryFromJoin);
+  }
+
+  async getSparkSettings(): Promise<SparkSettings> {
+    const { data: { user } } = await this.sb.auth.getUser();
+    if (!user) throw new Error('Not authenticated');
+
+    const { data, error } = await this.sb
+      .from('spark_settings')
+      .select('*')
+      .eq('user_id', user.id)
+      .single();
+
+    if (error || !data) {
+      // Return defaults
+      return {
+        userId: user.id,
+        enabled: true,
+        frequencyPerWeek: 3,
+        quietHoursStart: '22:00',
+        quietHoursEnd: '08:00',
+        enabledCategories: ['conversation', 'memory', 'relationship', 'family', 'couple', 'seasonal', 'photo', 'creative', 'discovery'],
+        allowLocation: true,
+        allowWeather: true,
+        allowHolidays: true,
+        allowRelationship: true,
+        allowAiPersonalization: true,
+      };
+    }
+
+    return {
+      userId: data.user_id,
+      enabled: data.enabled,
+      frequencyPerWeek: data.frequency_per_week,
+      quietHoursStart: data.quiet_hours_start,
+      quietHoursEnd: data.quiet_hours_end,
+      enabledCategories: data.enabled_categories as SparkSettings['enabledCategories'],
+      allowLocation: data.allow_location,
+      allowWeather: data.allow_weather,
+      allowHolidays: data.allow_holidays,
+      allowRelationship: data.allow_relationship,
+      allowAiPersonalization: data.allow_ai_personalization,
+    };
+  }
+
+  async updateSparkSettings(settings: Partial<SparkSettings>): Promise<SparkSettings> {
+    const { data: { user } } = await this.sb.auth.getUser();
+    if (!user) throw new Error('Not authenticated');
+
+    const upsertData = {
+      user_id: user.id,
+      ...(settings.enabled !== undefined ? { enabled: settings.enabled } : {}),
+      ...(settings.frequencyPerWeek !== undefined ? { frequency_per_week: settings.frequencyPerWeek } : {}),
+      ...(settings.quietHoursStart !== undefined ? { quiet_hours_start: settings.quietHoursStart } : {}),
+      ...(settings.quietHoursEnd !== undefined ? { quiet_hours_end: settings.quietHoursEnd } : {}),
+      ...(settings.enabledCategories !== undefined ? { enabled_categories: settings.enabledCategories } : {}),
+      ...(settings.allowLocation !== undefined ? { allow_location: settings.allowLocation } : {}),
+      ...(settings.allowWeather !== undefined ? { allow_weather: settings.allowWeather } : {}),
+      ...(settings.allowHolidays !== undefined ? { allow_holidays: settings.allowHolidays } : {}),
+      ...(settings.allowRelationship !== undefined ? { allow_relationship: settings.allowRelationship } : {}),
+      ...(settings.allowAiPersonalization !== undefined ? { allow_ai_personalization: settings.allowAiPersonalization } : {}),
+    };
+
+    const { error } = await this.sb.from('spark_settings').upsert(upsertData);
+    if (error) throw error;
+
+    return this.getSparkSettings();
   }
 
   // ── Storage ───────────────────────────────────────────────────────────────

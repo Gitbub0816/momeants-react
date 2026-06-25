@@ -6,6 +6,7 @@ import type {
 } from './moment';
 import type { UserProfile, OnboardingData } from './user';
 import type { CircleMember, CircleMoment } from './circle';
+import type { SparkDelivery, SparkSettings } from './spark';
 
 export interface MomentsApi {
   // Moments
@@ -29,4 +30,13 @@ export interface MomentsApi {
   signUpWithEmail(email: string, password: string): Promise<{ userId: string }>;
   signOut(): Promise<void>;
   completeOnboarding(data: OnboardingData): Promise<UserProfile>;
+
+  // Sparks
+  getTodaySpark(): Promise<SparkDelivery | null>;
+  acceptSpark(deliveryId: string): Promise<void>;
+  dismissSpark(deliveryId: string): Promise<void>;
+  completeSpark(deliveryId: string, momentId?: string): Promise<void>;
+  getSparkHistory(limit?: number): Promise<SparkDelivery[]>;
+  getSparkSettings(): Promise<SparkSettings>;
+  updateSparkSettings(settings: Partial<SparkSettings>): Promise<SparkSettings>;
 }

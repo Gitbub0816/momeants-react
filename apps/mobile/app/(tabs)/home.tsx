@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
-import type { Moment, CircleMember } from '@momeants/types';
+import type { Moment, CircleMember, SparkDelivery } from '@momeants/types';
 import { ScreenShell } from '../../src/components/core';
 import { MemoryHeroCard, MemoryMiniCard } from '../../src/components/memory';
 import { CloseCircleStrip } from '../../src/components/circle';
+import { SparkCard } from '../../src/components/spark/SparkCard';
 import { useApi } from '../../src/context/ApiContext';
 import { colors, fontFamily, fontSize, spacing } from '@momeants/design';
 
@@ -13,18 +14,21 @@ export default function HomeScreen() {
   const [recent, setRecent] = useState<Moment[]>([]);
   const [resurfaced, setResurfaced] = useState<Moment | null>(null);
   const [circleMembers, setCircleMembers] = useState<CircleMember[]>([]);
+  const [spark, setSpark] = useState<SparkDelivery | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function load() {
-      const [home, members] = await Promise.all([
+      const [home, members, todaySpark] = await Promise.all([
         api.listHomeMoments(),
         api.listCircleMembers(),
+        api.getTodaySpark(),
       ]);
       setHero(home.hero);
       setRecent(home.recent);
       setResurfaced(home.resurfaced ?? null);
       setCircleMembers(members);
+      setSpark(todaySpark);
       setLoading(false);
     }
     load();
@@ -47,6 +51,17 @@ export default function HomeScreen() {
         contentContainerStyle={styles.scroll}
       >
         <Text style={styles.wordmark}>momeants</Text>
+
+        {spark && spark.status !== 'dismissed' && spark.status !== 'completed' && (
+          <SparkCard
+            delivery={spark}
+            onAccept={(id) => api.acceptSpark(id)}
+            onDismiss={(id) => {
+              api.dismissSpark(id);
+              setSpark(null);
+            }}
+          />
+        )}
 
         {resurfaced && (
           <View style={styles.section}>

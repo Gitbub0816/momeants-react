@@ -11,9 +11,20 @@
     "build:types": "yarn workspace @momeants/types build",
     "build:design": "yarn workspace @momeants/design build",
     "build:utils": "yarn workspace @momeants/utils build",
-    "build:packages": "yarn build:types && yarn build:design && yarn build:utils"
+    "build:packages": "yarn build:types && yarn build:design && yarn build:utils",
+    "lint": "eslint . --ext .ts,.tsx --max-warnings 0",
+    "lint:fix": "eslint . --ext .ts,.tsx --fix",
+    "format": "prettier --write \"**/*.{ts,tsx,js,json,md}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,json,md}\""
   },
   "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0",
+    "eslint": "^8.57.0",
+    "eslint-config-prettier": "^9.0.0",
+    "eslint-plugin-react": "^7.34.0",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "prettier": "^3.2.0",
     "typescript": "^5.3.0"
   }
 }

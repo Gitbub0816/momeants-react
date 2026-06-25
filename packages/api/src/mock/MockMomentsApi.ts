@@ -8,6 +8,8 @@ import type {
   OnboardingData,
   CircleMember,
   CircleMoment,
+  SparkDelivery,
+  SparkSettings,
 } from '@momeants/types';
 import {
   MOCK_MOMENTS,
@@ -15,6 +17,7 @@ import {
   MOCK_CIRCLE_MOMENTS,
   MOCK_PROFILE,
 } from './data';
+import { SPARK_LIBRARY, DEFAULT_SPARK_SETTINGS } from './sparks';
 
 function delay(ms = 400): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -22,6 +25,8 @@ function delay(ms = 400): Promise<void> {
 
 export class MockMomentsApi implements MomentsApi {
   private moments: Moment[] = [...MOCK_MOMENTS];
+  private sparkDeliveries: SparkDelivery[] = [];
+  private sparkSettings: SparkSettings = { ...DEFAULT_SPARK_SETTINGS };
 
   async createMoment(input: CreateMomentInput): Promise<Moment> {
     await delay();
@@ -145,5 +150,75 @@ export class MockMomentsApi implements MomentsApi {
   async completeOnboarding(_data: OnboardingData): Promise<UserProfile> {
     await delay(500);
     return MOCK_PROFILE;
+  }
+
+  async getTodaySpark(): Promise<SparkDelivery | null> {
+    await delay(300);
+    const today = new Date().toISOString().split('T')[0];
+    const existing = this.sparkDeliveries.find(
+      (d) =>
+        d.deliveredAt.startsWith(today) &&
+        (d.status === 'pending' || d.status === 'accepted')
+    );
+    if (existing) return existing;
+
+    // Deliver a new spark — pick one not recently seen
+    const recentIds = this.sparkDeliveries.map((d) => d.sparkId);
+    const eligible = SPARK_LIBRARY.filter((s) => !recentIds.includes(s.id));
+    const pool = eligible.length > 0 ? eligible : SPARK_LIBRARY;
+    const spark = pool[Math.floor(Math.random() * pool.length)];
+
+    const delivery: SparkDelivery = {
+      id: `delivery-${Date.now()}`,
+      sparkId: spark.id,
+      spark,
+      userId: 'me',
+      status: 'pending',
+      deliveredAt: new Date().toISOString(),
+      recommendationReason: 'A little nudge to create something meaningful',
+    };
+    this.sparkDeliveries.unshift(delivery);
+    return delivery;
+  }
+
+  async acceptSpark(deliveryId: string): Promise<void> {
+    await delay(150);
+    const d = this.sparkDeliveries.find((x) => x.id === deliveryId);
+    if (d) {
+      d.status = 'accepted';
+      d.acceptedAt = new Date().toISOString();
+    }
+  }
+
+  async dismissSpark(deliveryId: string): Promise<void> {
+    await delay(150);
+    const d = this.sparkDeliveries.find((x) => x.id === deliveryId);
+    if (d) d.status = 'dismissed';
+  }
+
+  async completeSpark(deliveryId: string, momentId?: string): Promise<void> {
+    await delay(200);
+    const d = this.sparkDeliveries.find((x) => x.id === deliveryId);
+    if (d) {
+      d.status = 'completed';
+      d.completedAt = new Date().toISOString();
+      if (momentId) d.resultMomentId = momentId;
+    }
+  }
+
+  async getSparkHistory(limit = 20): Promise<SparkDelivery[]> {
+    await delay(300);
+    return this.sparkDeliveries.slice(0, limit);
+  }
+
+  async getSparkSettings(): Promise<SparkSettings> {
+    await delay(200);
+    return { ...this.sparkSettings };
+  }
+
+  async updateSparkSettings(settings: Partial<SparkSettings>): Promise<SparkSettings> {
+    await delay(300);
+    this.sparkSettings = { ...this.sparkSettings, ...settings };
+    return { ...this.sparkSettings };
   }
 }

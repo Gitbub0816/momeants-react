@@ -72,6 +72,7 @@ export default function YouScreen() {
               { label: 'Edit profile', icon: '○', route: '/edit-profile' },
               { label: 'Privacy & visibility', icon: '🔒', route: '/edit-profile' },
               { label: 'Resurfacing controls', icon: '✦', route: '/resurfacing-controls' },
+              { label: 'Spark settings', icon: '⚡', route: '/spark-settings' },
               { label: 'Notifications', icon: '◎', route: '/notifications' },
             ].map((item, i) => (
               <TouchableOpacity
