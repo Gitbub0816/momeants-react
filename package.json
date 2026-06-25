@@ -10,7 +10,8 @@
     "web": "yarn workspace @momeants/web dev",
     "build:types": "yarn workspace @momeants/types build",
     "build:design": "yarn workspace @momeants/design build",
-    "build:packages": "yarn build:types && yarn build:design"
+    "build:utils": "yarn workspace @momeants/utils build",
+    "build:packages": "yarn build:types && yarn build:design && yarn build:utils"
   },
   "devDependencies": {
     "typescript": "^5.3.0"

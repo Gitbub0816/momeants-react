@@ -32,7 +32,7 @@ export default function UsernameScreen() {
           <View style={styles.actions}>
             <MomeantsButton
               label="Continue"
-              onPress={() => router.push('/(onboarding)/privacy-promise')}
+              onPress={() => router.push('/(onboarding)/avatar')}
               disabled={username.length < 3}
             />
           </View>

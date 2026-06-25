@@ -1,1 +1,38 @@
 .claude/
+
+# Dependencies
+node_modules/
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/install-state.gz
+
+# Expo
+.expo/
+dist/
+web-build/
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.orig.*
+
+# Environment secrets
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# Build output
+build/
+.next/
+out/
+
+# OS
+.DS_Store
+*.log
+
+# Supabase local dev
+supabase/.branches
+supabase/.temp

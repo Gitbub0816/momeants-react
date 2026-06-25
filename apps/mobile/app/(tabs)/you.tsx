@@ -1,17 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
-import type { UserProfile } from '@momeants/types';
+import { useRouter } from 'expo-router';
+import type { UserProfile, MoodTag } from '@momeants/types';
 import { ScreenShell, GlassCard } from '../../src/components/core';
 import { CircleAvatar } from '../../src/components/circle';
 import { MoodPill } from '../../src/components/memory';
 import { useApi } from '../../src/context/ApiContext';
 import { useAuth } from '../../src/context/AuthContext';
 import { colors, fontFamily, fontSize, spacing, radii } from '@momeants/design';
-import type { MoodTag } from '@momeants/types';
 
 export default function YouScreen() {
   const api = useApi();
   const { signOut } = useAuth();
+  const router = useRouter();
   const [profile, setProfile] = useState<UserProfile | null>(null);
 
   useEffect(() => {
@@ -68,13 +69,14 @@ export default function YouScreen() {
           <Text style={styles.sectionTitle}>Settings</Text>
           <GlassCard style={styles.settingsCard}>
             {[
-              { label: 'Edit profile', icon: '○' },
-              { label: 'Privacy & visibility', icon: '🔒' },
-              { label: 'Resurfacing controls', icon: '✦' },
-              { label: 'Notifications', icon: '◎' },
+              { label: 'Edit profile', icon: '○', route: '/edit-profile' },
+              { label: 'Privacy & visibility', icon: '🔒', route: '/edit-profile' },
+              { label: 'Resurfacing controls', icon: '✦', route: '/resurfacing-controls' },
+              { label: 'Notifications', icon: '◎', route: '/notifications' },
             ].map((item, i) => (
               <TouchableOpacity
                 key={item.label}
+                onPress={() => item.route && router.push(item.route as any)}
                 style={[styles.settingsRow, i > 0 && styles.settingsBorder]}
                 accessibilityRole="button"
                 accessibilityLabel={item.label}
