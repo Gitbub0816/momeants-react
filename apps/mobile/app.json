@@ -1,0 +1,45 @@
+{
+  "expo": {
+    "name": "Momeants",
+    "slug": "momeants",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "scheme": "momeants",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#050711",
+    "splash": {
+      "backgroundColor": "#050711",
+      "resizeMode": "contain"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.momeants.app"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#050711"
+      },
+      "package": "com.momeants.app"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-font",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Momeants accesses your photos to let you capture moments."
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Momeants uses your camera to capture moments."
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}

@@ -1,0 +1,32 @@
+import type {
+  Moment,
+  CreateMomentInput,
+  TimelineGroup,
+  TimelineParams,
+} from './moment';
+import type { UserProfile, OnboardingData } from './user';
+import type { CircleMember, CircleMoment } from './circle';
+
+export interface MomentsApi {
+  // Moments
+  createMoment(input: CreateMomentInput): Promise<Moment>;
+  getMoment(id: string): Promise<Moment>;
+  listHomeMoments(): Promise<{ hero: Moment; recent: Moment[]; resurfaced?: Moment }>;
+  listTimeline(params: TimelineParams): Promise<TimelineGroup[]>;
+  reactToMoment(momentId: string, emoji: string): Promise<void>;
+  commentOnMoment(momentId: string, text: string): Promise<void>;
+
+  // Circle
+  listCircleMembers(): Promise<CircleMember[]>;
+  listCircleMoments(): Promise<CircleMoment[]>;
+
+  // Profile
+  getProfile(userId?: string): Promise<UserProfile>;
+  updateProfile(data: Partial<OnboardingData>): Promise<UserProfile>;
+
+  // Auth
+  signInWithEmail(email: string, password: string): Promise<{ userId: string }>;
+  signUpWithEmail(email: string, password: string): Promise<{ userId: string }>;
+  signOut(): Promise<void>;
+  completeOnboarding(data: OnboardingData): Promise<UserProfile>;
+}
