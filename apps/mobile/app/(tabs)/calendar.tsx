@@ -1,16 +1,17 @@
-import React, { useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  RefreshControl,
 } from 'react-native';
-import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { ScreenShell } from '../../src/components/core';
-import { DEMO_CALENDAR_EVENTS } from '../../src/demo/calendar';
+import { Skeleton } from '../../src/components/core/SkeletonLoader';
+import { useApi } from '../../src/context/ApiContext';
 import type { CalendarEvent } from '@momeants/types';
 import { colors } from '@momeants/design/src/colors';
 import { spacing, radii } from '@momeants/design/src/spacing';
@@ -49,17 +50,11 @@ function EventCard({ event }: { event: CalendarEvent }) {
     >
       <View style={styles.eventLeft}>
         <Text style={styles.eventEmoji}>{event.emoji ?? '📅'}</Text>
-        <View>
+        <View style={{ flex: 1 }}>
           <Text style={styles.eventTitle}>{event.title}</Text>
-          {event.description ? (
-            <Text style={styles.eventDesc}>{event.description}</Text>
-          ) : null}
-          {event.personName ? (
-            <Text style={styles.eventSub}>{event.personName}</Text>
-          ) : null}
-          {event.cliqueName ? (
-            <Text style={styles.eventSub}>{event.cliqueName}</Text>
-          ) : null}
+          {event.description ? <Text style={styles.eventSub}>{event.description}</Text> : null}
+          {event.personName ? <Text style={styles.eventSub}>{event.personName}</Text> : null}
+          {event.cliqueName ? <Text style={styles.eventSub}>{event.cliqueName}</Text> : null}
         </View>
       </View>
       <View style={styles.eventRight}>
@@ -75,28 +70,66 @@ function EventCard({ event }: { event: CalendarEvent }) {
 }
 
 export default function CalendarScreen() {
+  const api = useApi();
   const now = new Date();
+  const [events, setEvents] = useState<CalendarEvent[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [selectedMonth, setSelectedMonth] = useState(now.getMonth());
   const year = now.getFullYear();
 
-  const monthEvents = useMemo(() => {
-    return DEMO_CALENDAR_EVENTS.filter((e) => {
-      const m = new Date(e.date + 'T00:00:00').getMonth();
-      return m === selectedMonth;
-    }).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-  }, [selectedMonth]);
+  async function load() {
+    const evts = await api.listCalendarEvents();
+    setEvents(evts);
+  }
 
-  const upcoming = useMemo(() => {
-    const today = Date.now();
-    return DEMO_CALENDAR_EVENTS
-      .filter((e) => new Date(e.date + 'T00:00:00').getTime() >= today)
-      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-      .slice(0, 5);
+  useEffect(() => {
+    load().finally(() => setLoading(false));
   }, []);
+
+  async function onRefresh() {
+    setRefreshing(true);
+    await load();
+    setRefreshing(false);
+  }
+
+  const monthEvents = useMemo(
+    () =>
+      events
+        .filter((e) => new Date(e.date + 'T00:00:00').getMonth() === selectedMonth)
+        .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()),
+    [events, selectedMonth]
+  );
+
+  const upcoming = useMemo(
+    () =>
+      events
+        .filter((e) => new Date(e.date + 'T00:00:00').getTime() >= Date.now())
+        .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+        .slice(0, 5),
+    [events]
+  );
+
+  if (loading) {
+    return (
+      <ScreenShell edges={['top']}>
+        <Text style={[styles.title, { paddingHorizontal: spacing.lg, paddingTop: spacing.md }]}>Calendar</Text>
+        <View style={{ padding: spacing.lg, gap: spacing.sm }}>
+          {[0, 1, 2].map((i) => <Skeleton key={i} height={72} borderRadius={16} />)}
+        </View>
+      </ScreenShell>
+    );
+  }
 
   return (
     <ScreenShell edges={['top']}>
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scroll}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.auraPurple} />
+        }
+      >
         <Text style={styles.title}>Calendar</Text>
         <Text style={styles.subtitle}>Moments that matter, every day.</Text>
 
@@ -124,17 +157,13 @@ export default function CalendarScreen() {
           ))}
         </ScrollView>
 
-        {/* Upcoming next */}
         {upcoming.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Coming Up</Text>
-            {upcoming.slice(0, 3).map((e) => (
-              <EventCard key={e.id} event={e} />
-            ))}
+            {upcoming.slice(0, 3).map((e) => <EventCard key={e.id} event={e} />)}
           </View>
         )}
 
-        {/* Month events */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>{MONTH_NAMES[selectedMonth]} {year}</Text>
           {monthEvents.length === 0 ? (
@@ -154,19 +183,8 @@ export default function CalendarScreen() {
 
 const styles = StyleSheet.create({
   scroll: { paddingTop: spacing.md, gap: spacing.xl, paddingBottom: 40 },
-  title: {
-    color: colors.textPrimary,
-    fontFamily: 'PlayfairDisplay_700Bold',
-    fontSize: fontSize.title,
-    paddingHorizontal: spacing.lg,
-  },
-  subtitle: {
-    color: colors.textMuted,
-    fontFamily: fontFamily.sans,
-    fontSize: fontSize.sm,
-    paddingHorizontal: spacing.lg,
-    marginTop: -spacing.md,
-  },
+  title: { color: colors.textPrimary, fontFamily: 'PlayfairDisplay_700Bold', fontSize: fontSize.title, paddingHorizontal: spacing.lg },
+  subtitle: { color: colors.textMuted, fontFamily: fontFamily.sans, fontSize: fontSize.sm, paddingHorizontal: spacing.lg, marginTop: -spacing.md },
   monthRailWrap: { maxHeight: 52 },
   monthRail: { paddingHorizontal: spacing.lg, gap: spacing.sm, alignItems: 'center' },
   monthChip: {
@@ -182,12 +200,7 @@ const styles = StyleSheet.create({
   monthText: { color: colors.textMuted, fontFamily: fontFamily.sansMedium, fontSize: fontSize.caption },
   monthTextActive: { color: colors.auraPurple },
   section: { gap: spacing.sm, paddingHorizontal: spacing.lg },
-  sectionTitle: {
-    color: colors.textSecondary,
-    fontFamily: fontFamily.sansSemiBold,
-    fontSize: fontSize.section,
-    marginBottom: spacing.xs,
-  },
+  sectionTitle: { color: colors.textSecondary, fontFamily: fontFamily.sansSemiBold, fontSize: fontSize.section, marginBottom: spacing.xs },
   eventCard: {
     backgroundColor: 'rgba(255,255,255,0.05)',
     borderRadius: radii.lg,
@@ -202,8 +215,7 @@ const styles = StyleSheet.create({
   eventLeft: { flexDirection: 'row', gap: spacing.sm, alignItems: 'center', flex: 1 },
   eventEmoji: { fontSize: 24, width: 32, textAlign: 'center' },
   eventTitle: { color: colors.textPrimary, fontFamily: fontFamily.sansMedium, fontSize: fontSize.md },
-  eventDesc: { color: colors.textMuted, fontFamily: fontFamily.sans, fontSize: fontSize.xs, marginTop: 2 },
-  eventSub: { color: colors.textMuted, fontFamily: fontFamily.sans, fontSize: fontSize.xs, marginTop: 1 },
+  eventSub: { color: colors.textMuted, fontFamily: fontFamily.sans, fontSize: fontSize.xs, marginTop: 2 },
   eventRight: { alignItems: 'flex-end', gap: 2 },
   eventDate: { fontFamily: fontFamily.sansMedium, fontSize: fontSize.sm },
   eventCountdown: {
@@ -215,10 +227,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 6,
     paddingVertical: 2,
   },
-  emptyMonth: {
-    paddingVertical: spacing.xl,
-    alignItems: 'center',
-  },
+  emptyMonth: { paddingVertical: spacing.xl, alignItems: 'center' },
   emptyText: { color: colors.textMuted, fontFamily: fontFamily.sans, fontSize: fontSize.sm },
   tabBarSpacer: { height: 120 },
 });

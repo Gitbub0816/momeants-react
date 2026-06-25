@@ -70,9 +70,10 @@ export default function YouScreen() {
           <GlassCard style={styles.settingsCard}>
             {[
               { label: 'Edit profile', icon: '○', route: '/edit-profile' },
-              { label: 'Privacy & visibility', icon: '🔒', route: '/edit-profile' },
+              { label: 'Privacy & visibility', icon: '🔒', route: '/privacy' },
               { label: 'Resurfacing controls', icon: '✦', route: '/resurfacing-controls' },
               { label: 'Spark settings', icon: '⚡', route: '/spark-settings' },
+              { label: 'Browse sparks', icon: '⚡', route: '/sparks' },
               { label: 'Notifications', icon: '◎', route: '/notifications' },
               { label: 'Delete account', icon: '⚠', route: '/delete-account' },
             ].map((item, i) => (

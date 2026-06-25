@@ -10,6 +10,9 @@ import type {
   CircleMoment,
   SparkDelivery,
   SparkSettings,
+  Conversation,
+  Message,
+  CalendarEvent,
 } from '@momeants/types';
 import {
   MOCK_MOMENTS,
@@ -18,6 +21,7 @@ import {
   MOCK_PROFILE,
 } from './data';
 import { SPARK_LIBRARY, DEFAULT_SPARK_SETTINGS } from './sparks';
+import { MOCK_CONVERSATIONS, MOCK_MESSAGES_BY_CONVO, MOCK_CALENDAR_EVENTS } from './messaging';
 
 function delay(ms = 400): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -220,5 +224,41 @@ export class MockMomentsApi implements MomentsApi {
     await delay(300);
     this.sparkSettings = { ...this.sparkSettings, ...settings };
     return { ...this.sparkSettings };
+  }
+
+  async listConversations(): Promise<Conversation[]> {
+    await delay(300);
+    return MOCK_CONVERSATIONS;
+  }
+
+  async getConversation(id: string): Promise<Conversation | null> {
+    await delay(200);
+    const convo = MOCK_CONVERSATIONS.find((c) => c.id === id) ?? null;
+    if (!convo) return null;
+    return { ...convo, messages: MOCK_MESSAGES_BY_CONVO[id] ?? [] };
+  }
+
+  async sendMessage(conversationId: string, text: string): Promise<Message> {
+    await delay(200);
+    const msg: Message = {
+      id: `msg-${Date.now()}`,
+      conversationId,
+      senderId: 'me',
+      senderName: 'Me',
+      type: 'text',
+      text,
+      sentAt: new Date().toISOString(),
+      isFromMe: true,
+    };
+    if (!MOCK_MESSAGES_BY_CONVO[conversationId]) {
+      MOCK_MESSAGES_BY_CONVO[conversationId] = [];
+    }
+    MOCK_MESSAGES_BY_CONVO[conversationId].push(msg);
+    return msg;
+  }
+
+  async listCalendarEvents(): Promise<CalendarEvent[]> {
+    await delay(300);
+    return MOCK_CALENDAR_EVENTS;
   }
 }

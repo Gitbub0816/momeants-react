@@ -1,17 +1,19 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   FlatList,
   TouchableOpacity,
+  RefreshControl,
 } from 'react-native';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { ScreenShell } from '../../src/components/core';
 import { EmptyState } from '../../src/components/core/EmptyState';
-import { DEMO_CONVERSATIONS } from '../../src/demo/messages';
+import { Skeleton } from '../../src/components/core/SkeletonLoader';
+import { useApi } from '../../src/context/ApiContext';
 import type { Conversation } from '@momeants/types';
 import { colors } from '@momeants/design/src/colors';
 import { spacing, radii } from '@momeants/design/src/spacing';
@@ -19,10 +21,7 @@ import { fontSize, fontFamily } from '@momeants/design/src/typography';
 
 function ConversationItem({ conv }: { conv: Conversation }) {
   const router = useRouter();
-  const isGroup = conv.participantIds.length > 2;
-  const otherNames = conv.participantNames.filter((_, i) =>
-    conv.participantIds[i] !== 'me'
-  );
+  const otherNames = conv.participantNames.filter((_, i) => conv.participantIds[i] !== 'me');
   const displayName = conv.cliqueName ?? otherNames.join(', ');
   const avatarUri = conv.participantAvatarUris?.find((u) => u);
   const time = conv.lastMessageAt
@@ -48,9 +47,7 @@ function ConversationItem({ conv }: { conv: Conversation }) {
             <Text style={styles.avatarInitial}>{displayName[0]}</Text>
           </View>
         )}
-        {conv.unreadCount > 0 && (
-          <View style={styles.unreadDot} />
-        )}
+        {conv.unreadCount > 0 && <View style={styles.unreadDot} />}
       </View>
 
       <View style={styles.itemBody}>
@@ -63,7 +60,7 @@ function ConversationItem({ conv }: { conv: Conversation }) {
         <Text style={[styles.itemPreview, conv.unreadCount > 0 && styles.itemPreviewBold]} numberOfLines={1}>
           {conv.lastMessage}
         </Text>
-        {isGroup && conv.cliqueName && (
+        {conv.cliqueName && (
           <Text style={styles.groupTag}>{conv.cliqueName}</Text>
         )}
       </View>
@@ -72,17 +69,52 @@ function ConversationItem({ conv }: { conv: Conversation }) {
 }
 
 export default function MessagesScreen() {
-  const conversations = DEMO_CONVERSATIONS;
+  const api = useApi();
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  async function load() {
+    const convos = await api.listConversations();
+    setConversations(convos);
+  }
+
+  useEffect(() => {
+    load().finally(() => setLoading(false));
+  }, []);
+
+  async function onRefresh() {
+    setRefreshing(true);
+    await load();
+    setRefreshing(false);
+  }
+
+  const totalUnread = conversations.reduce((s, c) => s + c.unreadCount, 0);
+
+  if (loading) {
+    return (
+      <ScreenShell edges={['top']}>
+        <View style={styles.header}>
+          <Text style={styles.title}>Messages</Text>
+        </View>
+        <View style={{ padding: spacing.lg, gap: spacing.md }}>
+          {[0, 1, 2].map((i) => (
+            <Skeleton key={i} height={72} borderRadius={16} />
+          ))}
+        </View>
+      </ScreenShell>
+    );
+  }
 
   return (
     <ScreenShell edges={['top']}>
       <View style={styles.header}>
         <Text style={styles.title}>Messages</Text>
-        <View style={styles.unreadBadge}>
-          <Text style={styles.unreadCount}>
-            {conversations.reduce((s, c) => s + c.unreadCount, 0)}
-          </Text>
-        </View>
+        {totalUnread > 0 && (
+          <View style={styles.unreadBadge}>
+            <Text style={styles.unreadCount}>{totalUnread}</Text>
+          </View>
+        )}
       </View>
 
       {conversations.length === 0 ? (
@@ -99,6 +131,9 @@ export default function MessagesScreen() {
           ItemSeparatorComponent={() => <View style={styles.separator} />}
           contentContainerStyle={styles.list}
           showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.auraPurple} />
+          }
         />
       )}
     </ScreenShell>
@@ -114,11 +149,7 @@ const styles = StyleSheet.create({
     paddingTop: spacing.md,
     paddingBottom: spacing.sm,
   },
-  title: {
-    color: colors.textPrimary,
-    fontFamily: 'PlayfairDisplay_700Bold',
-    fontSize: fontSize.title,
-  },
+  title: { color: colors.textPrimary, fontFamily: 'PlayfairDisplay_700Bold', fontSize: fontSize.title },
   unreadBadge: {
     backgroundColor: colors.auraPurple,
     borderRadius: radii.full,
@@ -129,7 +160,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 6,
   },
   unreadCount: { color: '#fff', fontSize: 11, fontFamily: fontFamily.sansMedium },
-  list: { paddingVertical: spacing.sm },
+  list: { paddingVertical: spacing.sm, paddingBottom: 120 },
   item: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -167,11 +198,10 @@ const styles = StyleSheet.create({
   itemTime: { color: colors.textMuted, fontFamily: fontFamily.sans, fontSize: fontSize.xs },
   itemPreview: { color: colors.textMuted, fontFamily: fontFamily.sans, fontSize: fontSize.sm, lineHeight: 18 },
   itemPreviewBold: { color: colors.textSecondary },
-  groupTag: {
-    color: colors.auraPurple,
-    fontFamily: fontFamily.sans,
-    fontSize: fontSize.micro,
-    marginTop: 2,
+  groupTag: { color: colors.auraPurple, fontFamily: fontFamily.sans, fontSize: fontSize.micro, marginTop: 2 },
+  separator: {
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    marginLeft: 52 + spacing.lg + spacing.md,
   },
-  separator: { height: StyleSheet.hairlineWidth, backgroundColor: 'rgba(255,255,255,0.06)', marginLeft: 52 + spacing.lg + spacing.md },
 });

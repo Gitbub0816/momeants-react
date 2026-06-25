@@ -1,54 +1,76 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, StyleSheet } from 'react-native';
-import type { CircleMember, CircleMoment } from '@momeants/types';
-import { ScreenShell, EmptyState, CircleAvatarSkeleton, Skeleton } from '../../src/components/core';
-import { CircleAvatar, CircleMomentCard } from '../../src/components/circle';
-import { useApi } from '../../src/context/ApiContext';
-import { colors, fontFamily, fontSize, spacing } from '@momeants/design';
+import {
+  View,
+  Text,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  RefreshControl,
+} from 'react-native';
+import { useRouter } from 'expo-router';
+import * as Haptics from 'expo-haptics';
+import type { Clique } from '@momeants/types';
+import { ScreenShell, EmptyState, Skeleton } from '../../src/components/core';
+import { CliqueCard } from '../../src/components/clique/CliqueCard';
+import { DEMO_CLIQUES } from '../../src/demo/cliques';
+import { colors, fontFamily, fontSize, spacing, radii, gradients } from '@momeants/design';
+import { LinearGradient } from 'expo-linear-gradient';
 
-export default function CircleScreen() {
-  const api = useApi();
-  const [members, setMembers] = useState<CircleMember[]>([]);
-  const [circleMoments, setCircleMoments] = useState<CircleMoment[]>([]);
+export default function CliquesScreen() {
+  const router = useRouter();
+  const [cliques, setCliques] = useState<Clique[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  function loadCliques() {
+    // Simulate async data load
+    return new Promise<void>((resolve) => {
+      setTimeout(() => {
+        setCliques(DEMO_CLIQUES);
+        resolve();
+      }, 350);
+    });
+  }
 
   useEffect(() => {
-    Promise.all([api.listCircleMembers(), api.listCircleMoments()]).then(([m, cm]) => {
-      setMembers(m);
-      setCircleMoments(cm);
-      setLoading(false);
-    });
+    loadCliques().finally(() => setLoading(false));
   }, []);
+
+  async function onRefresh() {
+    setRefreshing(true);
+    await loadCliques();
+    setRefreshing(false);
+  }
 
   if (loading) {
     return (
       <ScreenShell edges={['top']}>
-        <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-          <Text style={styles.title}>Your Circle</Text>
-          <View style={styles.skeletonRow}>
-            {[0,1,2,3].map((i) => (
-              <View key={i} style={{ alignItems: 'center', gap: 6 }}>
-                <CircleAvatarSkeleton />
-                <Skeleton width={48} height={10} borderRadius={4} />
-              </View>
-            ))}
-          </View>
-          {[0,1,2].map((i) => (
-            <Skeleton key={i} height={140} borderRadius={20} style={{ marginBottom: 12 }} />
+        <View style={styles.header}>
+          <Text style={styles.title}>Cliques</Text>
+        </View>
+        <View style={styles.skeletonList}>
+          {[0, 1, 2].map((i) => (
+            <Skeleton key={i} height={130} borderRadius={20} style={{ marginBottom: spacing.sm }} />
           ))}
-        </ScrollView>
+        </View>
       </ScreenShell>
     );
   }
 
-  if (members.length === 0) {
+  if (cliques.length === 0) {
     return (
       <ScreenShell edges={['top']}>
+        <View style={styles.header}>
+          <Text style={styles.title}>Cliques</Text>
+        </View>
         <EmptyState
           icon="🫂"
-          title="Your circle is empty"
-          body="Invite the people who matter most to join your circle."
-          actionLabel="Find people"
+          title="No cliques yet"
+          body="Create a clique for your closest people — family, friends, a couple."
+          actionLabel="Create a clique"
+          onAction={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+          }}
         />
       </ScreenShell>
     );
@@ -56,39 +78,52 @@ export default function CircleScreen() {
 
   return (
     <ScreenShell edges={['top']}>
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
-        <Text style={styles.title}>Your Circle</Text>
-        <Text style={styles.subtitle}>The people who matter most.</Text>
-
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.membersRow}>
-          {members.map((member) => (
-            <View key={member.id} style={styles.memberItem}>
-              <CircleAvatar
-                name={member.displayName}
-                avatarUri={member.avatarUri}
-                size={64}
-                hasGlow={member.hasNewMoment}
-              />
-              <Text style={styles.memberName} numberOfLines={1}>
-                {member.displayName.split(' ')[0]}
-              </Text>
-              {member.relationship ? (
-                <Text style={styles.memberRelation} numberOfLines={1}>{member.relationship}</Text>
-              ) : null}
-            </View>
-          ))}
-        </ScrollView>
-
-        {circleMoments.length > 0 && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>From your circle</Text>
-            <View style={styles.momentsList}>
-              {circleMoments.map((cm) => (
-                <CircleMomentCard key={cm.momentId} circleMoment={cm} />
-              ))}
-            </View>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scroll}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={colors.auraPurple}
+          />
+        }
+      >
+        {/* Header */}
+        <View style={styles.header}>
+          <View>
+            <Text style={styles.title}>Cliques</Text>
+            <Text style={styles.subtitle}>{cliques.length} groups</Text>
           </View>
-        )}
+          <TouchableOpacity
+            onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)}
+            style={styles.newBtn}
+            accessibilityLabel="Create new clique"
+          >
+            <LinearGradient
+              colors={gradients.aura}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.newBtnGradient}
+            >
+              <Text style={styles.newBtnText}>+ New</Text>
+            </LinearGradient>
+          </TouchableOpacity>
+        </View>
+
+        {/* Clique cards */}
+        <View style={styles.cardList}>
+          {cliques.map((clique) => (
+            <CliqueCard
+              key={clique.id}
+              clique={clique}
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                router.push(`/clique/${clique.id}`);
+              }}
+            />
+          ))}
+        </View>
 
         <View style={styles.tabBarSpacer} />
       </ScrollView>
@@ -97,16 +132,41 @@ export default function CircleScreen() {
 }
 
 const styles = StyleSheet.create({
-  skeletonRow: { flexDirection: 'row', gap: spacing.lg, paddingVertical: spacing.sm },
-  scroll: { paddingTop: spacing.md, paddingHorizontal: spacing.lg, gap: spacing.xl },
-  title: { color: colors.textPrimary, fontFamily: 'PlayfairDisplay_700Bold', fontSize: fontSize.display },
-  subtitle: { color: colors.textMuted, fontFamily: fontFamily.sans, fontSize: fontSize.body, marginTop: -spacing.md },
-  membersRow: { gap: spacing.lg, paddingVertical: spacing.sm },
-  memberItem: { alignItems: 'center', gap: 6, width: 72 },
-  memberName: { color: colors.textSecondary, fontFamily: fontFamily.sansMedium, fontSize: fontSize.caption, textAlign: 'center' },
-  memberRelation: { color: colors.textMuted, fontFamily: fontFamily.sans, fontSize: fontSize.micro, textAlign: 'center' },
-  section: { gap: spacing.md },
-  sectionTitle: { color: colors.textSecondary, fontFamily: fontFamily.sansSemiBold, fontSize: fontSize.section },
-  momentsList: { gap: spacing.md },
+  scroll: { paddingTop: spacing.md, paddingHorizontal: spacing.lg },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
+    marginBottom: spacing.lg,
+  },
+  title: {
+    color: colors.textPrimary,
+    fontFamily: 'PlayfairDisplay_700Bold',
+    fontSize: fontSize.display,
+  },
+  subtitle: {
+    color: colors.textMuted,
+    fontFamily: fontFamily.sans,
+    fontSize: fontSize.caption,
+    marginTop: 2,
+  },
+  newBtn: {
+    borderRadius: radii.lg,
+    overflow: 'hidden',
+  },
+  newBtnGradient: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    minHeight: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  newBtnText: {
+    color: colors.textPrimary,
+    fontFamily: fontFamily.sansSemiBold,
+    fontSize: fontSize.body,
+  },
+  skeletonList: { paddingHorizontal: spacing.lg, paddingTop: spacing.sm },
+  cardList: { gap: spacing.md },
   tabBarSpacer: { height: 120 },
 });

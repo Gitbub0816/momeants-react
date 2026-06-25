@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, RefreshControl } from 'react-native';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import type { TimelineGroup } from '@momeants/types';
@@ -14,16 +14,25 @@ export default function TimelineScreen() {
   const router = useRouter();
   const [groups, setGroups] = useState<TimelineGroup[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const now = new Date();
   const [selectedMonth, setSelectedMonth] = useState(now.getMonth());
   const [selectedYear] = useState(now.getFullYear());
 
+  async function load() {
+    const g = await api.listTimeline({});
+    setGroups(g);
+  }
+
   useEffect(() => {
-    api.listTimeline({}).then((g) => {
-      setGroups(g);
-      setLoading(false);
-    });
+    load().finally(() => setLoading(false));
   }, []);
+
+  async function onRefresh() {
+    setRefreshing(true);
+    await load();
+    setRefreshing(false);
+  }
 
   if (loading) {
     return (
@@ -84,7 +93,13 @@ export default function TimelineScreen() {
         ))}
       </ScrollView>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scroll}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.auraPurple} />
+        }
+      >
         {groups.map((group) => (
           <View key={group.isoDate} style={styles.group}>
             <Text style={styles.dateLabel}>{group.dateLabel}</Text>

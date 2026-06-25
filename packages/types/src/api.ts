@@ -7,6 +7,8 @@ import type {
 import type { UserProfile, OnboardingData } from './user';
 import type { CircleMember, CircleMoment } from './circle';
 import type { SparkDelivery, SparkSettings } from './spark';
+import type { Conversation, Message } from './message';
+import type { CalendarEvent } from './calendar-event';
 
 export interface MomentsApi {
   // Moments
@@ -30,6 +32,14 @@ export interface MomentsApi {
   signUpWithEmail(email: string, password: string): Promise<{ userId: string }>;
   signOut(): Promise<void>;
   completeOnboarding(data: OnboardingData): Promise<UserProfile>;
+
+  // Messages
+  listConversations(): Promise<Conversation[]>;
+  getConversation(id: string): Promise<Conversation | null>;
+  sendMessage(conversationId: string, text: string): Promise<Message>;
+
+  // Calendar
+  listCalendarEvents(): Promise<CalendarEvent[]>;
 
   // Sparks
   getTodaySpark(): Promise<SparkDelivery | null>;

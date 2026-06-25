@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -14,8 +14,8 @@ import { useLocalSearchParams, Stack } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import type { Message } from '@momeants/types';
-import { DEMO_CONVERSATIONS, DEMO_MESSAGES } from '../../src/demo/messages';
+import type { Message, Conversation } from '@momeants/types';
+import { useApi } from '../../src/context/ApiContext';
 import { colors } from '@momeants/design/src/colors';
 import { spacing, radii } from '@momeants/design/src/spacing';
 import { fontSize, fontFamily } from '@momeants/design/src/typography';
@@ -70,10 +70,20 @@ function Bubble({ msg }: { msg: Message }) {
 
 export default function ConversationScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const conv = DEMO_CONVERSATIONS.find((c) => c.id === id);
-  const [messages, setMessages] = useState<Message[]>(DEMO_MESSAGES[id] ?? []);
+  const api = useApi();
+  const [conv, setConv] = useState<Conversation | null>(null);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [text, setText] = useState('');
   const listRef = useRef<FlatList>(null);
+
+  useEffect(() => {
+    api.getConversation(id).then((c) => {
+      if (c) {
+        setConv(c);
+        setMessages(c.messages ?? []);
+      }
+    });
+  }, [id]);
 
   const title = conv?.cliqueName
     ?? conv?.participantNames.filter((_, i) => conv.participantIds[i] !== 'me').join(', ')
@@ -82,16 +92,7 @@ export default function ConversationScreen() {
   const send = async () => {
     if (!text.trim()) return;
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    const msg: Message = {
-      id: String(Date.now()),
-      conversationId: id,
-      senderId: 'me',
-      senderName: 'Jordan',
-      type: 'text',
-      text: text.trim(),
-      sentAt: new Date().toISOString(),
-      isFromMe: true,
-    };
+    const msg = await api.sendMessage(id, text.trim());
     setMessages((prev) => [...prev, msg]);
     setText('');
     setTimeout(() => listRef.current?.scrollToEnd({ animated: true }), 100);
