@@ -10,9 +10,9 @@ import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import type { SparkDelivery } from '@momeants/types';
-import { colors } from '@momeants/design/src/colors';
-import { spacing, radii } from '@momeants/design/src/spacing';
-import { fontSize, fontFamily } from '@momeants/design/src/typography';
+import { colors } from '@momeants/design';
+import { spacing, radii } from '@momeants/design';
+import { fontSize, fontFamily } from '@momeants/design';
 
 const CATEGORY_ICON: Record<string, string> = {
   conversation: '💬',
@@ -167,20 +167,20 @@ const styles = StyleSheet.create({
   },
   title: {
     color: colors.textPrimary,
-    fontSize: fontSize.lg,
-    fontFamily: fontFamily.serifBold,
+    fontSize: fontSize.section,
+    fontFamily: fontFamily.serif,
     marginBottom: 4,
   },
   description: {
     color: colors.textSecondary,
-    fontSize: fontSize.sm,
+    fontSize: fontSize.caption,
     fontFamily: fontFamily.sans,
     lineHeight: 20,
   },
   reason: {
     color: colors.auraPurple,
-    fontSize: fontSize.xs,
-    fontFamily: fontFamily.sansItalic ?? fontFamily.sans,
+    fontSize: fontSize.micro,
+    fontFamily: fontFamily.sans,
     marginTop: 4,
   },
   meta: {
@@ -191,12 +191,12 @@ const styles = StyleSheet.create({
   },
   metaText: {
     color: colors.textMuted,
-    fontSize: fontSize.xs,
+    fontSize: fontSize.micro,
     fontFamily: fontFamily.sans,
   },
   metaDot: {
     color: colors.textMuted,
-    fontSize: fontSize.xs,
+    fontSize: fontSize.micro,
   },
   acceptButton: {
     borderRadius: radii.lg,
@@ -208,7 +208,7 @@ const styles = StyleSheet.create({
   },
   acceptText: {
     color: '#FFFFFF',
-    fontSize: fontSize.md,
+    fontSize: fontSize.body,
     fontFamily: fontFamily.sansMedium,
   },
 });

@@ -290,7 +290,7 @@ const styles = StyleSheet.create({
   },
   eventLeft: { flexDirection: 'row', gap: spacing.sm, alignItems: 'center', flex: 1 },
   eventEmoji: { fontSize: 24, width: 32, textAlign: 'center' },
-  eventTitle: { color: colors.textPrimary, fontFamily: fontFamily.sansMedium, fontSize: fontSize.md },
+  eventTitle: { color: colors.textPrimary, fontFamily: fontFamily.sansMedium, fontSize: fontSize.body },
   eventSub: { color: colors.textMuted, fontFamily: fontFamily.sans, fontSize: fontSize.caption, marginTop: 2 },
   eventRight: { alignItems: 'flex-end', gap: 2 },
   eventDate: { fontFamily: fontFamily.sansMedium, fontSize: fontSize.body },

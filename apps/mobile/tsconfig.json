@@ -3,6 +3,7 @@
   "compilerOptions": {
     "jsx": "react-native",
     "strict": true,
+    "baseUrl": ".",
     "paths": {
       "@momeants/types": ["../../packages/types/src"],
       "@momeants/types/*": ["../../packages/types/src/*"],
@@ -12,7 +13,8 @@
       "@momeants/api/*": ["../../packages/api/src/*"],
       "@momeants/utils": ["../../packages/utils/src"],
       "@momeants/utils/*": ["../../packages/utils/src/*"]
-    }
+    },
+    "ignoreDeprecations": "5.0"
   },
   "include": ["**/*.ts", "**/*.tsx", ".expo/types/**/*.ts", "expo-env.d.ts"]
 }

@@ -245,7 +245,7 @@ const styles = StyleSheet.create({
   },
   sectionLabel: {
     color: colors.textMuted,
-    fontSize: fontSize.xs,
+    fontSize: fontSize.micro,
     fontFamily: fontFamily.sansMedium,
     letterSpacing: 1.2,
     marginTop: spacing.md,
@@ -266,13 +266,13 @@ const styles = StyleSheet.create({
   rowText: { flex: 1 },
   rowTitle: {
     color: colors.textPrimary,
-    fontSize: fontSize.md,
+    fontSize: fontSize.body,
     fontFamily: fontFamily.sansMedium,
   },
   rowTitleMuted: { color: colors.textMuted },
   rowSub: {
     color: colors.textMuted,
-    fontSize: fontSize.xs,
+    fontSize: fontSize.micro,
     fontFamily: fontFamily.sans,
     marginTop: 2,
   },
@@ -302,7 +302,7 @@ const styles = StyleSheet.create({
   },
   freqText: {
     color: colors.textMuted,
-    fontSize: fontSize.sm,
+    fontSize: fontSize.caption,
     fontFamily: fontFamily.sansMedium,
   },
   freqTextActive: { color: colors.auraPurple },
@@ -330,7 +330,7 @@ const styles = StyleSheet.create({
   },
   savingText: {
     color: colors.textMuted,
-    fontSize: fontSize.sm,
+    fontSize: fontSize.caption,
     fontFamily: fontFamily.sans,
   },
 });

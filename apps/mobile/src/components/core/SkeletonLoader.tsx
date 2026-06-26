@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, StyleSheet, View, ViewStyle } from 'react-native';
-import { colors } from '@momeants/design/src/colors';
-import { radii } from '@momeants/design/src/spacing';
+import { colors } from '@momeants/design';
+import { radii } from '@momeants/design';
 
 interface SkeletonProps {
   width?: number | `${number}%`;
@@ -60,7 +60,7 @@ export function HomeScreenSkeleton() {
         {[0, 1, 2, 3, 4].map((i) => (
           <View key={i} style={styles.circleItem}>
             <CircleAvatarSkeleton />
-            <Skeleton width={40} height={10} borderRadius={radii.xs} style={{ marginTop: 6 }} />
+            <Skeleton width={40} height={10} borderRadius={radii.sm} style={{ marginTop: 6 }} />
           </View>
         ))}
       </View>

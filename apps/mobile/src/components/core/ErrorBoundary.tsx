@@ -1,8 +1,8 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { colors } from '@momeants/design/src/colors';
-import { spacing, radii } from '@momeants/design/src/spacing';
-import { fontSize, fontFamily } from '@momeants/design/src/typography';
+import { colors } from '@momeants/design';
+import { spacing, radii } from '@momeants/design';
+import { fontSize, fontFamily } from '@momeants/design';
 
 interface Props {
   children: React.ReactNode;
@@ -71,13 +71,13 @@ const styles = StyleSheet.create({
   icon: { color: colors.auraPurple, fontSize: 32 },
   title: {
     color: colors.textPrimary,
-    fontSize: fontSize.lg,
-    fontFamily: fontFamily.serifBold,
+    fontSize: fontSize.section,
+    fontFamily: fontFamily.serif,
     textAlign: 'center',
   },
   detail: {
     color: colors.textMuted,
-    fontSize: fontSize.sm,
+    fontSize: fontSize.caption,
     fontFamily: fontFamily.sans,
     textAlign: 'center',
     lineHeight: 20,
@@ -93,7 +93,7 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: colors.auraPurple,
-    fontSize: fontSize.sm,
+    fontSize: fontSize.caption,
     fontFamily: fontFamily.sansMedium,
   },
 });
