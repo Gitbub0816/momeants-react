@@ -14,49 +14,36 @@ import { CircleAvatar } from '../src/components/circle';
 import { useApi } from '../src/context/ApiContext';
 import { colors, fontFamily, fontSize, spacing, radii } from '@momeants/design';
 
-// Known people from mock data
-const MOCK_PEOPLE = [
-  { id: 'p1', displayName: 'Ava Chen', username: 'avachen', avatarUri: 'https://i.pravatar.cc/100?img=47' },
-  { id: 'p2', displayName: 'Marcus Williams', username: 'marcusw', avatarUri: 'https://i.pravatar.cc/100?img=3' },
-  { id: 'p3', displayName: 'Sofia Park', username: 'sofiapark', avatarUri: 'https://i.pravatar.cc/100?img=5' },
-  { id: 'p4', displayName: 'James Rivera', username: 'jrivera', avatarUri: 'https://i.pravatar.cc/100?img=12' },
-  { id: 'p5', displayName: 'Lily Zhang', username: 'lilyzhang', avatarUri: 'https://i.pravatar.cc/100?img=9' },
-  { id: 'disc_user_1', displayName: 'Jordan Lee', username: 'jordanlee', avatarUri: 'https://i.pravatar.cc/100?img=15' },
-  { id: 'disc_user_2', displayName: 'Maya Patel', username: 'mayapatel', avatarUri: 'https://i.pravatar.cc/100?img=25' },
-  { id: 'disc_user_3', displayName: 'Owen Torres', username: 'owentorres', avatarUri: 'https://i.pravatar.cc/100?img=33' },
-];
-
-type PersonResult = typeof MOCK_PEOPLE[number];
+import type { UserProfile } from '@momeants/types';
 
 export default function SearchScreen() {
   const router = useRouter();
   const api = useApi();
   const inputRef = useRef<TextInput>(null);
   const [query, setQuery] = useState('');
-  const [results, setResults] = useState<PersonResult[]>([]);
+  const [results, setResults] = useState<UserProfile[]>([]);
+  const [loading, setLoading] = useState(false);
   const [addedIds, setAddedIds] = useState<Set<string>>(new Set());
   const [addingId, setAddingId] = useState<string | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    // Autofocus input
     const t = setTimeout(() => inputRef.current?.focus(), 100);
     return () => clearTimeout(t);
   }, []);
 
-  const runSearch = useCallback((q: string) => {
-    if (!q.trim()) {
+  const runSearch = useCallback(async (q: string) => {
+    if (!q.trim()) { setResults([]); return; }
+    setLoading(true);
+    try {
+      const found = await api.searchUsers(q);
+      setResults(found);
+    } catch {
       setResults([]);
-      return;
+    } finally {
+      setLoading(false);
     }
-    const lower = q.toLowerCase();
-    const filtered = MOCK_PEOPLE.filter(
-      (p) =>
-        p.displayName.toLowerCase().includes(lower) ||
-        p.username.toLowerCase().includes(lower)
-    );
-    setResults(filtered);
-  }, []);
+  }, [api]);
 
   function onChangeText(text: string) {
     setQuery(text);
@@ -64,14 +51,13 @@ export default function SearchScreen() {
     debounceRef.current = setTimeout(() => runSearch(text), 300);
   }
 
-  async function handleAdd(person: PersonResult) {
+  async function handleAdd(person: UserProfile) {
     if (addedIds.has(person.id) || addingId) return;
     setAddingId(person.id);
     try {
-      // Added in API expansion
-      await (api as any).addToCircle(person.id);
+      await api.addToCircle(person.id);
     } catch {
-      // silently ignore if not yet implemented
+      // silently ignore
     } finally {
       setAddedIds((prev) => new Set([...prev, person.id]));
       setAddingId(null);
@@ -119,7 +105,13 @@ export default function SearchScreen() {
           </View>
         )}
 
-        {showNoResults && (
+        {loading && (
+          <View style={styles.emptyState}>
+            <ActivityIndicator color={colors.auraPurple} />
+          </View>
+        )}
+
+        {showNoResults && !loading && (
           <View style={styles.emptyState}>
             <Text style={styles.emptyIcon}>○</Text>
             <Text style={styles.emptyTitle}>No one found for '{query}'</Text>
