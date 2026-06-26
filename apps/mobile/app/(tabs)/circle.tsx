@@ -70,6 +70,7 @@ export default function CliquesScreen() {
           actionLabel="Create a clique"
           onAction={() => {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+            router.push('/clique/new');
           }}
         />
       </ScreenShell>
@@ -96,9 +97,14 @@ export default function CliquesScreen() {
             <Text style={styles.subtitle}>{cliques.length} groups</Text>
           </View>
           <TouchableOpacity
-            onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)}
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+              router.push('/clique/new');
+            }}
             style={styles.newBtn}
+            accessibilityRole="button"
             accessibilityLabel="Create new clique"
+            accessibilityHint="Double tap to create a new clique group"
           >
             <LinearGradient
               colors={gradients.aura}

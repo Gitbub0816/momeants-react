@@ -20,6 +20,8 @@ import { MoodPill } from '../../src/components/memory';
 import { CircleAvatar } from '../../src/components/circle';
 import { useApi } from '../../src/context/ApiContext';
 import { colors, gradients, fontFamily, fontSize, spacing, radii } from '@momeants/design';
+import { buildCommentNudge } from '../../src/engines/commentEngagementEngine';
+import { DEMO_RELATIONSHIP_WEIGHTS } from '../../src/demo/relationships';
 
 const { width, height } = Dimensions.get('window');
 const REACTIONS = ['❤️', '✨', '🌙', '😌', '🔥'];
@@ -31,16 +33,57 @@ export default function MomentDetailScreen() {
   const [moment, setMoment] = useState<Moment | null>(null);
   const [commentText, setCommentText] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [commentPrompts, setCommentPrompts] = useState<string[]>([]);
 
   useEffect(() => {
-    if (id) api.getMoment(id).then(setMoment);
+    if (id) api.getMoment(id).then((m) => {
+      setMoment(m);
+      if (m && (m.moods.length > 0 || m.people.length > 0)) {
+        const ctx = {
+          userId: 'me',
+          currentTime: new Date(),
+          moments: [],
+          circleMembers: [],
+          cliques: [],
+          circleMoments: [],
+          conversations: [],
+          sparkHistory: [],
+          availableSparks: [],
+          calendarEvents: [],
+          seenFeedItemIds: new Set<string>(),
+          dismissedSparkIds: new Set<string>(),
+          seenSponsoredIds: new Map<string, number>(),
+          relationshipWeights: DEMO_RELATIONSHIP_WEIGHTS,
+          socialGraph: new Map(),
+          sponsoredItems: [],
+          discoveryMoments: [],
+          userInterestSignals: [],
+        };
+        const nudge = buildCommentNudge(m, ctx);
+        setCommentPrompts(nudge.prompts.slice(0, 3).map((p) => p.text));
+      }
+    });
   }, [id]);
 
   async function react(emoji: string) {
     if (!moment) return;
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    // Optimistic update
+    setMoment((prev) => {
+      if (!prev) return prev;
+      const existing = prev.reactions.find((r) => r.emoji === emoji);
+      const wasReacted = existing?.reactedByMe ?? false;
+      const updatedReactions = prev.reactions.map((r) =>
+        r.emoji === emoji
+          ? { ...r, reactedByMe: !wasReacted, count: wasReacted ? r.count - 1 : r.count + 1 }
+          : r
+      );
+      if (!existing) {
+        updatedReactions.push({ emoji, count: 1, reactedByMe: true });
+      }
+      return { ...prev, reactions: updatedReactions };
+    });
     await api.reactToMoment(moment.id, emoji);
-    setMoment(await api.getMoment(moment.id));
   }
 
   async function submitComment() {
@@ -162,6 +205,28 @@ export default function MomentDetailScreen() {
               </View>
             )}
 
+            {/* Comment engagement prompts */}
+            {commentPrompts.length > 0 && (
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.promptsRow}
+              >
+                {commentPrompts.map((prompt, i) => (
+                  <TouchableOpacity
+                    key={i}
+                    onPress={() => setCommentText(prompt)}
+                    style={styles.promptChip}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Use prompt: ${prompt}`}
+                    accessibilityHint="Double tap to fill the comment input with this suggestion"
+                  >
+                    <Text style={styles.promptChipText}>{prompt}</Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            )}
+
             {/* Comment input */}
             <View style={styles.commentInput}>
               <TextInput
@@ -262,7 +327,21 @@ const styles = StyleSheet.create({
     backgroundColor: colors.glass700,
     minHeight: 44,
   },
-  reactionBtnActive: { borderColor: colors.auraPurple, backgroundColor: 'rgba(181,124,255,0.12)' },
+  reactionBtnActive: { borderColor: colors.auraPurple, backgroundColor: 'rgba(181,124,255,0.30)' },
+  promptsRow: { gap: spacing.sm, paddingBottom: spacing.xs },
+  promptChip: {
+    backgroundColor: 'rgba(181,124,255,0.12)',
+    borderRadius: radii.full,
+    borderWidth: 1,
+    borderColor: 'rgba(181,124,255,0.35)',
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+  },
+  promptChipText: {
+    color: colors.auraPurple,
+    fontFamily: fontFamily.sans,
+    fontSize: fontSize.caption,
+  },
   reactionEmoji: { fontSize: 18 },
   reactionCount: { color: colors.textMuted, fontFamily: fontFamily.sans, fontSize: fontSize.caption },
   comments: { gap: spacing.sm },
