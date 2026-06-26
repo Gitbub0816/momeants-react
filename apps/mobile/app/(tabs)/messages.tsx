@@ -15,9 +15,7 @@ import { EmptyState } from '../../src/components/core/EmptyState';
 import { Skeleton } from '../../src/components/core/SkeletonLoader';
 import { useApi } from '../../src/context/ApiContext';
 import type { Conversation } from '@momeants/types';
-import { colors } from '@momeants/design/src/colors';
-import { spacing, radii } from '@momeants/design/src/spacing';
-import { fontSize, fontFamily } from '@momeants/design/src/typography';
+import { colors, spacing, radii, fontSize, fontFamily } from '@momeants/design';
 
 function ConversationItem({ conv }: { conv: Conversation }) {
   const router = useRouter();
@@ -179,7 +177,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  avatarInitial: { color: colors.auraPurple, fontSize: fontSize.lg, fontFamily: fontFamily.serifBold },
+  avatarInitial: { color: colors.auraPurple, fontSize: fontSize.section, fontFamily: fontFamily.serif },
   unreadDot: {
     position: 'absolute',
     top: 2,
@@ -193,10 +191,10 @@ const styles = StyleSheet.create({
   },
   itemBody: { flex: 1 },
   itemTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 3 },
-  itemName: { color: colors.textSecondary, fontFamily: fontFamily.sansMedium, fontSize: fontSize.md },
+  itemName: { color: colors.textSecondary, fontFamily: fontFamily.sansMedium, fontSize: fontSize.body },
   itemNameBold: { color: colors.textPrimary },
-  itemTime: { color: colors.textMuted, fontFamily: fontFamily.sans, fontSize: fontSize.xs },
-  itemPreview: { color: colors.textMuted, fontFamily: fontFamily.sans, fontSize: fontSize.sm, lineHeight: 18 },
+  itemTime: { color: colors.textMuted, fontFamily: fontFamily.sans, fontSize: fontSize.micro },
+  itemPreview: { color: colors.textMuted, fontFamily: fontFamily.sans, fontSize: fontSize.caption, lineHeight: 18 },
   itemPreviewBold: { color: colors.textSecondary },
   groupTag: { color: colors.auraPurple, fontFamily: fontFamily.sans, fontSize: fontSize.micro, marginTop: 2 },
   separator: {

@@ -13,9 +13,7 @@ import { ScreenShell } from '../../src/components/core';
 import { Skeleton } from '../../src/components/core/SkeletonLoader';
 import { useApi } from '../../src/context/ApiContext';
 import type { CalendarEvent, CalendarInference, CalendarNudge } from '@momeants/types';
-import { colors } from '@momeants/design/src/colors';
-import { spacing, radii } from '@momeants/design/src/spacing';
-import { fontSize, fontFamily } from '@momeants/design/src/typography';
+import { colors, spacing, radii, fontSize, fontFamily } from '@momeants/design';
 import { runCalendarIntelligence } from '../../src/engines/calendarIntelligenceEngine';
 import type { EngineContext } from '../../src/engines/types';
 
