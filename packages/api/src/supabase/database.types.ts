@@ -81,6 +81,61 @@ export interface Database {
         Insert: Omit<Database['public']['Tables']['push_tokens']['Row'], 'id' | 'created_at'>;
         Update: never;
       };
+      connection_requests: {
+        Row: { id: string; from_user_id: string; to_user_id: string; status: 'pending' | 'accepted' | 'declined'; created_at: string };
+        Insert: Omit<Database['public']['Tables']['connection_requests']['Row'], 'id' | 'created_at'>;
+        Update: Pick<Database['public']['Tables']['connection_requests']['Row'], 'status'>;
+      };
+      moment_shares: {
+        Row: { id: string; moment_id: string; from_user_id: string; to_user_id: string; message: string | null; created_at: string };
+        Insert: Omit<Database['public']['Tables']['moment_shares']['Row'], 'id' | 'created_at'>;
+        Update: never;
+      };
+      calendar_events: {
+        Row: { id: string; user_id: string; title: string; date: string; type: string; emoji: string | null; person_id: string | null; person_name: string | null; clique_name: string | null; moment_id: string | null; is_recurring: boolean; description: string | null; created_at: string };
+        Insert: Omit<Database['public']['Tables']['calendar_events']['Row'], 'id' | 'created_at'>;
+        Update: Partial<Database['public']['Tables']['calendar_events']['Insert']>;
+      };
+      cliques: {
+        Row: { id: string; name: string; type: string; emoji: string | null; owner_id: string; moment_count: number; created_at: string };
+        Insert: Omit<Database['public']['Tables']['cliques']['Row'], 'id' | 'created_at' | 'moment_count'>;
+        Update: Partial<Database['public']['Tables']['cliques']['Insert']>;
+      };
+      clique_members: {
+        Row: { clique_id: string; user_id: string; joined_at: string };
+        Insert: Omit<Database['public']['Tables']['clique_members']['Row'], 'joined_at'>;
+        Update: never;
+      };
+      conversations: {
+        Row: { id: string; type: string; name: string | null; created_at: string; updated_at: string };
+        Insert: Omit<Database['public']['Tables']['conversations']['Row'], 'id' | 'created_at' | 'updated_at'>;
+        Update: Pick<Database['public']['Tables']['conversations']['Row'], 'updated_at'>;
+      };
+      conversation_participants: {
+        Row: { conversation_id: string; user_id: string; joined_at: string };
+        Insert: Omit<Database['public']['Tables']['conversation_participants']['Row'], 'joined_at'>;
+        Update: never;
+      };
+      messages: {
+        Row: { id: string; conversation_id: string; sender_id: string; text: string; sent_at: string };
+        Insert: Omit<Database['public']['Tables']['messages']['Row'], 'id' | 'sent_at'>;
+        Update: never;
+      };
+      spark_deliveries: {
+        Row: { id: string; user_id: string; spark_id: string; status: string; delivered_at: string; accepted_at: string | null; completed_at: string | null; result_moment_id: string | null; recommendation_reason: string | null };
+        Insert: Omit<Database['public']['Tables']['spark_deliveries']['Row'], 'id'>;
+        Update: Partial<Database['public']['Tables']['spark_deliveries']['Row']>;
+      };
+      spark_library: {
+        Row: { id: string; title: string; description: string; body: string; category: string; game_type: string; estimated_minutes: number; min_players: number; max_players: number; requires_photo: boolean; requires_conversation: boolean; requires_location: boolean; holiday: string | null; season: string | null; relationship_types: string[]; memory_potential: number; conversation_score: number; emotional_weight: number; novelty_score: number; completion_cta: string; prompts: string[] | null; tags: string[] };
+        Insert: Database['public']['Tables']['spark_library']['Row'];
+        Update: Partial<Database['public']['Tables']['spark_library']['Row']>;
+      };
+      spark_settings: {
+        Row: { user_id: string; enabled: boolean; frequency_per_week: number; quiet_hours_start: string; quiet_hours_end: string; enabled_categories: string[]; allow_location: boolean; allow_weather: boolean; allow_holidays: boolean; allow_relationship: boolean; allow_ai_personalization: boolean };
+        Insert: Database['public']['Tables']['spark_settings']['Row'];
+        Update: Partial<Database['public']['Tables']['spark_settings']['Row']>;
+      };
     };
     Functions: {
       get_home_feed: { Args: { viewer: string; lim?: number }; Returns: MomentDetailRow[] };
@@ -88,6 +143,7 @@ export interface Database {
       get_resurfaced_moments: { Args: { viewer: string }; Returns: MomentDetailRow[] };
       toggle_reaction: { Args: { p_moment_id: string; p_emoji: string }; Returns: void };
       username_available: { Args: { uname: string }; Returns: boolean };
+      get_today_spark: { Args: { p_user_id: string }; Returns: any[] };
     };
   };
 }

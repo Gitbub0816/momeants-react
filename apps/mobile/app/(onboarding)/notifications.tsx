@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { ScreenShell, MomeantsButton, GlassCard } from '../../src/components/core';
-import { useAuth } from '../../src/context/AuthContext';
+import { useOnboarding } from '../../src/context/OnboardingContext';
 import { colors, fontFamily, fontSize, spacing } from '@momeants/design';
 
 const EXAMPLES = [
@@ -13,10 +13,10 @@ const EXAMPLES = [
 
 export default function NotificationsScreen() {
   const router = useRouter();
-  const { markOnboarded } = useAuth();
+  const { complete } = useOnboarding();
 
-  function finish() {
-    markOnboarded();
+  async function finish(notificationsEnabled: boolean) {
+    await complete(notificationsEnabled);
     router.replace('/(tabs)/home');
   }
 
@@ -40,8 +40,8 @@ export default function NotificationsScreen() {
         </View>
 
         <View style={styles.actions}>
-          <MomeantsButton label="Allow notifications" onPress={finish} />
-          <MomeantsButton label="Not now" onPress={finish} variant="quiet" />
+          <MomeantsButton label="Allow notifications" onPress={() => finish(true)} />
+          <MomeantsButton label="Not now" onPress={() => finish(false)} variant="quiet" />
         </View>
       </View>
     </ScreenShell>

@@ -2,11 +2,13 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { ScreenShell, MomeantsButton } from '../../src/components/core';
+import { useOnboarding } from '../../src/context/OnboardingContext';
 import { colors, fontFamily, fontSize, spacing, radii } from '@momeants/design';
 
 export default function YourNameScreen() {
   const router = useRouter();
-  const [name, setName] = useState('');
+  const { data, setField } = useOnboarding();
+  const [name, setName] = useState(data.name);
 
   return (
     <ScreenShell>
@@ -29,7 +31,7 @@ export default function YourNameScreen() {
           <View style={styles.actions}>
             <MomeantsButton
               label="Continue"
-              onPress={() => router.push('/(onboarding)/birthday')}
+              onPress={() => { setField('name', name.trim()); router.push('/(onboarding)/birthday'); }}
               disabled={!name.trim()}
             />
           </View>

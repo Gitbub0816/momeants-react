@@ -73,14 +73,42 @@ export default function CalendarScreen() {
   const api = useApi();
   const now = new Date();
   const [events, setEvents] = useState<CalendarEvent[]>([]);
+  const [inferences, setInferences] = useState<CalendarInference[]>([]);
+  const [calNudges, setCalNudges] = useState<CalendarNudge[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [selectedMonth, setSelectedMonth] = useState(now.getMonth());
   const year = now.getFullYear();
 
   async function load() {
-    const evts = await api.listCalendarEvents();
+    const [evts, homeMoments] = await Promise.all([
+      api.listCalendarEvents(),
+      api.listHomeMoments().then((h) => [h.hero, ...h.recent, ...(h.resurfaced ? [h.resurfaced] : [])]).catch(() => [] as import('@momeants/types').Moment[]),
+    ]);
     setEvents(evts);
+    const ctx: EngineContext = {
+      userId: 'me',
+      currentTime: new Date(),
+      moments: homeMoments,
+      circleMembers: [],
+      cliques: [],
+      circleMoments: [],
+      conversations: [],
+      sparkHistory: [],
+      availableSparks: [],
+      calendarEvents: evts,
+      seenFeedItemIds: new Set(),
+      dismissedSparkIds: new Set(),
+      seenSponsoredIds: new Map(),
+      relationshipWeights: [],
+      socialGraph: new Map(),
+      sponsoredItems: [],
+      discoveryMoments: [],
+      userInterestSignals: [],
+    };
+    const { inferences: inf, nudges } = runCalendarIntelligence(ctx);
+    setInferences(inf);
+    setCalNudges(nudges);
   }
 
   useEffect(() => {
@@ -157,9 +185,57 @@ export default function CalendarScreen() {
           ))}
         </ScrollView>
 
-        {upcoming.length > 0 && (
+        {inferences.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Suggested dates</Text>
+            {inferences.map((inf, i) => (
+              <View key={`${inf.momentId}-${i}`} style={styles.inferenceCard}>
+                <View style={styles.inferenceLeft}>
+                  <Text style={styles.inferenceEmoji}>{inf.suggestedEmoji}</Text>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.inferenceTitle}>{inf.suggestedTitle}</Text>
+                    <Text style={styles.inferenceDate}>{inf.suggestedDate}</Text>
+                  </View>
+                </View>
+                <TouchableOpacity
+                  onPress={async () => {
+                    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                    await (api as any).confirmCalendarInference(inf);
+                    setInferences((prev) => prev.filter((_, idx) => idx !== i));
+                  }}
+                  style={styles.inferenceAddBtn}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Add ${inf.suggestedTitle} to calendar`}
+                  accessibilityHint="Double tap to add this suggested date to your calendar"
+                >
+                  <Text style={styles.inferenceAddText}>Add</Text>
+                </TouchableOpacity>
+              </View>
+            ))}
+          </View>
+        )}
+
+        {calNudges.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Coming Up</Text>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.nudgeStrip}
+            >
+              {calNudges.map((nudge, i) => (
+                <View key={i} style={styles.nudgeChip}>
+                  <Text style={styles.nudgeHeadline}>{nudge.headline}</Text>
+                  <Text style={styles.nudgeSubtext}>{nudge.subtext}</Text>
+                </View>
+              ))}
+            </ScrollView>
+          </View>
+        )}
+
+        {upcoming.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Your events</Text>
             {upcoming.slice(0, 3).map((e) => <EventCard key={e.id} event={e} />)}
           </View>
         )}
@@ -230,4 +306,38 @@ const styles = StyleSheet.create({
   emptyMonth: { paddingVertical: spacing.xl, alignItems: 'center' },
   emptyText: { color: colors.textMuted, fontFamily: fontFamily.sans, fontSize: fontSize.caption },
   tabBarSpacer: { height: 120 },
+  inferenceCard: {
+    backgroundColor: 'rgba(181,124,255,0.08)',
+    borderRadius: radii.lg,
+    borderWidth: 1,
+    borderColor: 'rgba(181,124,255,0.20)',
+    padding: spacing.md,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  inferenceLeft: { flexDirection: 'row', gap: spacing.sm, alignItems: 'center', flex: 1 },
+  inferenceEmoji: { fontSize: 24, width: 32, textAlign: 'center' },
+  inferenceTitle: { color: colors.textPrimary, fontFamily: fontFamily.sansMedium, fontSize: fontSize.body },
+  inferenceDate: { color: colors.textMuted, fontFamily: fontFamily.sans, fontSize: fontSize.caption, marginTop: 2 },
+  inferenceAddBtn: {
+    backgroundColor: colors.auraPurple,
+    borderRadius: radii.lg,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    minHeight: 36,
+    justifyContent: 'center',
+  },
+  inferenceAddText: { color: '#fff', fontFamily: fontFamily.sansMedium, fontSize: fontSize.caption },
+  nudgeStrip: { gap: spacing.sm, paddingBottom: 4 },
+  nudgeChip: {
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    borderRadius: radii.lg,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.10)',
+    padding: spacing.md,
+    minWidth: 140,
+  },
+  nudgeHeadline: { color: colors.textPrimary, fontFamily: fontFamily.sansMedium, fontSize: fontSize.body },
+  nudgeSubtext: { color: colors.textMuted, fontFamily: fontFamily.sans, fontSize: fontSize.caption, marginTop: 3 },
 });

@@ -9,6 +9,7 @@ import {
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { ScreenShell, GlassCard } from '../src/components/core';
+import { useApi } from '../src/context/ApiContext';
 import { colors, fontFamily, fontSize, spacing, radii } from '@momeants/design';
 
 type Visibility = 'close_circle' | 'clique' | 'private';
@@ -36,9 +37,18 @@ const VISIBILITY_OPTIONS: { value: Visibility; label: string; description: strin
 
 export default function PrivacyScreen() {
   const router = useRouter();
+  const api = useApi();
   const [defaultVisibility, setDefaultVisibility] = useState<Visibility>('close_circle');
   const [resurfaceConsent, setResurfaceConsent] = useState(true);
   const [activityVisible, setActivityVisible] = useState(true);
+
+  async function persistPrivacy(updates: { resurfaceConsent?: boolean; activityVisible?: boolean; defaultPrivacy?: Visibility }) {
+    try {
+      await api.updateProfile(updates as any);
+    } catch {
+      // non-critical; local state already updated
+    }
+  }
 
   return (
     <ScreenShell edges={['top']}>
@@ -66,6 +76,7 @@ export default function PrivacyScreen() {
                 onPress={() => {
                   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                   setDefaultVisibility(opt.value);
+                  persistPrivacy({ defaultPrivacy: opt.value });
                 }}
                 style={[styles.optionRow, i > 0 && styles.optionBorder]}
                 accessibilityRole="radio"
@@ -95,7 +106,9 @@ export default function PrivacyScreen() {
                 value: resurfaceConsent,
                 toggle: () => {
                   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                  setResurfaceConsent((v) => !v);
+                  const next = !resurfaceConsent;
+                  setResurfaceConsent(next);
+                  persistPrivacy({ resurfaceConsent: next });
                 },
               },
               {
@@ -104,7 +117,9 @@ export default function PrivacyScreen() {
                 value: activityVisible,
                 toggle: () => {
                   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                  setActivityVisible((v) => !v);
+                  const next = !activityVisible;
+                  setActivityVisible(next);
+                  persistPrivacy({ activityVisible: next });
                 },
               },
             ].map((item, i) => (

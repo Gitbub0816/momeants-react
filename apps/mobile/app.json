@@ -20,7 +20,15 @@
       "adaptiveIcon": {
         "backgroundColor": "#050711"
       },
-      "package": "com.momeants.app"
+      "package": "com.momeants.app",
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [{ "scheme": "momeants" }],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ]
     },
     "plugins": [
       "expo-router",

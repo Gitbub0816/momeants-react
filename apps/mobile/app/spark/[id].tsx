@@ -48,13 +48,21 @@ export default function SparkDetailScreen() {
   const [completing, setCompleting] = useState(false);
 
   useEffect(() => {
-    api.getTodaySpark().then((d) => {
-      // Match by delivery id
-      if (d && d.id === id) {
-        setDelivery(d);
+    async function load() {
+      // Try today's spark first
+      const today = await api.getTodaySpark();
+      if (today && today.id === id) {
+        setDelivery(today);
+        setLoading(false);
+        return;
       }
+      // Fall back to history lookup
+      const history = await api.getSparkHistory(50);
+      const found = history.find((d) => d.id === id);
+      setDelivery(found ?? null);
       setLoading(false);
-    });
+    }
+    load();
   }, [id]);
 
   const handleNext = useCallback(async () => {
@@ -75,14 +83,8 @@ export default function SparkDetailScreen() {
         'Spark Complete! ✨',
         'Want to capture this moment?',
         [
-          {
-            text: 'Capture Moment',
-            onPress: () => router.replace('/capture'),
-          },
-          {
-            text: 'Done',
-            onPress: () => router.back(),
-          },
+          { text: 'Capture Moment', onPress: () => router.replace('/capture') },
+          { text: 'Done', onPress: () => router.back() },
         ]
       );
     } catch {
@@ -104,7 +106,7 @@ export default function SparkDetailScreen() {
     return (
       <View style={styles.center}>
         <Text style={styles.errorText}>Spark not found</Text>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn} accessibilityRole="button">
           <Text style={styles.backBtnText}>Go back</Text>
         </TouchableOpacity>
       </View>
@@ -127,17 +129,9 @@ export default function SparkDetailScreen() {
           headerBackTitle: 'Back',
         }}
       />
-      <LinearGradient
-        colors={[colors.ink900, '#151B31', colors.ink900]}
-        style={styles.container}
-      >
+      <LinearGradient colors={[colors.ink900, '#151B31', colors.ink900]} style={styles.container}>
         <SafeAreaView style={styles.safe} edges={['bottom']}>
-          <ScrollView
-            style={styles.scroll}
-            contentContainerStyle={styles.scrollContent}
-            showsVerticalScrollIndicator={false}
-          >
-            {/* Header */}
+          <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
             <View style={styles.headerBlock}>
               <Text style={styles.iconLarge}>{icon}</Text>
               <Text style={styles.category}>{spark.category.toUpperCase()}</Text>
@@ -145,7 +139,6 @@ export default function SparkDetailScreen() {
               <Text style={styles.description}>{spark.description}</Text>
             </View>
 
-            {/* Meta chips */}
             <View style={styles.chips}>
               <View style={styles.chip}>
                 <Text style={styles.chipText}>~{spark.estimatedMinutes} min</Text>
@@ -160,17 +153,13 @@ export default function SparkDetailScreen() {
               )}
             </View>
 
-            {/* Body instruction */}
             <GlassCard style={styles.bodyCard}>
               <Text style={styles.bodyText}>{spark.body}</Text>
             </GlassCard>
 
-            {/* Prompts */}
             {hasPrompts && (
               <View style={styles.promptSection}>
-                <Text style={styles.promptLabel}>
-                  {currentPromptIndex + 1} of {prompts.length}
-                </Text>
+                <Text style={styles.promptLabel}>{currentPromptIndex + 1} of {prompts.length}</Text>
                 <GlassCard style={styles.promptCard}>
                   <Text style={styles.promptText}>{prompts[currentPromptIndex]}</Text>
                 </GlassCard>
@@ -188,7 +177,6 @@ export default function SparkDetailScreen() {
               </View>
             )}
 
-            {/* CTA */}
             {(!hasPrompts || isLastPrompt) && (
               <TouchableOpacity
                 style={styles.completeWrapper}
@@ -223,7 +211,7 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   safe: { flex: 1 },
   scroll: { flex: 1 },
-  scrollContent: { padding: spacing.lg, paddingBottom: spacing.xxxl },
+  scrollContent: { padding: spacing.lg, paddingBottom: spacing.xxl },
   center: {
     flex: 1,
     backgroundColor: colors.ink900,
@@ -242,18 +230,9 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.08)',
     borderRadius: radii.lg,
   },
-  backBtnText: {
-    color: colors.textPrimary,
-    fontFamily: fontFamily.sansMedium,
-  },
-  headerBlock: {
-    alignItems: 'center',
-    marginBottom: spacing.xl,
-  },
-  iconLarge: {
-    fontSize: 56,
-    marginBottom: spacing.sm,
-  },
+  backBtnText: { color: colors.textPrimary, fontFamily: fontFamily.sansMedium },
+  headerBlock: { alignItems: 'center', marginBottom: spacing.xl },
+  iconLarge: { fontSize: 56, marginBottom: spacing.sm },
   category: {
     color: colors.auraPurple,
     fontSize: fontSize.micro,
@@ -314,9 +293,7 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
     textAlign: 'center',
   },
-  promptCard: {
-    padding: spacing.lg,
-  },
+  promptCard: { padding: spacing.lg },
   promptText: {
     color: colors.textPrimary,
     fontSize: fontSize.section,

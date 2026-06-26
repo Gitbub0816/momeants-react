@@ -2,11 +2,13 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { ScreenShell, MomeantsButton } from '../../src/components/core';
+import { useOnboarding } from '../../src/context/OnboardingContext';
 import { colors, fontFamily, fontSize, spacing, radii } from '@momeants/design';
 
 export default function BirthdayScreen() {
   const router = useRouter();
-  const [birthday, setBirthday] = useState('');
+  const { data, setField } = useOnboarding();
+  const [birthday, setBirthday] = useState(data.birthday);
 
   return (
     <ScreenShell>
@@ -28,7 +30,7 @@ export default function BirthdayScreen() {
           <View style={styles.actions}>
             <MomeantsButton
               label="Continue"
-              onPress={() => router.push('/(onboarding)/username')}
+              onPress={() => { setField('birthday', birthday.trim()); router.push('/(onboarding)/username'); }}
               disabled={!birthday.trim()}
             />
           </View>
