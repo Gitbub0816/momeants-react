@@ -4,18 +4,10 @@
     "appVersionSource": "local"
   },
   "build": {
-    "base": {
-      "node": "22.14.0",
-      "projectRoot": "apps/mobile",
-      "env": {
-        "YARN_NODE_LINKER": "node-modules",
-        "EXPO_USE_METRO_WORKSPACE_ROOT": "1"
-      }
-    },
     "development": {
-      "extends": "base",
       "developmentClient": true,
       "distribution": "internal",
+      "node": "22.14.0",
       "env": {
         "APP_VARIANT": "development",
         "YARN_NODE_LINKER": "node-modules",
@@ -23,7 +15,6 @@
       }
     },
     "preview": {
-      "extends": "base",
       "distribution": "internal",
       "node": "22.14.0",
       "ios": {
@@ -36,7 +27,6 @@
       }
     },
     "production": {
-      "extends": "base",
       "autoIncrement": true,
       "node": "22.14.0",
       "env": {
