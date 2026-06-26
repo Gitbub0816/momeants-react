@@ -19,18 +19,19 @@ export default function TimelineScreen() {
   const [selectedMonth, setSelectedMonth] = useState(now.getMonth());
   const [selectedYear] = useState(now.getFullYear());
 
-  async function load() {
-    const g = await api.listTimeline({});
+  async function load(month: number, year: number) {
+    const g = await api.listTimeline({ month: month + 1, year }).catch(() => []);
     setGroups(g);
   }
 
   useEffect(() => {
-    load().finally(() => setLoading(false));
-  }, []);
+    setLoading(true);
+    load(selectedMonth, selectedYear).finally(() => setLoading(false));
+  }, [selectedMonth, selectedYear]);
 
   async function onRefresh() {
     setRefreshing(true);
-    await load();
+    await load(selectedMonth, selectedYear);
     setRefreshing(false);
   }
 

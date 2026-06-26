@@ -14,6 +14,7 @@ import * as Haptics from 'expo-haptics';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '../src/context/AuthContext';
+import { useApi } from '../src/context/ApiContext';
 import { colors } from '@momeants/design';
 import { spacing, radii } from '@momeants/design';
 import { fontSize, fontFamily } from '@momeants/design';
@@ -23,6 +24,7 @@ const CONFIRM_PHRASE = 'delete my account';
 
 export default function DeleteAccountScreen() {
   const { signOut } = useAuth();
+  const api = useApi();
   const router = useRouter();
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -43,10 +45,7 @@ export default function DeleteAccountScreen() {
           onPress: async () => {
             setLoading(true);
             try {
-              // In production: call api.deleteAccount() which triggers a Supabase Edge Function
-              // that deletes all user data respecting RLS cascade rules, then deletes the auth user.
-              // For now we sign out which clears local session.
-              await signOut();
+              await api.deleteAccount();
               router.replace('/(auth)/welcome');
             } catch {
               Alert.alert('Error', 'Could not delete account. Please try again or contact support.');

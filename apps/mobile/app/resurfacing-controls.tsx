@@ -1,27 +1,60 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Switch, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, Text, StyleSheet, ScrollView, Switch, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { ScreenShell, GlassCard, MomeantsButton } from '../src/components/core';
+import { useApi } from '../src/context/ApiContext';
 import { colors, fontFamily, fontSize, spacing, radii } from '@momeants/design';
-
-const EXAMPLE_PEOPLE = ['Ava', 'Marcus', 'Sofia'];
-const EXAMPLE_PLACES = ['Twin Peaks', 'Lake Tahoe', 'Central Park'];
 
 export default function ResurfacingControlsScreen() {
   const router = useRouter();
-  const [hiddenPeople, setHiddenPeople] = useState<string[]>([]);
-  const [hiddenPlaces, setHiddenPlaces] = useState<string[]>([]);
+  const api = useApi();
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [enabled, setEnabled] = useState(true);
+  const [hiddenPersonIds, setHiddenPersonIds] = useState<string[]>([]);
+  const [hiddenPlaceNames, setHiddenPlaceNames] = useState<string[]>([]);
+  const [people, setPeople] = useState<Array<{ id: string; displayName: string }>>([]);
 
-  function togglePerson(name: string) {
-    setHiddenPeople((prev) =>
-      prev.includes(name) ? prev.filter((p) => p !== name) : [...prev, name]
+  const load = useCallback(async () => {
+    const [rules, members] = await Promise.all([
+      api.getResurfacingRules().catch(() => ({ enabled: true, hiddenPersonIds: [], hiddenPlaceNames: [] })),
+      api.listCircleMembers().catch(() => []),
+    ]);
+    setEnabled(rules.enabled);
+    setHiddenPersonIds(rules.hiddenPersonIds);
+    setHiddenPlaceNames(rules.hiddenPlaceNames);
+    setPeople(members.map((m) => ({ id: m.id, displayName: m.displayName })));
+  }, [api]);
+
+  useEffect(() => {
+    load().finally(() => setLoading(false));
+  }, [load]);
+
+  function togglePerson(id: string) {
+    setHiddenPersonIds((prev) =>
+      prev.includes(id) ? prev.filter((p) => p !== id) : [...prev, id]
     );
   }
 
-  function togglePlace(name: string) {
-    setHiddenPlaces((prev) =>
-      prev.includes(name) ? prev.filter((p) => p !== name) : [...prev, name]
+  async function save() {
+    setSaving(true);
+    try {
+      await api.updateResurfacingRules({ enabled, hiddenPersonIds, hiddenPlaceNames });
+      router.back();
+    } catch {
+      Alert.alert('Error', 'Could not save preferences. Please try again.');
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  if (loading) {
+    return (
+      <ScreenShell>
+        <View style={styles.center}>
+          <ActivityIndicator color={colors.auraPurple} />
+        </View>
+      </ScreenShell>
     );
   }
 
@@ -56,63 +89,41 @@ export default function ResurfacingControlsScreen() {
           </View>
         </GlassCard>
 
-        {enabled && (
-          <>
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Hide memories with these people</Text>
-              <Text style={styles.sectionDesc}>
-                Memories tagged with these people won't resurface.
-              </Text>
-              <View style={styles.chipRow}>
-                {EXAMPLE_PEOPLE.map((name) => {
-                  const hidden = hiddenPeople.includes(name);
-                  return (
-                    <TouchableOpacity
-                      key={name}
-                      onPress={() => togglePerson(name)}
-                      style={[styles.chip, hidden && styles.chipHidden]}
-                      accessibilityRole="checkbox"
-                      accessibilityLabel={name}
-                      accessibilityState={{ checked: hidden }}
-                    >
-                      <Text style={[styles.chipText, hidden && styles.chipTextHidden]}>
-                        {hidden ? '✕ ' : ''}{name}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
+        {enabled && people.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Hide memories with these people</Text>
+            <Text style={styles.sectionDesc}>
+              Memories tagged with these people won't resurface.
+            </Text>
+            <View style={styles.chipRow}>
+              {people.map((person) => {
+                const hidden = hiddenPersonIds.includes(person.id);
+                return (
+                  <TouchableOpacity
+                    key={person.id}
+                    onPress={() => togglePerson(person.id)}
+                    style={[styles.chip, hidden && styles.chipHidden]}
+                    accessibilityRole="checkbox"
+                    accessibilityLabel={person.displayName}
+                    accessibilityState={{ checked: hidden }}
+                  >
+                    <Text style={[styles.chipText, hidden && styles.chipTextHidden]}>
+                      {hidden ? '✕ ' : ''}{person.displayName}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
             </View>
-
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Hide memories from these places</Text>
-              <Text style={styles.sectionDesc}>
-                Memories tagged at these locations won't resurface.
-              </Text>
-              <View style={styles.chipRow}>
-                {EXAMPLE_PLACES.map((place) => {
-                  const hidden = hiddenPlaces.includes(place);
-                  return (
-                    <TouchableOpacity
-                      key={place}
-                      onPress={() => togglePlace(place)}
-                      style={[styles.chip, hidden && styles.chipHidden]}
-                      accessibilityRole="checkbox"
-                      accessibilityLabel={place}
-                      accessibilityState={{ checked: hidden }}
-                    >
-                      <Text style={[styles.chipText, hidden && styles.chipTextHidden]}>
-                        {hidden ? '✕ ' : ''}{place}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
-            </View>
-          </>
+          </View>
         )}
 
-        <MomeantsButton label="Save preferences" onPress={() => router.back()} />
+        {enabled && people.length === 0 && (
+          <View style={styles.emptyPeople}>
+            <Text style={styles.emptyText}>Add people to your circle to filter by person.</Text>
+          </View>
+        )}
+
+        <MomeantsButton label={saving ? 'Saving…' : 'Save preferences'} onPress={save} disabled={saving} />
         <View style={{ height: spacing.xl }} />
       </ScrollView>
     </ScreenShell>
@@ -121,6 +132,7 @@ export default function ResurfacingControlsScreen() {
 
 const styles = StyleSheet.create({
   scroll: { paddingHorizontal: spacing.lg, paddingTop: spacing.md, gap: spacing.xl },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   topBar: { flexDirection: 'row' },
   back: { width: 44, height: 44, justifyContent: 'center' },
   backIcon: { color: colors.textSecondary, fontSize: 24 },
@@ -149,4 +161,6 @@ const styles = StyleSheet.create({
   chipHidden: { borderColor: colors.danger, backgroundColor: 'rgba(255,107,122,0.1)' },
   chipText: { color: colors.textSecondary, fontFamily: fontFamily.sansMedium, fontSize: fontSize.caption },
   chipTextHidden: { color: colors.danger },
+  emptyPeople: { paddingVertical: spacing.sm },
+  emptyText: { color: colors.textMuted, fontFamily: fontFamily.sans, fontSize: fontSize.caption, textAlign: 'center' },
 });

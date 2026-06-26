@@ -11,6 +11,7 @@ import type { CalendarInference } from './calendar-intelligence';
 import type { SparkDelivery, SparkSettings } from './spark';
 import type { Conversation, Message } from './message';
 import type { CalendarEvent } from './calendar-event';
+import type { Notification } from './notification';
 
 export interface MomentsApi {
   // Moments
@@ -36,6 +37,7 @@ export interface MomentsApi {
   createClique(name: string, memberIds: string[], type?: CliqueType, emoji?: string): Promise<Clique>;
   updateClique(id: string, data: { name?: string; memberIds?: string[]; emoji?: string; type?: CliqueType }): Promise<Clique>;
   deleteClique(id: string): Promise<void>;
+  listCliques(): Promise<Clique[]>;
 
   // Sharing
   shareMoment(momentId: string, toUserId: string, message?: string): Promise<void>;
@@ -48,6 +50,7 @@ export interface MomentsApi {
 
   // Profile
   getProfile(userId?: string): Promise<UserProfile>;
+  getUserProfile(userId: string): Promise<UserProfile>;
   updateProfile(data: Partial<OnboardingData>): Promise<UserProfile>;
 
   // Auth
@@ -59,7 +62,9 @@ export interface MomentsApi {
   // Messages
   listConversations(): Promise<Conversation[]>;
   getConversation(id: string): Promise<Conversation | null>;
+  markConversationRead?(conversationId: string): Promise<void>;
   sendMessage(conversationId: string, text: string): Promise<Message>;
+  createConversation(participantIds: string[], cliqueId?: string): Promise<Conversation>;
 
   // Calendar
   listCalendarEvents(): Promise<CalendarEvent[]>;
@@ -72,4 +77,21 @@ export interface MomentsApi {
   getSparkHistory(limit?: number): Promise<SparkDelivery[]>;
   getSparkSettings(): Promise<SparkSettings>;
   updateSparkSettings(settings: Partial<SparkSettings>): Promise<SparkSettings>;
+
+  // Notifications
+  listNotifications(): Promise<Notification[]>;
+  markNotificationRead(notificationId: string): Promise<void>;
+
+  // Push tokens
+  savePushToken(token: string): Promise<void>;
+
+  // Account
+  deleteAccount(): Promise<void>;
+
+  // Resurfacing preferences
+  updateResurfacingRules(rules: { enabled: boolean; hiddenPersonIds: string[]; hiddenPlaceNames: string[] }): Promise<void>;
+  getResurfacingRules(): Promise<{ enabled: boolean; hiddenPersonIds: string[]; hiddenPlaceNames: string[] }>;
+
+  // Content moderation
+  reportContent(params: { momentId?: string; userId?: string; reason: 'inappropriate' | 'harassment' | 'spam' | 'fake' | 'other'; details?: string }): Promise<void>;
 }

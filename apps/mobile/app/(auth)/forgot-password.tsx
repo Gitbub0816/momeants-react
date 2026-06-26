@@ -17,6 +17,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { colors } from '@momeants/design';
 import { spacing, radii } from '@momeants/design';
 import { fontSize, fontFamily } from '@momeants/design';
+import { getSupabaseClient } from '@momeants/api';
 
 export default function ForgotPasswordScreen() {
   const router = useRouter();
@@ -28,9 +29,20 @@ export default function ForgotPasswordScreen() {
     if (!email.trim()) return;
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setLoading(true);
-    await new Promise((r) => setTimeout(r, 1200));
-    setLoading(false);
-    setSent(true);
+    try {
+      const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL ?? '';
+      const supabaseKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ?? '';
+      const sb = getSupabaseClient(supabaseUrl, supabaseKey);
+      const { error } = await sb.auth.resetPasswordForEmail(email.trim(), {
+        redirectTo: 'momeants://reset-password',
+      });
+      if (error) throw error;
+      setSent(true);
+    } catch (err: any) {
+      Alert.alert('Error', err?.message ?? 'Could not send reset email. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

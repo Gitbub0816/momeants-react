@@ -90,7 +90,10 @@ function fatiguePenalty(moment: Moment, context: EngineContext): number {
 export function scoreResurfacing(moment: Moment, context: EngineContext): number {
   const ageInDays = daysSince(moment.createdAt, context.currentTime);
 
-  // Must be at least 6 months old to resurface
+  // Moments less than 24 hours old are not memories yet — exclude them
+  if (ageInDays < 1) return 0;
+
+  // Must be at least 6 months old to resurface as a memory
   if (ageInDays < 180) return 0;
 
   const dateRelevance = dateRelevanceScore(moment, context.currentTime);
@@ -117,14 +120,20 @@ export function scoreResurfacing(moment: Moment, context: EngineContext): number
 }
 
 export function selectResurfacedMemory(context: EngineContext): Moment | null {
-  if (context.moments.length === 0) return null;
+  return selectResurfacedMemories(context, 1)[0] ?? null;
+}
 
-  const scored = context.moments
+/** Returns up to `limit` resurfaced memories (max 5). */
+export function selectResurfacedMemories(context: EngineContext, limit = 5): Moment[] {
+  if (context.moments.length === 0) return [];
+
+  const cap = Math.min(limit, 5); // never exceed 5 resurfaced moments at once
+  return context.moments
     .map((m) => ({ moment: m, score: scoreResurfacing(m, context) }))
     .filter((s) => s.score > 0.20)
-    .sort((a, b) => b.score - a.score);
-
-  return scored[0]?.moment ?? null;
+    .sort((a, b) => b.score - a.score)
+    .slice(0, cap)
+    .map((s) => s.moment);
 }
 
 export interface ResurfacingAction {

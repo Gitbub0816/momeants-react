@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import * as Sentry from '../src/utils/crashReporter';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
@@ -16,14 +17,23 @@ import {
 } from '@expo-google-fonts/playfair-display';
 import { ApiProvider } from '../src/context/ApiContext';
 import { AuthProvider, useAuth } from '../src/context/AuthContext';
+import { useOfflineQueue } from '../src/hooks/useOfflineQueue';
 import { ErrorBoundary } from '../src/components/core/ErrorBoundary';
 import { OfflineBanner } from '../src/components/core/OfflineBanner';
 import { colors } from '@momeants/design';
 
 SplashScreen.preventAutoHideAsync();
 
+Sentry.init({
+  dsn: process.env.EXPO_PUBLIC_SENTRY_DSN ?? '',
+  enabled: !!process.env.EXPO_PUBLIC_SENTRY_DSN,
+  environment: __DEV__ ? 'development' : 'production',
+  tracesSampleRate: __DEV__ ? 0 : 0.2,
+});
+
 function RootNavigator() {
   const { userId, isOnboarded, isLoading } = useAuth();
+  useOfflineQueue(); // Flush queued moments whenever the app is foregrounded
   const segments = useSegments();
   const router = useRouter();
 
@@ -59,6 +69,7 @@ function RootNavigator() {
       <Stack.Screen name="sparks/index" options={{ presentation: 'card', headerShown: false }} />
       <Stack.Screen name="privacy" options={{ presentation: 'modal', headerShown: false }} />
       <Stack.Screen name="(auth)/forgot-password" options={{ headerShown: false }} />
+      <Stack.Screen name="(auth)/reset-password" options={{ headerShown: false }} />
       <Stack.Screen name="search" options={{ headerShown: false }} />
       <Stack.Screen name="calendar/new" options={{ headerShown: false }} />
       <Stack.Screen name="profile/[id]" options={{ headerShown: false }} />

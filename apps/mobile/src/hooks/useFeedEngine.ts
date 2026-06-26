@@ -3,24 +3,26 @@ import type { RankedFeedItem } from '@momeants/types';
 import type { EngineContext } from '../engines/types';
 import { buildHomeFeed } from '../engines/feedEngine';
 import { inferCliques } from '../engines/relationshipEngine';
-import { DEMO_RELATIONSHIP_WEIGHTS } from '../demo/relationships';
-import { MOCK_SPONSORED_ITEMS } from '../demo/sponsored';
 import { useApi } from '../context/ApiContext';
-
-// Mock discovery moments — second-degree users who aren't in direct circle.
-// In production this comes from the backend feed candidates endpoint.
-import { MOCK_DISCOVERY_MOMENTS, MOCK_SOCIAL_GRAPH } from '../demo/discovery';
+import type { SocialGraph } from '../engines/types';
 
 export function useFeedEngine() {
   const api = useApi();
   const [feed, setFeed] = useState<RankedFeedItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [timelineCursor, setTimelineCursor] = useState<{ year: number; month: number }>(() => {
+    const now = new Date();
+    return { year: now.getFullYear(), month: now.getMonth() + 1 };
+  });
+  const [hasMore, setHasMore] = useState(true);
   const [seenIds] = useState(() => new Set<string>());
   const [dismissedSparkIds] = useState(() => new Set<string>());
   const [seenSponsoredIds] = useState(() => new Map<string, number>());
 
   const buildFeed = useCallback(async () => {
+    const fallbackHome = { hero: null as any, recent: [], resurfaced: undefined };
     const [
       homeMoments,
       circleMembers,
@@ -28,15 +30,13 @@ export function useFeedEngine() {
       conversations,
       sparkHistory,
       calendarEvents,
-      sparkSettings,
     ] = await Promise.all([
-      api.listHomeMoments(),
-      api.listCircleMembers(),
-      api.listCircleMoments(),
-      api.listConversations(),
-      api.getSparkHistory(30),
-      api.listCalendarEvents(),
-      api.getSparkSettings(),
+      api.listHomeMoments().catch(() => fallbackHome),
+      api.listCircleMembers().catch(() => []),
+      api.listCircleMoments().catch(() => []),
+      api.listConversations().catch(() => []),
+      api.getSparkHistory(30).catch(() => []),
+      api.listCalendarEvents().catch(() => []),
     ]);
 
     const availableSparks = sparkHistory
@@ -50,6 +50,8 @@ export function useFeedEngine() {
       ...(homeMoments.resurfaced ? [homeMoments.resurfaced] : []),
     ].filter(Boolean);
 
+    const emptySocialGraph: SocialGraph = new Map();
+
     const baseContext: EngineContext = {
       userId: 'me',
       currentTime: new Date(),
@@ -60,13 +62,13 @@ export function useFeedEngine() {
       conversations,
       sparkHistory,
       availableSparks,
-      calendarEvents,
+      calendarEvents: calendarEvents ?? [],
       seenFeedItemIds: seenIds,
       dismissedSparkIds,
-      relationshipWeights: DEMO_RELATIONSHIP_WEIGHTS,
-      socialGraph: MOCK_SOCIAL_GRAPH,
-      sponsoredItems: MOCK_SPONSORED_ITEMS,
-      discoveryMoments: MOCK_DISCOVERY_MOMENTS,
+      relationshipWeights: [],
+      socialGraph: emptySocialGraph,
+      sponsoredItems: [],
+      discoveryMoments: [],
       userInterestSignals: [],
       seenSponsoredIds,
     };
@@ -100,5 +102,34 @@ export function useFeedEngine() {
     seenSponsoredIds.set(adId, (seenSponsoredIds.get(adId) ?? 0) + 1);
   }, [seenSponsoredIds]);
 
-  return { feed, loading, refreshing, refresh, markSeen, dismissSpark, markSponsoredSeen };
+  // Load older moments by going back one month at a time
+  const loadMore = useCallback(async () => {
+    if (loadingMore || !hasMore) return;
+    setLoadingMore(true);
+    try {
+      const prevMonth = timelineCursor.month === 1
+        ? { year: timelineCursor.year - 1, month: 12 }
+        : { year: timelineCursor.year, month: timelineCursor.month - 1 };
+
+      const older = await api.listTimeline({ year: prevMonth.year, month: prevMonth.month }).catch(() => []);
+      if (older.length === 0) {
+        setHasMore(false);
+      } else {
+        const olderMoments = older.flatMap((g) => g.moments);
+        const olderItems: RankedFeedItem[] = olderMoments.map((m) => ({
+          key: m.id,
+          type: 'moment' as const,
+          priority: 'low' as const,
+          score: 0,
+          moment: m,
+        }));
+        setFeed((prev) => [...prev, ...olderItems]);
+        setTimelineCursor(prevMonth);
+      }
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [loadingMore, hasMore, timelineCursor, api]);
+
+  return { feed, loading, refreshing, refresh, markSeen, dismissSpark, markSponsoredSeen, loadMore, loadingMore, hasMore };
 }

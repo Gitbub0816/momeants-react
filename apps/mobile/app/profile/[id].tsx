@@ -26,44 +26,24 @@ export default function OtherProfileScreen() {
 
   useEffect(() => {
     if (!id) return;
-    // api.getProfile() returns the self profile — for other users we fall back to
-    // a mock shape derived from the known mock people list.
-    const KNOWN_PROFILES: Record<string, { displayName: string; username: string; tagline: string; avatarUri: string; momentCount: number; daysRemembered: number; peopleCount: number }> = {
-      p1: { displayName: 'Ava Chen', username: 'avachen', tagline: 'Chasing quiet moments.', avatarUri: 'https://i.pravatar.cc/100?img=47', momentCount: 42, daysRemembered: 120, peopleCount: 8 },
-      p2: { displayName: 'Marcus Williams', username: 'marcusw', tagline: 'Coffee, music, memories.', avatarUri: 'https://i.pravatar.cc/100?img=3', momentCount: 28, daysRemembered: 85, peopleCount: 6 },
-      p3: { displayName: 'Sofia Park', username: 'sofiapark', tagline: 'Living intentionally.', avatarUri: 'https://i.pravatar.cc/100?img=5', momentCount: 55, daysRemembered: 200, peopleCount: 12 },
-      p4: { displayName: 'James Rivera', username: 'jrivera', tagline: 'Every day is a story.', avatarUri: 'https://i.pravatar.cc/100?img=12', momentCount: 19, daysRemembered: 60, peopleCount: 5 },
-      p5: { displayName: 'Lily Zhang', username: 'lilyzhang', tagline: 'Small moments, big feelings.', avatarUri: 'https://i.pravatar.cc/100?img=9', momentCount: 33, daysRemembered: 90, peopleCount: 7 },
-    };
-
-    const known = KNOWN_PROFILES[id];
-    if (known) {
-      setProfile(known);
-      setLoading(false);
-    } else {
-      // Try api.getProfile() — it returns own profile but at least won't crash
-      (api as any).getProfile(id)
-        .then((p: any) => setProfile(p))
-        .catch(() => setProfile({ displayName: 'Unknown', username: 'unknown', tagline: '', avatarUri: undefined, momentCount: 0, daysRemembered: 0, peopleCount: 0 }))
-        .finally(() => setLoading(false));
-    }
-  }, [id]);
+    api.getUserProfile(id)
+      .then((p) => setProfile(p))
+      .catch(() => setProfile({ displayName: 'Unknown', username: 'unknown', tagline: '', avatarUri: undefined, momentCount: 0, daysRemembered: 0, peopleCount: 0 } as any))
+      .finally(() => setLoading(false));
+  }, [id, api]);
 
   async function handleCircleToggle() {
     if (addingCircle || !id) return;
     setAddingCircle(true);
     try {
       if (inCircle) {
-        // Added in API expansion
-        await (api as any).removeFromCircle(id);
+        await api.removeFromCircle(id);
         setInCircle(false);
       } else {
-        // Added in API expansion
-        await (api as any).addToCircle(id);
+        await api.addToCircle(id);
         setInCircle(true);
       }
     } catch {
-      // silently ignore if not yet implemented
       if (!inCircle) setInCircle(true);
     } finally {
       setAddingCircle(false);

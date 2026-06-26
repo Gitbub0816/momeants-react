@@ -52,10 +52,11 @@ export default function EditProfileScreen() {
     await api.updateProfile({
       fullName: displayName,
       username,
+      tagline,
       city,
       avatarUri: avatarUri ?? undefined,
       defaultPrivacy,
-    });
+    } as any);
     setSaving(false);
     router.back();
   }
