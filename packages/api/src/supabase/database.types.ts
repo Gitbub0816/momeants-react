@@ -132,7 +132,7 @@ export interface Database {
         Update: Partial<Database['public']['Tables']['spark_library']['Row']>;
       };
       spark_settings: {
-        Row: { user_id: string; enabled: boolean; frequency_per_week: number; quiet_hours_start: string; quiet_hours_end: string; enabled_categories: string[]; allow_location: boolean; allow_weather: boolean; allow_holidays: boolean; allow_relationship: boolean; allow_ai_personalization: boolean };
+        Row: { user_id: string; enabled: boolean; frequency_per_week: number; quiet_hours_start: string; quiet_hours_end: string; enabled_categories: string[]; allow_location: boolean; allow_weather: boolean; allow_holidays: boolean; allow_relationship: boolean; allow_ai_personalization: boolean; background_engagement_sparks_enabled: boolean; minigame_sparks_enabled: boolean };
         Insert: Database['public']['Tables']['spark_settings']['Row'];
         Update: Partial<Database['public']['Tables']['spark_settings']['Row']>;
       };

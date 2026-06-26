@@ -58,7 +58,7 @@ function ConversationItem({ conv }: { conv: Conversation }) {
           <Text style={styles.itemTime}>{time}</Text>
         </View>
         <Text style={[styles.itemPreview, conv.unreadCount > 0 && styles.itemPreviewBold]} numberOfLines={1}>
-          {conv.lastMessage}
+          {conv.lastMessage?.text}
         </Text>
         {conv.cliqueName && (
           <Text style={styles.groupTag}>{conv.cliqueName}</Text>

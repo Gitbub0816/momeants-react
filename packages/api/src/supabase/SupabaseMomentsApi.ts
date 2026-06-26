@@ -548,6 +548,8 @@ export class SupabaseMomentsApi implements MomentsApi {
         allowHolidays: true,
         allowRelationship: true,
         allowAiPersonalization: true,
+        backgroundEngagementSparksEnabled: true,
+        minigameSparksEnabled: true,
       };
     }
 
@@ -563,6 +565,8 @@ export class SupabaseMomentsApi implements MomentsApi {
       allowHolidays: data.allow_holidays,
       allowRelationship: data.allow_relationship,
       allowAiPersonalization: data.allow_ai_personalization,
+      backgroundEngagementSparksEnabled: data.background_engagement_sparks_enabled,
+      minigameSparksEnabled: data.minigame_sparks_enabled,
     };
   }
 
@@ -854,6 +858,8 @@ export class SupabaseMomentsApi implements MomentsApi {
         type: c.type ?? 'direct',
         name: c.name ?? undefined,
         participants: [],
+        participantIds: [],
+        participantNames: [],
         lastMessage: last ? {
           text: last.text,
           senderName: last.profiles?.display_name ?? 'Unknown',
@@ -896,6 +902,8 @@ export class SupabaseMomentsApi implements MomentsApi {
       type: data.type ?? 'direct',
       name: data.name ?? undefined,
       participants: [],
+      participantIds: [],
+      participantNames: [],
       unreadCount: 0,
       messages,
     };
