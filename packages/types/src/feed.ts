@@ -2,6 +2,7 @@ import type { Moment } from './moment';
 import type { Spark, SparkDelivery } from './spark';
 import type { CalendarEvent } from './calendar-event';
 import type { CircleMember } from './circle';
+import type { SponsoredItem } from './outreach';
 
 export type FeedItemType =
   | 'moment'
@@ -18,7 +19,9 @@ export type FeedItemType =
   | 'bestie_update'
   | 'trip_memory'
   | 'gratitude_nudge'
-  | 'conversation_starter';
+  | 'conversation_starter'
+  | 'discovery_moment'   // friend-of-friend or organic reach
+  | 'sponsored';         // paid placement
 
 export type FeedItemPriority = 'critical' | 'high' | 'medium' | 'low';
 
@@ -39,10 +42,12 @@ export interface RankedFeedItem {
   sparkDelivery?: SparkDelivery;
   calendarEvent?: CalendarEvent;
   circleMember?: CircleMember;
+  sponsored?: SponsoredItem;
   engagementPrompts?: FeedEngagementPrompt[];
   resurfaceLabel?: string;
   headline?: string;
   subtext?: string;
   accentColor?: string;
+  discoveryContext?: string; // e.g. "Friend of Maya · 3 mutual moments"
   insertedAt?: number;
 }

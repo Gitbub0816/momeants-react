@@ -4,12 +4,13 @@ import { computeClosenessScore } from './relationshipEngine';
 import { scoreResurfacing, selectResurfacedMemory } from './resurfacingEngine';
 import { rankImportantDays, buildImportantDayCard, scoreImportantDay } from './importantDaysEngine';
 import {
-  scoreSpark,
   buildSparkFeedCard,
   selectBackgroundSpark,
   selectMinigame,
   checkSparkFatigueRules,
 } from './sparksEngine';
+import { rankDiscoveryCandidates } from './outreachEngine';
+import { insertSponsoredContent } from './sponsoredContentEngine';
 
 // --- Per-moment scoring components ---
 
@@ -330,6 +331,48 @@ export function buildHomeFeed(context: EngineContext): RankedFeedItem[] {
 
   feed = insertImportantDayCards(feed, context);
   feed = insertSparkCards(feed, context);
+  feed = insertDiscoveryContent(feed, context);
+  feed = insertSponsoredContent(feed, context);
 
   return feed;
+}
+
+// --- Discovery content insertion ---
+
+export function insertDiscoveryContent(
+  feed: RankedFeedItem[],
+  context: EngineContext
+): RankedFeedItem[] {
+  if (context.discoveryMoments.length === 0) return feed;
+
+  const candidates = rankDiscoveryCandidates(context.discoveryMoments, context);
+  if (candidates.length === 0) return feed;
+
+  const result = [...feed];
+  let inserted = 0;
+
+  for (const candidate of candidates) {
+    // Insert 1 discovery item per 8 personal items; max 3 per feed
+    const targetPosition = (inserted + 1) * 8 + inserted;
+    if (targetPosition >= result.length) break;
+    if (inserted >= 3) break;
+
+    // Skip if position already has a non-moment item
+    const slot = Math.min(targetPosition, result.length);
+
+    const discoveryItem: RankedFeedItem = {
+      key: `discovery_${candidate.moment.id}`,
+      type: 'discovery_moment',
+      priority: 'low',
+      score: candidate.discoveryScore,
+      moment: candidate.moment,
+      discoveryContext: candidate.bridgePersonName ? `Friend of ${candidate.bridgePersonName}` : 'Discover someone new',
+      engagementPrompts: buildEngagementPrompts(candidate.moment, context),
+    };
+
+    result.splice(slot, 0, discoveryItem);
+    inserted++;
+  }
+
+  return result;
 }

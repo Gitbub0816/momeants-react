@@ -6,4 +6,7 @@ export * from './message';
 export * from './calendar-event';
 export * from './spark';
 export * from './feed';
+export * from './outreach';
+export * from './moderation';
+export * from './calendar-intelligence';
 export * from './api';
