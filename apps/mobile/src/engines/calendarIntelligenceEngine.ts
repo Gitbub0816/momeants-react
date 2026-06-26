@@ -330,6 +330,13 @@ export function runCalendarIntelligence(context: EngineContext): {
   inferences: CalendarInference[];
   nudges: CalendarNudge[];
 } {
+  // Guard: warn if moments pool is too small — patterns may be missed
+  if (context.moments.length < 20) {
+    console.warn(
+      `[calendarIntelligenceEngine] Only ${context.moments.length} moments in context (< 20) — anniversary pattern detection may miss recurring events.`
+    );
+  }
+
   const allInferences: CalendarInference[] = [];
 
   // Infer from each moment's text
@@ -339,6 +346,16 @@ export function runCalendarIntelligence(context: EngineContext): {
 
   // Detect multi-year anniversary patterns
   allInferences.push(...detectAnniversaryPatterns(context));
+
+  // Build birthday calendar inferences for circle members whose birthday is known
+  const currentYear = context.currentTime.getFullYear();
+  context.circleMembers.forEach((member) => {
+    if (member.birthday) {
+      allInferences.push(
+        buildBirthdayEventFromOnboarding(member.id, member.displayName, member.birthday, currentYear)
+      );
+    }
+  });
 
   const nudges = buildCalendarNudges(context.calendarEvents, allInferences, context);
 

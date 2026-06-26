@@ -5,6 +5,7 @@ export interface CircleMember {
   avatarUri?: string;
   relationship?: string;
   hasNewMoment?: boolean;
+  birthday?: string; // ISO date string (YYYY-MM-DD), used for birthday calendar events
 }
 
 export interface CircleMoment {
