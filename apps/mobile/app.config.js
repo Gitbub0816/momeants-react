@@ -58,6 +58,7 @@ module.exports = {
   },
   plugins: [
     './plugins/withMonorepoNodeModules',
+    './plugins/withExcludeDevClientInProduction',
     'expo-router',
     'expo-font',
     [
