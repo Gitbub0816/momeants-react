@@ -12,10 +12,12 @@ import * as Haptics from 'expo-haptics';
 import { ScreenShell } from '../../src/components/core';
 import { Skeleton } from '../../src/components/core/SkeletonLoader';
 import { useApi } from '../../src/context/ApiContext';
-import type { CalendarEvent } from '@momeants/types';
+import type { CalendarEvent, CalendarInference, CalendarNudge } from '@momeants/types';
 import { colors } from '@momeants/design/src/colors';
 import { spacing, radii } from '@momeants/design/src/spacing';
 import { fontSize, fontFamily } from '@momeants/design/src/typography';
+import { runCalendarIntelligence } from '../../src/engines/calendarIntelligenceEngine';
+import type { EngineContext } from '../../src/engines/types';
 
 const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -73,6 +75,8 @@ export default function CalendarScreen() {
   const api = useApi();
   const now = new Date();
   const [events, setEvents] = useState<CalendarEvent[]>([]);
+  const [inferences, setInferences] = useState<CalendarInference[]>([]);
+  const [calNudges, setCalNudges] = useState<CalendarNudge[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [selectedMonth, setSelectedMonth] = useState(now.getMonth());
@@ -81,6 +85,29 @@ export default function CalendarScreen() {
   async function load() {
     const evts = await api.listCalendarEvents();
     setEvents(evts);
+    const ctx: EngineContext = {
+      userId: 'me',
+      currentTime: new Date(),
+      moments: [],
+      circleMembers: [],
+      cliques: [],
+      circleMoments: [],
+      conversations: [],
+      sparkHistory: [],
+      availableSparks: [],
+      calendarEvents: evts,
+      seenFeedItemIds: new Set(),
+      dismissedSparkIds: new Set(),
+      seenSponsoredIds: new Map(),
+      relationshipWeights: [],
+      socialGraph: new Map(),
+      sponsoredItems: [],
+      discoveryMoments: [],
+      userInterestSignals: [],
+    };
+    const { inferences: inf, nudges } = runCalendarIntelligence(ctx);
+    setInferences(inf);
+    setCalNudges(nudges);
   }
 
   useEffect(() => {
@@ -157,9 +184,57 @@ export default function CalendarScreen() {
           ))}
         </ScrollView>
 
-        {upcoming.length > 0 && (
+        {inferences.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Suggested dates</Text>
+            {inferences.map((inf, i) => (
+              <View key={`${inf.momentId}-${i}`} style={styles.inferenceCard}>
+                <View style={styles.inferenceLeft}>
+                  <Text style={styles.inferenceEmoji}>{inf.suggestedEmoji}</Text>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.inferenceTitle}>{inf.suggestedTitle}</Text>
+                    <Text style={styles.inferenceDate}>{inf.suggestedDate}</Text>
+                  </View>
+                </View>
+                <TouchableOpacity
+                  onPress={async () => {
+                    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                    await (api as any).confirmCalendarInference(inf);
+                    setInferences((prev) => prev.filter((_, idx) => idx !== i));
+                  }}
+                  style={styles.inferenceAddBtn}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Add ${inf.suggestedTitle} to calendar`}
+                  accessibilityHint="Double tap to add this suggested date to your calendar"
+                >
+                  <Text style={styles.inferenceAddText}>Add</Text>
+                </TouchableOpacity>
+              </View>
+            ))}
+          </View>
+        )}
+
+        {calNudges.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Coming Up</Text>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.nudgeStrip}
+            >
+              {calNudges.map((nudge, i) => (
+                <View key={i} style={styles.nudgeChip}>
+                  <Text style={styles.nudgeHeadline}>{nudge.headline}</Text>
+                  <Text style={styles.nudgeSubtext}>{nudge.subtext}</Text>
+                </View>
+              ))}
+            </ScrollView>
+          </View>
+        )}
+
+        {upcoming.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Your events</Text>
             {upcoming.slice(0, 3).map((e) => <EventCard key={e.id} event={e} />)}
           </View>
         )}
