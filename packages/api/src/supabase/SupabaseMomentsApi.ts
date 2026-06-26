@@ -276,13 +276,17 @@ export class SupabaseMomentsApi implements MomentsApi {
     const { data: session } = await this.sb.auth.getSession();
     const userId = session.session!.user.id;
 
-    await this.sb.from('profiles').update({
-      ...((data.fullName || data.displayName) && { display_name: data.fullName ?? data.displayName }),
-      ...(data.username && { username: data.username }),
-      ...(data.city && { city: data.city }),
-      ...(data.country && { country: data.country }),
-      ...(data.avatarUri && { avatar_url: data.avatarUri }),
-      ...(data.defaultPrivacy && { default_privacy: data.defaultPrivacy }),
+    const d = data as Partial<OnboardingData> & { displayName?: string; tagline?: string; resurfaceConsent?: boolean; activityVisible?: boolean };
+    await (this.sb.from('profiles') as any).update({
+      ...((d.fullName || d.displayName) && { display_name: d.fullName ?? d.displayName }),
+      ...(d.username && { username: d.username }),
+      ...(d.city !== undefined && { city: d.city }),
+      ...(d.country !== undefined && { country: d.country }),
+      ...(d.avatarUri !== undefined && { avatar_url: d.avatarUri }),
+      ...(d.defaultPrivacy && { default_privacy: d.defaultPrivacy }),
+      ...(d.tagline !== undefined && { tagline: d.tagline }),
+      ...(d.resurfaceConsent !== undefined && { resurface_consent: d.resurfaceConsent }),
+      ...(d.activityVisible !== undefined && { activity_visible: d.activityVisible }),
     }).eq('id', userId);
 
     return this.getProfile(userId);
@@ -887,7 +891,7 @@ export class SupabaseMomentsApi implements MomentsApi {
       .from('conversations')
       .select(`
         id, type, name, clique_id, created_at, updated_at,
-        conversation_participants!inner(user_id, profiles(display_name, avatar_url)),
+        conversation_participants!inner(user_id, last_read_at, profiles(display_name, avatar_url)),
         messages(id, sender_id, text, sent_at, profiles!sender_id(display_name, avatar_url))
       `)
       .eq('conversation_participants.user_id', user.id)
@@ -911,8 +915,11 @@ export class SupabaseMomentsApi implements MomentsApi {
       );
       const last = msgs[0];
 
-      // Unread count: messages not from me (simple heuristic — no read receipts table)
-      const unreadCount = (c.messages ?? []).filter((m: any) => m.sender_id !== user.id).length;
+      const myParticipant = (c.conversation_participants ?? []).find((p: any) => p.user_id === user.id);
+      const lastReadAt = myParticipant?.last_read_at ? new Date(myParticipant.last_read_at).getTime() : 0;
+      const unreadCount = (c.messages ?? []).filter(
+        (m: any) => m.sender_id !== user.id && new Date(m.sent_at).getTime() > lastReadAt
+      ).length;
 
       return {
         id: c.id,
@@ -930,8 +937,10 @@ export class SupabaseMomentsApi implements MomentsApi {
               isFromMe: last.sender_id === user.id,
             }
           : undefined,
+        lastMessageAt: last?.sent_at ?? c.updated_at ?? undefined,
         unreadCount,
         cliqueId: c.clique_id ?? undefined,
+        cliqueName: c.name ?? undefined,
         messages: [],
       };
     });
@@ -1013,6 +1022,15 @@ export class SupabaseMomentsApi implements MomentsApi {
       sentAt: data.sent_at,
       isFromMe: true,
     };
+  }
+
+  async markConversationRead(conversationId: string): Promise<void> {
+    const { data: { user } } = await this.sb.auth.getUser();
+    if (!user) return;
+    await (this.sb.from('conversation_participants') as any)
+      .update({ last_read_at: new Date().toISOString() })
+      .eq('conversation_id', conversationId)
+      .eq('user_id', user.id);
   }
 
   async createConversation(participantIds: string[], cliqueId?: string): Promise<Conversation> {

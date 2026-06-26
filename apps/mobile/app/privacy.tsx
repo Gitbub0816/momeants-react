@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
   ScrollView,
   StyleSheet,
   TouchableOpacity,
+  Alert,
+  Share,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
@@ -42,11 +44,47 @@ export default function PrivacyScreen() {
   const [resurfaceConsent, setResurfaceConsent] = useState(true);
   const [activityVisible, setActivityVisible] = useState(true);
 
+  useEffect(() => {
+    api.getProfile().then((p) => {
+      setDefaultVisibility((p.defaultPrivacy as Visibility) ?? 'close_circle');
+    }).catch(() => {});
+  }, []);
+
   async function persistPrivacy(updates: { resurfaceConsent?: boolean; activityVisible?: boolean; defaultPrivacy?: Visibility }) {
     try {
       await api.updateProfile(updates as any);
     } catch {
       // non-critical; local state already updated
+    }
+  }
+
+  async function handleDownloadData() {
+    try {
+      const profile = await api.getProfile();
+      const groups = await api.listTimeline({ year: new Date().getFullYear(), month: new Date().getMonth() + 1 }).catch(() => []);
+      const recentMoments = groups.flatMap((g) => g.moments ?? []);
+      const exportData = {
+        exportedAt: new Date().toISOString(),
+        profile: {
+          displayName: profile.displayName,
+          username: profile.username,
+          city: profile.city,
+          memberSince: profile.createdAt,
+          momentCount: profile.momentCount,
+        },
+        recentMoments: recentMoments.map((m) => ({
+          caption: m.caption,
+          moods: m.moods,
+          location: m.location?.label,
+          createdAt: m.createdAt,
+        })),
+      };
+      await Share.share({
+        title: 'My Momeants Data',
+        message: JSON.stringify(exportData, null, 2),
+      });
+    } catch {
+      Alert.alert('Export failed', 'Could not export your data. Please try again.');
     }
   }
 
@@ -146,13 +184,14 @@ export default function PrivacyScreen() {
           <Text style={styles.sectionTitle}>Your data</Text>
           <GlassCard style={styles.card}>
             {[
-              { label: 'Download my data', icon: '↓' },
+              { label: 'Download my data', icon: '↓', action: handleDownloadData },
               { label: 'Delete account', icon: '⚠', danger: true, route: '/delete-account' },
             ].map((item, i) => (
               <TouchableOpacity
                 key={item.label}
                 onPress={() => {
                   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                  if (item.action) { item.action(); return; }
                   if (item.route) router.push(item.route as any);
                 }}
                 style={[styles.optionRow, i > 0 && styles.optionBorder]}

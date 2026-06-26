@@ -86,6 +86,8 @@ export default function ConversationScreen() {
         const msgs = c.messages ?? [];
         setMessages(msgs);
         messageCountRef.current = msgs.length;
+        // Mark conversation as read so unread badge clears
+        api.markConversationRead?.(id).catch(() => {});
       }
     });
   }, [id]);

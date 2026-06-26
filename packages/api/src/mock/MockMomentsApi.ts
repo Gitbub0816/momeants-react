@@ -266,6 +266,8 @@ export class MockMomentsApi implements MomentsApi {
     return msg;
   }
 
+  async markConversationRead(_conversationId: string): Promise<void> { /* no-op in mock */ }
+
   async listCalendarEvents(): Promise<CalendarEvent[]> {
     await delay(300);
     return MOCK_CALENDAR_EVENTS;

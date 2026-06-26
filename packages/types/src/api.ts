@@ -62,6 +62,7 @@ export interface MomentsApi {
   // Messages
   listConversations(): Promise<Conversation[]>;
   getConversation(id: string): Promise<Conversation | null>;
+  markConversationRead?(conversationId: string): Promise<void>;
   sendMessage(conversationId: string, text: string): Promise<Message>;
   createConversation(participantIds: string[], cliqueId?: string): Promise<Conversation>;
 
