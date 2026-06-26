@@ -74,15 +74,39 @@ export default function ConversationScreen() {
   const [conv, setConv] = useState<Conversation | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [text, setText] = useState('');
+  const [isLive, setIsLive] = useState(false);
   const listRef = useRef<FlatList>(null);
+  const messageCountRef = useRef(0);
 
   useEffect(() => {
     api.getConversation(id).then((c) => {
       if (c) {
         setConv(c);
-        setMessages(c.messages ?? []);
+        const msgs = c.messages ?? [];
+        setMessages(msgs);
+        messageCountRef.current = msgs.length;
       }
     });
+  }, [id]);
+
+  // Mock real-time polling — in production this would be Supabase Realtime
+  useEffect(() => {
+    setIsLive(true);
+    const interval = setInterval(async () => {
+      const c = await api.getConversation(id);
+      if (c) {
+        const msgs = c.messages ?? [];
+        if (msgs.length !== messageCountRef.current) {
+          messageCountRef.current = msgs.length;
+          setMessages(msgs);
+          setTimeout(() => listRef.current?.scrollToEnd({ animated: true }), 100);
+        }
+      }
+    }, 8000);
+    return () => {
+      clearInterval(interval);
+      setIsLive(false);
+    };
   }, [id]);
 
   const title = conv?.cliqueName
@@ -102,10 +126,15 @@ export default function ConversationScreen() {
     <>
       <Stack.Screen
         options={{
-          title,
           headerStyle: { backgroundColor: colors.ink900 },
           headerTintColor: colors.textPrimary,
           headerBackTitle: 'Back',
+          headerTitle: () => (
+            <View style={styles.headerTitle}>
+              <Text style={styles.headerTitleText}>{title}</Text>
+              {isLive && <View style={styles.liveDot} />}
+            </View>
+          ),
         }}
       />
       <LinearGradient colors={[colors.ink900, '#151B31']} style={styles.container}>
@@ -239,4 +268,7 @@ const styles = StyleSheet.create({
   },
   sendBtnDisabled: { opacity: 0.35 },
   sendIcon: { color: '#fff', fontSize: 20, fontFamily: fontFamily.sansMedium },
+  headerTitle: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  headerTitleText: { color: colors.textPrimary, fontFamily: fontFamily.sansMedium, fontSize: fontSize.md },
+  liveDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#22C55E' },
 });
