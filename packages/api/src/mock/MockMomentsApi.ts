@@ -8,6 +8,10 @@ import type {
   OnboardingData,
   CircleMember,
   CircleMoment,
+  Clique,
+  CliqueType,
+  CliqueMember,
+  CalendarInference,
   SparkDelivery,
   SparkSettings,
   Conversation,
@@ -22,6 +26,7 @@ import {
 } from './data';
 import { SPARK_LIBRARY, DEFAULT_SPARK_SETTINGS } from './sparks';
 import { MOCK_CONVERSATIONS, MOCK_MESSAGES_BY_CONVO, MOCK_CALENDAR_EVENTS } from './messaging';
+import { DEMO_CLIQUES } from './cliques';
 
 function delay(ms = 400): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -31,6 +36,9 @@ export class MockMomentsApi implements MomentsApi {
   private moments: Moment[] = [...MOCK_MOMENTS];
   private sparkDeliveries: SparkDelivery[] = [];
   private sparkSettings: SparkSettings = { ...DEFAULT_SPARK_SETTINGS };
+  private circleIds: Set<string> = new Set(MOCK_CIRCLE_MEMBERS.map((m) => m.id));
+  private connectionRequests: Array<{ userId: string; displayName: string; avatarUri?: string; sentAt: string }> = [];
+  private cliques: Clique[] = [...DEMO_CLIQUES];
 
   async createMoment(input: CreateMomentInput): Promise<Moment> {
     await delay();
@@ -260,5 +268,166 @@ export class MockMomentsApi implements MomentsApi {
   async listCalendarEvents(): Promise<CalendarEvent[]> {
     await delay(300);
     return MOCK_CALENDAR_EVENTS;
+  }
+
+  async searchUsers(query: string): Promise<UserProfile[]> {
+    await delay(300);
+    const q = query.toLowerCase();
+    return MOCK_CIRCLE_MEMBERS
+      .filter(
+        (m) =>
+          m.displayName.toLowerCase().includes(q) ||
+          (m.username && m.username.toLowerCase().includes(q))
+      )
+      .map((m) => ({
+        id: m.id,
+        displayName: m.displayName,
+        username: m.username ?? m.id,
+        avatarUri: m.avatarUri,
+        defaultPrivacy: 'close_circle' as const,
+        momentCount: 0,
+        daysRemembered: 0,
+        peopleCount: 0,
+        topMoods: [],
+        createdAt: new Date().toISOString(),
+      }));
+  }
+
+  async addToCircle(userId: string): Promise<void> {
+    await delay(300);
+    this.circleIds.add(userId);
+  }
+
+  async removeFromCircle(userId: string): Promise<void> {
+    await delay(300);
+    this.circleIds.delete(userId);
+  }
+
+  async sendConnectionRequest(userId: string): Promise<void> {
+    await delay(400);
+    const member = MOCK_CIRCLE_MEMBERS.find((m) => m.id === userId);
+    if (member && !this.connectionRequests.find((r) => r.userId === userId)) {
+      this.connectionRequests.push({
+        userId,
+        displayName: member.displayName,
+        avatarUri: member.avatarUri,
+        sentAt: new Date().toISOString(),
+      });
+    }
+  }
+
+  async getConnectionRequests(): Promise<Array<{ userId: string; displayName: string; avatarUri?: string; sentAt: string }>> {
+    await delay(300);
+    return [...this.connectionRequests];
+  }
+
+  async acceptConnectionRequest(userId: string): Promise<void> {
+    await delay(300);
+    this.connectionRequests = this.connectionRequests.filter((r) => r.userId !== userId);
+    this.circleIds.add(userId);
+  }
+
+  async declineConnectionRequest(userId: string): Promise<void> {
+    await delay(300);
+    this.connectionRequests = this.connectionRequests.filter((r) => r.userId !== userId);
+  }
+
+  async createClique(name: string, memberIds: string[], type: CliqueType = 'custom', emoji?: string): Promise<Clique> {
+    await delay(400);
+    const now = new Date().toISOString();
+    const members: CliqueMember[] = memberIds.map((uid, i) => ({
+      id: `cm-${Date.now()}-${i}`,
+      userId: uid,
+      displayName: MOCK_CIRCLE_MEMBERS.find((m) => m.id === uid)?.displayName ?? uid,
+      avatarUri: MOCK_CIRCLE_MEMBERS.find((m) => m.id === uid)?.avatarUri,
+      isOwner: i === 0,
+      joinedAt: now,
+    }));
+    const clique: Clique = {
+      id: `clique-${Date.now()}`,
+      name,
+      type,
+      emoji,
+      ownerId: 'me',
+      members,
+      memberCount: members.length,
+      momentCount: 0,
+      createdAt: now,
+    };
+    this.cliques.push(clique);
+    return clique;
+  }
+
+  async updateClique(id: string, data: { name?: string; memberIds?: string[]; emoji?: string; type?: CliqueType }): Promise<Clique> {
+    await delay(400);
+    const idx = this.cliques.findIndex((c) => c.id === id);
+    if (idx === -1) throw new Error(`Clique ${id} not found`);
+    const existing = this.cliques[idx];
+    const now = new Date().toISOString();
+    let members = existing.members;
+    if (data.memberIds) {
+      members = data.memberIds.map((uid, i) => ({
+        id: `cm-${Date.now()}-${i}`,
+        userId: uid,
+        displayName: MOCK_CIRCLE_MEMBERS.find((m) => m.id === uid)?.displayName ?? uid,
+        avatarUri: MOCK_CIRCLE_MEMBERS.find((m) => m.id === uid)?.avatarUri,
+        isOwner: uid === existing.ownerId,
+        joinedAt: existing.members.find((m) => m.userId === uid)?.joinedAt ?? now,
+      }));
+    }
+    const updated: Clique = {
+      ...existing,
+      ...(data.name !== undefined ? { name: data.name } : {}),
+      ...(data.emoji !== undefined ? { emoji: data.emoji } : {}),
+      ...(data.type !== undefined ? { type: data.type } : {}),
+      members,
+      memberCount: members.length,
+    };
+    this.cliques[idx] = updated;
+    return updated;
+  }
+
+  async deleteClique(id: string): Promise<void> {
+    await delay(300);
+    this.cliques = this.cliques.filter((c) => c.id !== id);
+  }
+
+  async shareMoment(_momentId: string, _toUserId: string, _message?: string): Promise<void> {
+    await delay(300);
+  }
+
+  async getCalendarInferences(): Promise<CalendarInference[]> {
+    await delay(300);
+    return [];
+  }
+
+  async confirmCalendarInference(inference: CalendarInference): Promise<CalendarEvent> {
+    await delay(400);
+    return {
+      id: `event-${Date.now()}`,
+      title: inference.suggestedTitle,
+      date: inference.suggestedDate,
+      type: inference.inferredType as CalendarEvent['type'],
+      emoji: inference.suggestedEmoji,
+      personId: inference.involvedPersonIds[0],
+      isRecurring: inference.isRecurring,
+    };
+  }
+
+  async dismissCalendarInference(_momentId: string, _inferredType: string): Promise<void> {
+    await delay(200);
+  }
+
+  async createCalendarEvent(event: { title: string; date: string; type: string; emoji?: string; personId?: string; isRecurring?: boolean }): Promise<CalendarEvent> {
+    await delay(400);
+    return {
+      id: `event-${Date.now()}`,
+      title: event.title,
+      date: event.date,
+      type: event.type as CalendarEvent['type'],
+      emoji: event.emoji,
+      personId: event.personId,
+      isRecurring: event.isRecurring ?? false,
+    };
   }
 }
