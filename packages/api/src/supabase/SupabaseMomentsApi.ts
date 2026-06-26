@@ -1090,6 +1090,72 @@ export class SupabaseMomentsApi implements MomentsApi {
     if (error) throw error;
   }
 
+  // ── Account ───────────────────────────────────────────────────────────────
+
+  async deleteAccount(): Promise<void> {
+    const { data: { user } } = await this.sb.auth.getUser();
+    if (!user) throw new Error('Not authenticated');
+
+    // Call edge function which deletes all user data and then the auth user
+    const { error } = await this.sb.functions.invoke('delete-account', {
+      method: 'POST',
+      body: { userId: user.id },
+    });
+    if (error) throw error;
+
+    // Clear local session
+    await this.sb.auth.signOut();
+  }
+
+  // ── Resurfacing rules ─────────────────────────────────────────────────────
+
+  async getResurfacingRules(): Promise<{ enabled: boolean; hiddenPersonIds: string[]; hiddenPlaceNames: string[] }> {
+    const { data: { user } } = await this.sb.auth.getUser();
+    if (!user) return { enabled: true, hiddenPersonIds: [], hiddenPlaceNames: [] };
+
+    const { data } = await (this.sb.from('resurfacing_rules') as any)
+      .select('enabled, hidden_person_ids, hidden_place_names')
+      .eq('user_id', user.id)
+      .maybeSingle();
+
+    if (!data) return { enabled: true, hiddenPersonIds: [], hiddenPlaceNames: [] };
+    return {
+      enabled: data.enabled ?? true,
+      hiddenPersonIds: data.hidden_person_ids ?? [],
+      hiddenPlaceNames: data.hidden_place_names ?? [],
+    };
+  }
+
+  async updateResurfacingRules(rules: { enabled: boolean; hiddenPersonIds: string[]; hiddenPlaceNames: string[] }): Promise<void> {
+    const { data: { user } } = await this.sb.auth.getUser();
+    if (!user) throw new Error('Not authenticated');
+
+    const { error } = await (this.sb.from('resurfacing_rules') as any).upsert({
+      user_id: user.id,
+      enabled: rules.enabled,
+      hidden_person_ids: rules.hiddenPersonIds,
+      hidden_place_names: rules.hiddenPlaceNames,
+      updated_at: new Date().toISOString(),
+    }, { onConflict: 'user_id' });
+    if (error) throw error;
+  }
+
+  // ── Content moderation ────────────────────────────────────────────────────
+
+  async reportContent(params: { momentId?: string; userId?: string; reason: 'inappropriate' | 'harassment' | 'spam' | 'fake' | 'other'; details?: string }): Promise<void> {
+    const { data: { user } } = await this.sb.auth.getUser();
+    if (!user) throw new Error('Not authenticated');
+
+    const { error } = await (this.sb.from('content_reports') as any).insert({
+      reporter_id: user.id,
+      moment_id: params.momentId ?? null,
+      user_id: params.userId ?? null,
+      reason: params.reason,
+      details: params.details ?? null,
+    });
+    if (error) throw error;
+  }
+
   // ── Storage ───────────────────────────────────────────────────────────────
 
   private async uploadImage(localUri: string, userId: string): Promise<string> {

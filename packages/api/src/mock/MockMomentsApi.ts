@@ -502,4 +502,24 @@ export class MockMomentsApi implements MomentsApi {
   async savePushToken(_token: string): Promise<void> {
     await delay(100);
   }
+
+  async deleteAccount(): Promise<void> {
+    await delay(500);
+  }
+
+  private _resurfacingRules = { enabled: true, hiddenPersonIds: [] as string[], hiddenPlaceNames: [] as string[] };
+
+  async getResurfacingRules() {
+    await delay(200);
+    return { ...this._resurfacingRules };
+  }
+
+  async updateResurfacingRules(rules: { enabled: boolean; hiddenPersonIds: string[]; hiddenPlaceNames: string[] }): Promise<void> {
+    await delay(300);
+    this._resurfacingRules = { ...rules };
+  }
+
+  async reportContent(_params: { momentId?: string; userId?: string; reason: string; details?: string }): Promise<void> {
+    await delay(300);
+  }
 }

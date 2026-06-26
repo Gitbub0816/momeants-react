@@ -25,6 +25,7 @@ import { MomeantsButton, GlassCard } from '../src/components/core';
 import { useApi } from '../src/context/ApiContext';
 import { colors, gradients, fontFamily, fontSize, spacing, radii } from '@momeants/design';
 import { moderateMoment } from '../src/engines/moderationEngine';
+import { enqueueMoment } from '../src/hooks/useOfflineQueue';
 import type { CircleMember } from '@momeants/types';
 
 const { width } = Dimensions.get('window');
@@ -199,15 +200,27 @@ export default function CaptureScreen() {
         });
       }
 
-      await api.createMoment({
+      const momentInput = {
         imageUri,
         caption: caption.trim() || undefined,
         moods,
         visibility,
         people,
         location: location ?? undefined,
-      });
-      router.replace('/(tabs)/home');
+      };
+
+      try {
+        await api.createMoment(momentInput);
+        router.replace('/(tabs)/home');
+      } catch {
+        // Queue for retry when connectivity returns
+        await enqueueMoment(momentInput);
+        Alert.alert(
+          'Saved for later',
+          'No connection — your moment is saved and will upload automatically when you reconnect.',
+          [{ text: 'OK', onPress: () => router.replace('/(tabs)/home') }]
+        );
+      }
     } catch {
       Alert.alert('Could not save', 'Please try again.');
       setSaving(false);

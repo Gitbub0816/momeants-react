@@ -11,6 +11,12 @@ export function useFeedEngine() {
   const [feed, setFeed] = useState<RankedFeedItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [timelineCursor, setTimelineCursor] = useState<{ year: number; month: number }>(() => {
+    const now = new Date();
+    return { year: now.getFullYear(), month: now.getMonth() + 1 };
+  });
+  const [hasMore, setHasMore] = useState(true);
   const [seenIds] = useState(() => new Set<string>());
   const [dismissedSparkIds] = useState(() => new Set<string>());
   const [seenSponsoredIds] = useState(() => new Map<string, number>());
@@ -96,5 +102,34 @@ export function useFeedEngine() {
     seenSponsoredIds.set(adId, (seenSponsoredIds.get(adId) ?? 0) + 1);
   }, [seenSponsoredIds]);
 
-  return { feed, loading, refreshing, refresh, markSeen, dismissSpark, markSponsoredSeen };
+  // Load older moments by going back one month at a time
+  const loadMore = useCallback(async () => {
+    if (loadingMore || !hasMore) return;
+    setLoadingMore(true);
+    try {
+      const prevMonth = timelineCursor.month === 1
+        ? { year: timelineCursor.year - 1, month: 12 }
+        : { year: timelineCursor.year, month: timelineCursor.month - 1 };
+
+      const older = await api.listTimeline({ year: prevMonth.year, month: prevMonth.month }).catch(() => []);
+      if (older.length === 0) {
+        setHasMore(false);
+      } else {
+        const olderMoments = older.flatMap((g) => g.moments);
+        const olderItems: RankedFeedItem[] = olderMoments.map((m) => ({
+          key: m.id,
+          type: 'moment' as const,
+          priority: 'low' as const,
+          score: 0,
+          moment: m,
+        }));
+        setFeed((prev) => [...prev, ...olderItems]);
+        setTimelineCursor(prevMonth);
+      }
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [loadingMore, hasMore, timelineCursor, api]);
+
+  return { feed, loading, refreshing, refresh, markSeen, dismissSpark, markSponsoredSeen, loadMore, loadingMore, hasMore };
 }

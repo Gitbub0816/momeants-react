@@ -155,7 +155,7 @@ export default function HomeScreen() {
   const api = useApi();
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { feed, loading, refreshing, refresh, markSeen, dismissSpark, markSponsoredSeen } = useFeedEngine();
+  const { feed, loading, refreshing, refresh, markSeen, dismissSpark, markSponsoredSeen, loadMore } = useFeedEngine();
   const [activeIndex, setActiveIndex] = useState(0);
   const viewabilityConfig = useRef<ViewabilityConfig>({ itemVisiblePercentThreshold: 55 });
 
@@ -364,6 +364,8 @@ export default function HomeScreen() {
         maxToRenderPerBatch={3}
         windowSize={5}
         style={styles.fill}
+        onEndReached={loadMore}
+        onEndReachedThreshold={0.3}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}

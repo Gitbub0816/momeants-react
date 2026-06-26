@@ -12,6 +12,7 @@ import {
   Platform,
   Modal,
   Pressable,
+  Alert,
 } from 'react-native';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -145,6 +146,20 @@ export default function MomentDetailScreen() {
           <TouchableOpacity style={styles.topBtn} onPress={openShare} accessibilityLabel="Share moment">
             <Text style={styles.topBtnIcon}>↗</Text>
           </TouchableOpacity>
+          <TouchableOpacity
+              style={styles.topBtn}
+              onPress={() => {
+                Alert.alert('Report moment', 'Why are you reporting this?', [
+                  { text: 'Cancel', style: 'cancel' },
+                  { text: 'Inappropriate', onPress: () => api.reportContent({ momentId: moment.id, reason: 'inappropriate' }).catch(() => {}) },
+                  { text: 'Harassment', onPress: () => api.reportContent({ momentId: moment.id, reason: 'harassment' }).catch(() => {}) },
+                  { text: 'Spam', onPress: () => api.reportContent({ momentId: moment.id, reason: 'spam' }).catch(() => {}) },
+                ]);
+              }}
+              accessibilityLabel="Report moment"
+            >
+              <Text style={styles.topBtnIcon}>⚑</Text>
+            </TouchableOpacity>
         </View>
 
         <ScrollView

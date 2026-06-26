@@ -83,4 +83,14 @@ export interface MomentsApi {
 
   // Push tokens
   savePushToken(token: string): Promise<void>;
+
+  // Account
+  deleteAccount(): Promise<void>;
+
+  // Resurfacing preferences
+  updateResurfacingRules(rules: { enabled: boolean; hiddenPersonIds: string[]; hiddenPlaceNames: string[] }): Promise<void>;
+  getResurfacingRules(): Promise<{ enabled: boolean; hiddenPersonIds: string[]; hiddenPlaceNames: string[] }>;
+
+  // Content moderation
+  reportContent(params: { momentId?: string; userId?: string; reason: 'inappropriate' | 'harassment' | 'spam' | 'fake' | 'other'; details?: string }): Promise<void>;
 }
