@@ -3,8 +3,6 @@ import type {
   MomentsApi,
   Moment,
   MomentReaction,
-  MomentComment,
-  MomentPerson,
   CreateMomentInput,
   TimelineGroup,
   TimelineParams,
@@ -22,6 +20,7 @@ import type {
   Spark,
   Conversation,
   Message,
+  Notification,
 } from '@momeants/types';
 import type { Database, MomentDetailRow } from './database.types';
 
@@ -38,7 +37,6 @@ function rowToSpark(r: any): Spark {
     body: r.body,
     category: r.category,
     gameType: r.game_type,
-    mode: r.mode ?? 'background_engagement',
     estimatedMinutes: r.estimated_minutes,
     minPlayers: r.min_players,
     maxPlayers: r.max_players,
@@ -54,6 +52,7 @@ function rowToSpark(r: any): Spark {
     noveltyScore: r.novelty_score,
     completionCta: r.completion_cta,
     prompts: r.prompts ?? undefined,
+    mode: r.mode ?? 'background_engagement',
     tags: r.tags ?? [],
   };
 }
@@ -139,6 +138,25 @@ function rowToMoment(row: MomentDetailRow, myReactions: Record<string, boolean> 
   };
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function rowToUserProfile(p: any, extras: { momentCount?: number; peopleCount?: number; topMoods?: string[] } = {}): UserProfile {
+  return {
+    id: p.id,
+    displayName: p.display_name,
+    username: p.username,
+    tagline: p.tagline ?? undefined,
+    avatarUri: p.avatar_url ?? undefined,
+    city: p.city ?? undefined,
+    country: p.country ?? undefined,
+    defaultPrivacy: p.default_privacy,
+    momentCount: extras.momentCount ?? 0,
+    daysRemembered: extras.momentCount ?? 0,
+    peopleCount: extras.peopleCount ?? 0,
+    topMoods: extras.topMoods ?? [],
+    createdAt: p.created_at,
+  };
+}
+
 // ─── SUPABASE MOMENTS API ────────────────────────────────────────────────────
 
 export class SupabaseMomentsApi implements MomentsApi {
@@ -214,21 +232,44 @@ export class SupabaseMomentsApi implements MomentsApi {
       .select('*', { count: 'exact', head: true })
       .eq('owner_id', uid);
 
-    return {
-      id: data.id,
-      displayName: data.display_name,
-      username: data.username,
-      tagline: data.tagline ?? undefined,
-      avatarUri: data.avatar_url ?? undefined,
-      city: data.city ?? undefined,
-      country: data.country ?? undefined,
-      defaultPrivacy: data.default_privacy,
-      momentCount: momentCount ?? 0,
-      daysRemembered: momentCount ?? 0,
-      peopleCount: peopleCount ?? 0,
-      topMoods: [],
-      createdAt: data.created_at,
-    };
+    // Fetch top moods
+    const { data: moodRows } = await this.sb
+      .from('moment_moods')
+      .select('mood, moments!inner(author_id)')
+      .eq('moments.author_id', uid);
+
+    const moodCounts: Record<string, number> = {};
+    for (const row of (moodRows ?? []) as any[]) {
+      const mood = row.mood as string;
+      moodCounts[mood] = (moodCounts[mood] ?? 0) + 1;
+    }
+    const topMoods = Object.entries(moodCounts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5)
+      .map(([mood]) => mood);
+
+    return rowToUserProfile(data, { momentCount: momentCount ?? 0, peopleCount: peopleCount ?? 0, topMoods });
+  }
+
+  async getUserProfile(userId: string): Promise<UserProfile> {
+    const { data, error } = await this.sb
+      .from('profiles')
+      .select('*')
+      .eq('id', userId)
+      .single();
+    if (error) throw error;
+
+    const { count: momentCount } = await this.sb
+      .from('moments')
+      .select('*', { count: 'exact', head: true })
+      .eq('author_id', userId);
+
+    const { count: peopleCount } = await this.sb
+      .from('circle_members')
+      .select('*', { count: 'exact', head: true })
+      .eq('owner_id', userId);
+
+    return rowToUserProfile(data, { momentCount: momentCount ?? 0, peopleCount: peopleCount ?? 0 });
   }
 
   async updateProfile(data: Partial<OnboardingData> & { displayName?: string }): Promise<UserProfile> {
@@ -332,7 +373,7 @@ export class SupabaseMomentsApi implements MomentsApi {
       (myReactionRows ?? []).map((r) => [r.emoji, true])
     );
 
-    const moment = rowToMoment((data as unknown) as MomentDetailRow, myReactions);
+    const moment = rowToMoment(data as unknown as MomentDetailRow, myReactions);
 
     moment.comments = (commentRows ?? []).map((c: any) => ({
       id: c.id,
@@ -355,8 +396,8 @@ export class SupabaseMomentsApi implements MomentsApi {
       this.sb.rpc('get_resurfaced_moments', { viewer: userId }),
     ]);
 
-    const feed = ((feedRows.data as unknown) ?? []) as MomentDetailRow[];
-    const resurfaced = ((resurfacedRows.data as unknown as any[]) ?? [])[0] as MomentDetailRow | undefined;
+    const feed = (feedRows.data ?? []) as MomentDetailRow[];
+    const resurfaced = ((resurfacedRows.data as any) ?? [])[0] as MomentDetailRow | undefined;
 
     const moments = feed.map((r) => rowToMoment(r));
     const resurfacedMoment = resurfaced ? { ...rowToMoment(resurfaced), isResurfaced: true, resurfaceLabel: 'A memory from this day' } : undefined;
@@ -472,10 +513,9 @@ export class SupabaseMomentsApi implements MomentsApi {
     if (!user) return null;
 
     const rows = await this.sb.rpc('get_today_spark', { p_user_id: user.id });
-    const rowsData = rows.data as unknown as any[];
-    if (rows.error || !rowsData || rowsData.length === 0) return null;
+    if (rows.error || !rows.data || (rows.data as any[]).length === 0) return null;
 
-    const r = rowsData[0];
+    const r = (rows.data as any[])[0];
     return rowToSparkDelivery(r);
   }
 
@@ -556,19 +596,19 @@ export class SupabaseMomentsApi implements MomentsApi {
     }
 
     return {
-      userId: data.user_id,
-      enabled: data.enabled,
-      frequencyPerWeek: data.frequency_per_week,
-      quietHoursStart: data.quiet_hours_start,
-      quietHoursEnd: data.quiet_hours_end,
-      enabledCategories: data.enabled_categories as SparkSettings['enabledCategories'],
-      allowLocation: data.allow_location,
-      allowWeather: data.allow_weather,
-      allowHolidays: data.allow_holidays,
-      allowRelationship: data.allow_relationship,
-      allowAiPersonalization: data.allow_ai_personalization,
-      backgroundEngagementSparksEnabled: data.background_engagement_sparks_enabled,
-      minigameSparksEnabled: data.minigame_sparks_enabled,
+      userId: (data as any).user_id,
+      enabled: (data as any).enabled,
+      frequencyPerWeek: (data as any).frequency_per_week,
+      quietHoursStart: (data as any).quiet_hours_start,
+      quietHoursEnd: (data as any).quiet_hours_end,
+      enabledCategories: (data as any).enabled_categories as SparkSettings['enabledCategories'],
+      allowLocation: (data as any).allow_location,
+      allowWeather: (data as any).allow_weather,
+      allowHolidays: (data as any).allow_holidays,
+      allowRelationship: (data as any).allow_relationship,
+      allowAiPersonalization: (data as any).allow_ai_personalization,
+      backgroundEngagementSparksEnabled: (data as any).background_engagement_sparks_enabled ?? true,
+      minigameSparksEnabled: (data as any).minigame_sparks_enabled ?? true,
     };
   }
 
@@ -588,6 +628,8 @@ export class SupabaseMomentsApi implements MomentsApi {
       ...(settings.allowHolidays !== undefined ? { allow_holidays: settings.allowHolidays } : {}),
       ...(settings.allowRelationship !== undefined ? { allow_relationship: settings.allowRelationship } : {}),
       ...(settings.allowAiPersonalization !== undefined ? { allow_ai_personalization: settings.allowAiPersonalization } : {}),
+      ...(settings.backgroundEngagementSparksEnabled !== undefined ? { background_engagement_sparks_enabled: settings.backgroundEngagementSparksEnabled } : {}),
+      ...(settings.minigameSparksEnabled !== undefined ? { minigame_sparks_enabled: settings.minigameSparksEnabled } : {}),
     };
 
     const { error } = await this.sb.from('spark_settings').upsert(upsertData);
@@ -606,21 +648,7 @@ export class SupabaseMomentsApi implements MomentsApi {
       .or(`display_name.ilike.${q},username.ilike.${q}`)
       .limit(20);
     if (error) throw error;
-    return (data ?? []).map((p: any) => ({
-      id: p.id,
-      displayName: p.display_name,
-      username: p.username,
-      avatarUri: p.avatar_url ?? undefined,
-      tagline: p.tagline ?? undefined,
-      city: p.city ?? undefined,
-      country: p.country ?? undefined,
-      defaultPrivacy: p.default_privacy,
-      momentCount: 0,
-      daysRemembered: 0,
-      peopleCount: 0,
-      topMoods: [],
-      createdAt: p.created_at,
-    }));
+    return (data ?? []).map((p: any) => rowToUserProfile(p));
   }
 
   async addToCircle(userId: string): Promise<void> {
@@ -698,6 +726,17 @@ export class SupabaseMomentsApi implements MomentsApi {
   }
 
   // ── Cliques ───────────────────────────────────────────────────────────────
+
+  async listCliques(): Promise<Clique[]> {
+    const { data: { user } } = await this.sb.auth.getUser();
+    if (!user) return [];
+    const { data, error } = await this.sb
+      .from('cliques')
+      .select('*, clique_members!inner(user_id, joined_at, profiles(display_name, avatar_url))')
+      .eq('clique_members.user_id', user.id);
+    if (error) throw error;
+    return (data ?? []).map((r: any) => rowToClique(r));
+  }
 
   async createClique(name: string, memberIds: string[], type: CliqueType = 'custom', emoji?: string): Promise<Clique> {
     const { data: { user } } = await this.sb.auth.getUser();
@@ -842,33 +881,57 @@ export class SupabaseMomentsApi implements MomentsApi {
   async listConversations(): Promise<Conversation[]> {
     const { data: { user } } = await this.sb.auth.getUser();
     if (!user) return [];
+
+    // Fetch conversations the user is a participant in, with participant info
     const { data, error } = await this.sb
       .from('conversations')
       .select(`
-        id, type, name, created_at, updated_at,
-        conversation_participants!inner(user_id),
+        id, type, name, clique_id, created_at, updated_at,
+        conversation_participants!inner(user_id, profiles(display_name, avatar_url)),
         messages(id, sender_id, text, sent_at, profiles!sender_id(display_name, avatar_url))
       `)
       .eq('conversation_participants.user_id', user.id)
       .order('updated_at', { ascending: false });
     if (error) throw error;
+
     return (data ?? []).map((c: any) => {
-      const msgs = (c.messages ?? []).sort((a: any, b: any) => new Date(b.sent_at).getTime() - new Date(a.sent_at).getTime());
+      const allParticipants: Array<{ userId: string; displayName?: string; avatarUri?: string }> =
+        (c.conversation_participants ?? []).map((p: any) => ({
+          userId: p.user_id,
+          displayName: p.profiles?.display_name ?? undefined,
+          avatarUri: p.profiles?.avatar_url ?? undefined,
+        }));
+      const otherParticipants = allParticipants.filter((p) => p.userId !== user.id);
+      const participantIds = allParticipants.map((p) => p.userId);
+      const participantNames = allParticipants.map((p) => p.displayName ?? p.userId);
+      const participantAvatarUris = allParticipants.map((p) => p.avatarUri ?? '');
+
+      const msgs = (c.messages ?? []).sort(
+        (a: any, b: any) => new Date(b.sent_at).getTime() - new Date(a.sent_at).getTime()
+      );
       const last = msgs[0];
+
+      // Unread count: messages not from me (simple heuristic — no read receipts table)
+      const unreadCount = (c.messages ?? []).filter((m: any) => m.sender_id !== user.id).length;
+
       return {
         id: c.id,
         type: c.type ?? 'direct',
-        name: c.name ?? undefined,
-        participants: [],
-        participantIds: [],
-        participantNames: [],
-        lastMessage: last ? {
-          text: last.text,
-          senderName: last.profiles?.display_name ?? 'Unknown',
-          sentAt: last.sent_at,
-          isFromMe: last.sender_id === user.id,
-        } : undefined,
-        unreadCount: 0,
+        name: c.name ?? otherParticipants[0]?.displayName ?? undefined,
+        participants: allParticipants,
+        participantIds,
+        participantNames,
+        participantAvatarUris,
+        lastMessage: last
+          ? {
+              text: last.text,
+              senderName: last.profiles?.display_name ?? 'Unknown',
+              sentAt: last.sent_at,
+              isFromMe: last.sender_id === user.id,
+            }
+          : undefined,
+        unreadCount,
+        cliqueId: c.clique_id ?? undefined,
         messages: [],
       };
     });
@@ -877,17 +940,32 @@ export class SupabaseMomentsApi implements MomentsApi {
   async getConversation(id: string): Promise<Conversation | null> {
     const { data: { user } } = await this.sb.auth.getUser();
     if (!user) return null;
+
     const { data, error } = await this.sb
       .from('conversations')
       .select(`
-        id, type, name,
+        id, type, name, clique_id,
+        conversation_participants(user_id, profiles(display_name, avatar_url)),
         messages(id, sender_id, text, sent_at, profiles!sender_id(display_name, avatar_url))
       `)
       .eq('id', id)
       .single();
     if (error) return null;
-    const messages: Message[] = ((data as any).messages ?? [])
+
+    const c = data as any;
+    const allParticipants: Array<{ userId: string; displayName?: string; avatarUri?: string }> =
+      (c.conversation_participants ?? []).map((p: any) => ({
+        userId: p.user_id,
+        displayName: p.profiles?.display_name ?? undefined,
+        avatarUri: p.profiles?.avatar_url ?? undefined,
+      }));
+    const participantIds = allParticipants.map((p) => p.userId);
+    const participantNames = allParticipants.map((p) => p.displayName ?? p.userId);
+    const participantAvatarUris = allParticipants.map((p) => p.avatarUri ?? '');
+
+    const messages: Message[] = (c.messages ?? [])
       .sort((a: any, b: any) => new Date(a.sent_at).getTime() - new Date(b.sent_at).getTime())
+      .slice(0, 100)
       .map((m: any) => ({
         id: m.id,
         conversationId: id,
@@ -899,14 +977,17 @@ export class SupabaseMomentsApi implements MomentsApi {
         sentAt: m.sent_at,
         isFromMe: m.sender_id === user.id,
       }));
+
     return {
-      id: data.id,
-      type: data.type ?? 'direct',
-      name: data.name ?? undefined,
-      participants: [],
-      participantIds: [],
-      participantNames: [],
+      id: c.id,
+      type: c.type ?? 'direct',
+      name: c.name ?? undefined,
+      participants: allParticipants,
+      participantIds,
+      participantNames,
+      participantAvatarUris,
       unreadCount: 0,
+      cliqueId: c.clique_id ?? undefined,
       messages,
     };
   }
@@ -932,6 +1013,82 @@ export class SupabaseMomentsApi implements MomentsApi {
       sentAt: data.sent_at,
       isFromMe: true,
     };
+  }
+
+  async createConversation(participantIds: string[], cliqueId?: string): Promise<Conversation> {
+    const { data: { user } } = await this.sb.auth.getUser();
+    if (!user) throw new Error('Not authenticated');
+
+    const type = cliqueId ? 'group' : participantIds.length > 1 ? 'group' : 'direct';
+
+    const insertPayload: Record<string, unknown> = { type };
+    if (cliqueId) insertPayload['clique_id'] = cliqueId;
+
+    const { data: convo, error: convoError } = await this.sb
+      .from('conversations')
+      .insert(insertPayload as any)
+      .select()
+      .single();
+    if (convoError) throw convoError;
+
+    // Insert all participants including the current user
+    const allIds = Array.from(new Set([user.id, ...participantIds]));
+    const { error: partError } = await this.sb.from('conversation_participants').insert(
+      allIds.map((uid) => ({ conversation_id: convo.id, user_id: uid }))
+    );
+    if (partError) throw partError;
+
+    const result = await this.getConversation(convo.id);
+    if (!result) throw new Error('Failed to fetch created conversation');
+    return result;
+  }
+
+  // ── Notifications ─────────────────────────────────────────────────────────
+
+  async listNotifications(): Promise<Notification[]> {
+    const { data: { user } } = await this.sb.auth.getUser();
+    if (!user) return [];
+
+    const { data, error } = await this.sb
+      .from('notifications')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+      .limit(50);
+    if (error) throw error;
+
+    return (data ?? []).map((n: any) => ({
+      id: n.id,
+      userId: n.user_id,
+      type: n.type,
+      title: n.title,
+      body: n.body,
+      payload: n.payload ?? undefined,
+      readAt: n.read_at ?? undefined,
+      createdAt: n.created_at,
+    }));
+  }
+
+  async markNotificationRead(notificationId: string): Promise<void> {
+    const { error } = await this.sb
+      .from('notifications')
+      .update({ read_at: new Date().toISOString() })
+      .eq('id', notificationId);
+    if (error) throw error;
+  }
+
+  // ── Push Tokens ───────────────────────────────────────────────────────────
+
+  async savePushToken(token: string): Promise<void> {
+    const { data: { user } } = await this.sb.auth.getUser();
+    if (!user) throw new Error('Not authenticated');
+
+    const { error } = await (this.sb.from('push_tokens') as any).upsert({
+      user_id: user.id,
+      token,
+      updated_at: new Date().toISOString(),
+    });
+    if (error) throw error;
   }
 
   // ── Storage ───────────────────────────────────────────────────────────────

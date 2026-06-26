@@ -17,6 +17,7 @@ import type {
   Conversation,
   Message,
   CalendarEvent,
+  Notification,
 } from '@momeants/types';
 import {
   MOCK_MOMENTS,
@@ -429,5 +430,76 @@ export class MockMomentsApi implements MomentsApi {
       personId: event.personId,
       isRecurring: event.isRecurring ?? false,
     };
+  }
+
+  async getUserProfile(_userId: string): Promise<UserProfile> {
+    await delay(200);
+    return MOCK_PROFILE;
+  }
+
+  async listCliques(): Promise<Clique[]> {
+    await delay(200);
+    return [...this.cliques];
+  }
+
+  async createConversation(participantIds: string[], cliqueId?: string): Promise<Conversation> {
+    await delay(400);
+    const members = MOCK_CIRCLE_MEMBERS.filter((m) => participantIds.includes(m.id));
+    const now = new Date().toISOString();
+    const convo: Conversation = {
+      id: `convo-${Date.now()}`,
+      type: cliqueId ? 'group' : participantIds.length > 1 ? 'group' : 'direct',
+      participants: [
+        { userId: 'me', displayName: MOCK_PROFILE.displayName, avatarUri: MOCK_PROFILE.avatarUri },
+        ...members.map((m) => ({ userId: m.id, displayName: m.displayName, avatarUri: m.avatarUri })),
+      ],
+      participantIds: ['me', ...participantIds],
+      participantNames: [MOCK_PROFILE.displayName, ...members.map((m) => m.displayName)],
+      participantAvatarUris: [MOCK_PROFILE.avatarUri ?? '', ...members.map((m) => m.avatarUri ?? '')],
+      unreadCount: 0,
+      cliqueId,
+      messages: [],
+      lastMessageAt: now,
+    };
+    return convo;
+  }
+
+  async listNotifications(): Promise<Notification[]> {
+    await delay(300);
+    const now = new Date().toISOString();
+    return [
+      {
+        id: 'notif-1',
+        userId: 'me',
+        type: 'reaction',
+        title: 'Sofia reacted to your moment',
+        body: 'Sofia reacted ❤️ to your moment',
+        createdAt: now,
+      },
+      {
+        id: 'notif-2',
+        userId: 'me',
+        type: 'comment',
+        title: 'Jamie commented on your moment',
+        body: 'Jamie: "This looks amazing!"',
+        createdAt: now,
+      },
+      {
+        id: 'notif-3',
+        userId: 'me',
+        type: 'spark',
+        title: 'You have a new Spark',
+        body: 'A new spark is ready for you today',
+        createdAt: now,
+      },
+    ];
+  }
+
+  async markNotificationRead(_notificationId: string): Promise<void> {
+    await delay(100);
+  }
+
+  async savePushToken(_token: string): Promise<void> {
+    await delay(100);
   }
 }
