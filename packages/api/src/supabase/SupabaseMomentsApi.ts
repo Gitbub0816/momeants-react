@@ -38,6 +38,7 @@ function rowToSpark(r: any): Spark {
     body: r.body,
     category: r.category,
     gameType: r.game_type,
+    mode: r.mode ?? 'background_engagement',
     estimatedMinutes: r.estimated_minutes,
     minPlayers: r.min_players,
     maxPlayers: r.max_players,
@@ -331,7 +332,7 @@ export class SupabaseMomentsApi implements MomentsApi {
       (myReactionRows ?? []).map((r) => [r.emoji, true])
     );
 
-    const moment = rowToMoment(data as MomentDetailRow, myReactions);
+    const moment = rowToMoment((data as unknown) as MomentDetailRow, myReactions);
 
     moment.comments = (commentRows ?? []).map((c: any) => ({
       id: c.id,
@@ -354,8 +355,8 @@ export class SupabaseMomentsApi implements MomentsApi {
       this.sb.rpc('get_resurfaced_moments', { viewer: userId }),
     ]);
 
-    const feed = (feedRows.data ?? []) as MomentDetailRow[];
-    const resurfaced = (resurfacedRows.data ?? [])[0] as MomentDetailRow | undefined;
+    const feed = ((feedRows.data as unknown) ?? []) as MomentDetailRow[];
+    const resurfaced = ((resurfacedRows.data as unknown as any[]) ?? [])[0] as MomentDetailRow | undefined;
 
     const moments = feed.map((r) => rowToMoment(r));
     const resurfacedMoment = resurfaced ? { ...rowToMoment(resurfaced), isResurfaced: true, resurfaceLabel: 'A memory from this day' } : undefined;
@@ -471,9 +472,10 @@ export class SupabaseMomentsApi implements MomentsApi {
     if (!user) return null;
 
     const rows = await this.sb.rpc('get_today_spark', { p_user_id: user.id });
-    if (rows.error || !rows.data || rows.data.length === 0) return null;
+    const rowsData = rows.data as unknown as any[];
+    if (rows.error || !rowsData || rowsData.length === 0) return null;
 
-    const r = rows.data[0];
+    const r = rowsData[0];
     return rowToSparkDelivery(r);
   }
 
@@ -884,7 +886,7 @@ export class SupabaseMomentsApi implements MomentsApi {
       .eq('id', id)
       .single();
     if (error) return null;
-    const messages: Message[] = (data.messages ?? [])
+    const messages: Message[] = ((data as any).messages ?? [])
       .sort((a: any, b: any) => new Date(a.sent_at).getTime() - new Date(b.sent_at).getTime())
       .map((m: any) => ({
         id: m.id,

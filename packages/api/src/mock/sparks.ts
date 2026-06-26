@@ -1400,7 +1400,7 @@ export const DEFAULT_SPARK_SETTINGS = {
     'conversation', 'memory', 'relationship', 'holiday', 'seasonal',
     'family', 'friendship', 'couple', 'clique', 'photo', 'storytelling',
     'creative', 'discovery',
-  ] as const,
+  ] as import('@momeants/types').SparkCategory[],
   allowLocation: false,
   allowWeather: false,
   allowHolidays: true,

@@ -12,7 +12,10 @@ import * as Haptics from 'expo-haptics';
 import { ScreenShell } from '../../src/components/core';
 import { Skeleton } from '../../src/components/core/SkeletonLoader';
 import { useApi } from '../../src/context/ApiContext';
-import type { CalendarEvent } from '@momeants/types';
+import type { CalendarEvent, CalendarInference, CalendarNudge } from '@momeants/types';
+import type { EngineContext } from '../../src/engines/types';
+
+import { runCalendarIntelligence } from '../../src/engines/calendarIntelligenceEngine';
 import { colors } from '@momeants/design';
 import { spacing, radii } from '@momeants/design';
 import { fontSize, fontFamily } from '@momeants/design';
