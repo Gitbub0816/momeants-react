@@ -14,7 +14,7 @@ function dateProximityScore(event: CalendarEvent, now: Date): number {
   if (diff <= 7) return 0.70;
   if (diff <= 14) return 0.50;
   if (diff <= 30) return 0.30;
-  return 0.05;
+  return 0; // events more than 30 days away should not fire
 }
 
 function relationshipRelevanceScore(event: CalendarEvent, context: EngineContext): number {

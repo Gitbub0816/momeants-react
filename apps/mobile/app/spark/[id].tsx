@@ -14,7 +14,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import type { SparkDelivery } from '@momeants/types';
 import { useApi } from '../../src/context/ApiContext';
-import { colors, spacing, radii, fontSize, fontFamily } from '@momeants/design';
+import { colors } from '@momeants/design';
+import { spacing, radii } from '@momeants/design';
+import { fontSize, fontFamily } from '@momeants/design';
 import { GlassCard } from '../../src/components/core/GlassCard';
 
 const CATEGORY_ICON: Record<string, string> = {
@@ -217,7 +219,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: spacing.md,
   },
-  errorText: { color: colors.textMuted, fontSize: fontSize.body, fontFamily: fontFamily.sans },
+  errorText: {
+    color: colors.textMuted,
+    fontSize: fontSize.body,
+    fontFamily: fontFamily.sans,
+  },
   backBtn: {
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.sm,
@@ -236,7 +242,7 @@ const styles = StyleSheet.create({
   },
   title: {
     color: colors.textPrimary,
-    fontSize: fontSize.title,
+    fontSize: fontSize.display,
     fontFamily: fontFamily.serif,
     textAlign: 'center',
     marginBottom: spacing.sm,
@@ -261,10 +267,25 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.sm,
     paddingVertical: 5,
   },
-  chipText: { color: colors.textMuted, fontSize: fontSize.micro, fontFamily: fontFamily.sans },
-  bodyCard: { marginBottom: spacing.xl, padding: spacing.lg },
-  bodyText: { color: colors.textPrimary, fontSize: fontSize.body, fontFamily: fontFamily.sans, lineHeight: 26 },
-  promptSection: { marginBottom: spacing.xl, gap: spacing.md },
+  chipText: {
+    color: colors.textMuted,
+    fontSize: fontSize.micro,
+    fontFamily: fontFamily.sans,
+  },
+  bodyCard: {
+    marginBottom: spacing.xl,
+    padding: spacing.lg,
+  },
+  bodyText: {
+    color: colors.textPrimary,
+    fontSize: fontSize.body,
+    fontFamily: fontFamily.sans,
+    lineHeight: 26,
+  },
+  promptSection: {
+    marginBottom: spacing.xl,
+    gap: spacing.md,
+  },
   promptLabel: {
     color: colors.textMuted,
     fontSize: fontSize.micro,
@@ -289,8 +310,23 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(181,124,255,0.35)',
   },
-  nextBtnText: { color: colors.auraPurple, fontSize: fontSize.body, fontFamily: fontFamily.sansMedium },
-  completeWrapper: { borderRadius: radii.lg, overflow: 'hidden', marginTop: spacing.sm },
-  completeGradient: { paddingVertical: spacing.md, alignItems: 'center' },
-  completeText: { color: '#FFFFFF', fontSize: fontSize.body, fontFamily: fontFamily.sansMedium },
+  nextBtnText: {
+    color: colors.auraPurple,
+    fontSize: fontSize.body,
+    fontFamily: fontFamily.sansMedium,
+  },
+  completeWrapper: {
+    borderRadius: radii.lg,
+    overflow: 'hidden',
+    marginTop: spacing.sm,
+  },
+  completeGradient: {
+    paddingVertical: spacing.md,
+    alignItems: 'center',
+  },
+  completeText: {
+    color: '#FFFFFF',
+    fontSize: fontSize.body,
+    fontFamily: fontFamily.sansMedium,
+  },
 });

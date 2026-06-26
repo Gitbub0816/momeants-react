@@ -8,6 +8,7 @@
     "scheme": "momeants",
     "userInterfaceStyle": "dark",
     "backgroundColor": "#050711",
+    "newArchEnabled": true,
     "splash": {
       "backgroundColor": "#050711",
       "resizeMode": "contain"
@@ -43,6 +44,19 @@
         "expo-camera",
         {
           "cameraPermission": "Momeants uses your camera to capture moments."
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Momeants uses your location to tag moments."
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#B57CFF"
         }
       ]
     ],

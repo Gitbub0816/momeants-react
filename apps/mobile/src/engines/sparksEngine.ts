@@ -59,7 +59,7 @@ function noveltyScoreForSpark(spark: Spark, context: EngineContext): number {
 }
 
 function completionLikelihoodScore(spark: Spark, context: EngineContext): number {
-  const base = spark.completionLikelihood ?? 0.6;
+  const base = spark.completionLikelihood ?? 0.7;
   // Completed sparks of this category increase likelihood
   const pastCompleted = context.sparkHistory.filter(
     (d) => d.status === 'completed' && d.spark.category === spark.category

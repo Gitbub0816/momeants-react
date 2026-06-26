@@ -16,12 +16,22 @@ export interface Message {
   isFromMe: boolean;
 }
 
+export interface ConversationLastMessage {
+  text: string;
+  senderName: string;
+  sentAt: string;
+  isFromMe: boolean;
+}
+
 export interface Conversation {
   id: string;
+  type: string;
+  name?: string;
   participantIds: string[];
   participantNames: string[];
   participantAvatarUris?: string[];
-  lastMessage?: string;
+  participants: Array<{ userId: string; displayName?: string; avatarUri?: string }>;
+  lastMessage?: ConversationLastMessage;
   lastMessageAt?: string;
   lastMessageSenderId?: string;
   unreadCount: number;

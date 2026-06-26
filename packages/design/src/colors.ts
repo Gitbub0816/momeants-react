@@ -39,8 +39,8 @@ export const colors = {
 } as const;
 
 export const gradients = {
-  aura: ['#78A7FF', '#B57CFF', '#FF7AC8'] as string[],
-  background: ['#151B31', '#090C18', '#050711'] as string[],
-  cardOverlay: ['transparent', 'rgba(5, 7, 17, 0.55)', 'rgba(5, 7, 17, 0.88)'] as string[],
-  subtleOverlay: ['transparent', 'rgba(5, 7, 17, 0.72)'] as string[],
-} as const;
+  aura: ['#78A7FF', '#B57CFF', '#FF7AC8'] as const,
+  background: ['#151B31', '#090C18', '#050711'] as const,
+  cardOverlay: ['transparent', 'rgba(5, 7, 17, 0.55)', 'rgba(5, 7, 17, 0.88)'] as const,
+  subtleOverlay: ['transparent', 'rgba(5, 7, 17, 0.72)'] as const,
+};

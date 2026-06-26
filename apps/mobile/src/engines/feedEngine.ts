@@ -91,10 +91,11 @@ export function scoreMomentForFeed(
     ? Math.max(...moment.people.map((p: MomentPerson) => computeClosenessScore(p.id, context)))
     : computeClosenessScore(moment.authorId, context);
 
-  const engagementPotential = conversationPotentialScore(moment);
+  const convScore = conversationPotentialScore(moment);
+  const engagementPotential = convScore;
   const memoryImportance = memoryImportanceScore(moment);
   const freshness = freshnessScore(moment, context.currentTime);
-  const convPotential = conversationPotentialScore(moment);
+  const convPotential = convScore;
   const importantDay = importantDayScoreForMoment(moment, context);
   const sparkRelevance = sparkRelevanceScoreForMoment(moment, context);
   const fatigue = fatiguePenaltyForMoment(moment, context);

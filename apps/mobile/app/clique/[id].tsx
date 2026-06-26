@@ -12,7 +12,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
 import { DEMO_CLIQUES } from '../../src/demo/cliques';
-import { colors, spacing, radii, fontSize, fontFamily } from '@momeants/design';
+import { colors } from '@momeants/design';
+import { spacing, radii } from '@momeants/design';
+import { fontSize, fontFamily } from '@momeants/design';
 
 export default function CliqueDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -153,7 +155,7 @@ const styles = StyleSheet.create({
   errorText: { color: colors.textMuted, fontFamily: fontFamily.sans },
   heroHeader: { alignItems: 'center', gap: spacing.sm },
   heroEmoji: { fontSize: 52 },
-  heroName: { color: colors.textPrimary, fontFamily: fontFamily.serif, fontSize: fontSize.title, textAlign: 'center' },
+  heroName: { color: colors.textPrimary, fontFamily: fontFamily.serif, fontSize: fontSize.display, textAlign: 'center' },
   heroType: { color: colors.textMuted, fontFamily: fontFamily.sans, fontSize: fontSize.caption, textTransform: 'capitalize' },
   statsRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.lg, marginTop: spacing.sm },
   statItem: { alignItems: 'center', gap: 2 },

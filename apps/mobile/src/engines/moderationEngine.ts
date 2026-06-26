@@ -57,7 +57,7 @@ const TEXT_PATTERNS: TextPattern[] = [
     confidence: 0.60,
   },
   {
-    keywords: ['hate', 'slur-placeholder', 'racist', 'bigot'],
+    keywords: ['hate', 'racist', 'bigot', 'nigger', 'nigga', 'faggot', 'fag', 'dyke', 'tranny', 'spic', 'chink', 'kike', 'wetback', 'cracker', 'coon', 'gook', 'towelhead', 'raghead', 'beaner', 'retard', 'spaz'],
     category: 'hate_speech',
     confidence: 0.70,
   },
@@ -191,8 +191,14 @@ function decideTier(signals: ModerationSignal[]): ModerationTier {
 // ── Mock implementation (no API key) ────────────────────────────────────────
 // Used in demo mode. Returns safe for most content; catches obvious text issues.
 
-function mockModerateImage(_uri: string): ModerationSignal[] {
-  // In demo mode, all images pass (they're Unsplash stock photos)
+// No-op image moderation used when EXPO_PUBLIC_GCV_API_KEY is not set.
+// Real image moderation requires a Google Cloud Vision API key — set EXPO_PUBLIC_GCV_API_KEY.
+let _gcvWarningLogged = false;
+function noopModerateImage(_uri: string): ModerationSignal[] {
+  if (!_gcvWarningLogged) {
+    _gcvWarningLogged = true;
+    console.warn('[moderationEngine] EXPO_PUBLIC_GCV_API_KEY is not set — image moderation is disabled. Set the key for real SafeSearch detection.');
+  }
   return [];
 }
 
@@ -236,7 +242,7 @@ export async function moderateMoment(
       }
     } else {
       // Demo mode
-      signals.push(...mockModerateImage(moment.imageUri));
+      signals.push(...noopModerateImage(moment.imageUri));
     }
   }
 

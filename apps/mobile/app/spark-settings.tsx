@@ -14,7 +14,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import type { SparkSettings, SparkCategory } from '@momeants/types';
 import { useApi } from '../src/context/ApiContext';
-import { colors, spacing, radii, fontSize, fontFamily } from '@momeants/design';
+import { colors } from '@momeants/design';
+import { spacing, radii } from '@momeants/design';
+import { fontSize, fontFamily } from '@momeants/design';
 import { GlassCard } from '../src/components/core/GlassCard';
 
 const ALL_CATEGORIES: { key: SparkCategory; label: string; icon: string }[] = [

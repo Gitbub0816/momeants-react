@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   RefreshControl,
   ViewToken,
+  ViewabilityConfig,
   Linking,
 } from 'react-native';
 import { Image } from 'expo-image';
@@ -156,7 +157,7 @@ export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const { feed, loading, refreshing, refresh, markSeen, dismissSpark, markSponsoredSeen } = useFeedEngine();
   const [activeIndex, setActiveIndex] = useState(0);
-  const viewabilityConfig = useRef({ itemVisibilityPercentThreshold: 55 });
+  const viewabilityConfig = useRef<ViewabilityConfig>({ itemVisiblePercentThreshold: 55 });
 
   const onViewableItemsChanged = useCallback(
     ({ viewableItems }: { viewableItems: ViewToken[] }) => {

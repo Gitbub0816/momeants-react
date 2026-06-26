@@ -15,7 +15,9 @@ import { EmptyState } from '../../src/components/core/EmptyState';
 import { Skeleton } from '../../src/components/core/SkeletonLoader';
 import { useApi } from '../../src/context/ApiContext';
 import type { Conversation } from '@momeants/types';
-import { colors, spacing, radii, fontSize, fontFamily } from '@momeants/design';
+import { colors } from '@momeants/design';
+import { spacing, radii } from '@momeants/design';
+import { fontSize, fontFamily } from '@momeants/design';
 
 function ConversationItem({ conv }: { conv: Conversation }) {
   const router = useRouter();
@@ -56,7 +58,7 @@ function ConversationItem({ conv }: { conv: Conversation }) {
           <Text style={styles.itemTime}>{time}</Text>
         </View>
         <Text style={[styles.itemPreview, conv.unreadCount > 0 && styles.itemPreviewBold]} numberOfLines={1}>
-          {conv.lastMessage}
+          {conv.lastMessage?.text}
         </Text>
         {conv.cliqueName && (
           <Text style={styles.groupTag}>{conv.cliqueName}</Text>

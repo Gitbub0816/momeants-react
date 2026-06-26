@@ -13,9 +13,12 @@ import { ScreenShell } from '../../src/components/core';
 import { Skeleton } from '../../src/components/core/SkeletonLoader';
 import { useApi } from '../../src/context/ApiContext';
 import type { CalendarEvent, CalendarInference, CalendarNudge } from '@momeants/types';
-import { colors, spacing, radii, fontSize, fontFamily } from '@momeants/design';
-import { runCalendarIntelligence } from '../../src/engines/calendarIntelligenceEngine';
 import type { EngineContext } from '../../src/engines/types';
+
+import { runCalendarIntelligence } from '../../src/engines/calendarIntelligenceEngine';
+import { colors } from '@momeants/design';
+import { spacing, radii } from '@momeants/design';
+import { fontSize, fontFamily } from '@momeants/design';
 
 const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -260,7 +263,7 @@ export default function CalendarScreen() {
 const styles = StyleSheet.create({
   scroll: { paddingTop: spacing.md, gap: spacing.xl, paddingBottom: 40 },
   title: { color: colors.textPrimary, fontFamily: 'PlayfairDisplay_700Bold', fontSize: fontSize.title, paddingHorizontal: spacing.lg },
-  subtitle: { color: colors.textMuted, fontFamily: fontFamily.sans, fontSize: fontSize.body, paddingHorizontal: spacing.lg, marginTop: -spacing.md },
+  subtitle: { color: colors.textMuted, fontFamily: fontFamily.sans, fontSize: fontSize.caption, paddingHorizontal: spacing.lg, marginTop: -spacing.md },
   monthRailWrap: { maxHeight: 52 },
   monthRail: { paddingHorizontal: spacing.lg, gap: spacing.sm, alignItems: 'center' },
   monthChip: {
@@ -291,20 +294,20 @@ const styles = StyleSheet.create({
   eventLeft: { flexDirection: 'row', gap: spacing.sm, alignItems: 'center', flex: 1 },
   eventEmoji: { fontSize: 24, width: 32, textAlign: 'center' },
   eventTitle: { color: colors.textPrimary, fontFamily: fontFamily.sansMedium, fontSize: fontSize.body },
-  eventSub: { color: colors.textMuted, fontFamily: fontFamily.sans, fontSize: fontSize.caption, marginTop: 2 },
+  eventSub: { color: colors.textMuted, fontFamily: fontFamily.sans, fontSize: fontSize.micro, marginTop: 2 },
   eventRight: { alignItems: 'flex-end', gap: 2 },
-  eventDate: { fontFamily: fontFamily.sansMedium, fontSize: fontSize.body },
+  eventDate: { fontFamily: fontFamily.sansMedium, fontSize: fontSize.caption },
   eventCountdown: {
     color: colors.textMuted,
     fontFamily: fontFamily.sans,
-    fontSize: fontSize.caption,
+    fontSize: fontSize.micro,
     backgroundColor: 'rgba(255,255,255,0.06)',
     borderRadius: radii.full,
     paddingHorizontal: 6,
     paddingVertical: 2,
   },
   emptyMonth: { paddingVertical: spacing.xl, alignItems: 'center' },
-  emptyText: { color: colors.textMuted, fontFamily: fontFamily.sans, fontSize: fontSize.body },
+  emptyText: { color: colors.textMuted, fontFamily: fontFamily.sans, fontSize: fontSize.caption },
   tabBarSpacer: { height: 120 },
   inferenceCard: {
     backgroundColor: 'rgba(181,124,255,0.08)',
