@@ -12,9 +12,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
 import { DEMO_CLIQUES } from '../../src/demo/cliques';
-import { colors } from '@momeants/design/src/colors';
-import { spacing, radii } from '@momeants/design/src/spacing';
-import { fontSize, fontFamily } from '@momeants/design/src/typography';
+import { colors } from '@momeants/design';
+import { spacing, radii } from '@momeants/design';
+import { fontSize, fontFamily } from '@momeants/design';
 
 export default function CliqueDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -155,12 +155,12 @@ const styles = StyleSheet.create({
   errorText: { color: colors.textMuted, fontFamily: fontFamily.sans },
   heroHeader: { alignItems: 'center', gap: spacing.sm },
   heroEmoji: { fontSize: 52 },
-  heroName: { color: colors.textPrimary, fontFamily: fontFamily.serifBold, fontSize: fontSize.displaySM, textAlign: 'center' },
-  heroType: { color: colors.textMuted, fontFamily: fontFamily.sans, fontSize: fontSize.sm, textTransform: 'capitalize' },
+  heroName: { color: colors.textPrimary, fontFamily: fontFamily.serif, fontSize: fontSize.display, textAlign: 'center' },
+  heroType: { color: colors.textMuted, fontFamily: fontFamily.sans, fontSize: fontSize.caption, textTransform: 'capitalize' },
   statsRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.lg, marginTop: spacing.sm },
   statItem: { alignItems: 'center', gap: 2 },
-  statNum: { color: colors.textPrimary, fontFamily: fontFamily.serifBold, fontSize: fontSize.title },
-  statLabel: { color: colors.textMuted, fontFamily: fontFamily.sans, fontSize: fontSize.xs },
+  statNum: { color: colors.textPrimary, fontFamily: fontFamily.serif, fontSize: fontSize.title },
+  statLabel: { color: colors.textMuted, fontFamily: fontFamily.sans, fontSize: fontSize.micro },
   statDivider: { width: 1, height: 32, backgroundColor: 'rgba(255,255,255,0.10)' },
   section: { gap: spacing.md },
   sectionTitle: { color: colors.textSecondary, fontFamily: fontFamily.sansSemiBold, fontSize: fontSize.section },
@@ -185,10 +185,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  memberInitial: { color: colors.auraPurple, fontSize: fontSize.md, fontFamily: fontFamily.serifBold },
+  memberInitial: { color: colors.auraPurple, fontSize: fontSize.body, fontFamily: fontFamily.serif },
   memberInfo: { flex: 1 },
-  memberName: { color: colors.textPrimary, fontFamily: fontFamily.sansMedium, fontSize: fontSize.md },
-  memberRel: { color: colors.textMuted, fontFamily: fontFamily.sans, fontSize: fontSize.xs },
+  memberName: { color: colors.textPrimary, fontFamily: fontFamily.sansMedium, fontSize: fontSize.body },
+  memberRel: { color: colors.textMuted, fontFamily: fontFamily.sans, fontSize: fontSize.micro },
   ownerBadge: {
     backgroundColor: 'rgba(181,124,255,0.15)',
     borderRadius: radii.full,
@@ -211,5 +211,5 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255,255,255,0.09)',
   },
   actionIcon: { fontSize: 24 },
-  actionLabel: { color: colors.textSecondary, fontFamily: fontFamily.sans, fontSize: fontSize.xs },
+  actionLabel: { color: colors.textSecondary, fontFamily: fontFamily.sans, fontSize: fontSize.micro },
 });

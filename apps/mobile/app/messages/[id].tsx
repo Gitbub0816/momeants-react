@@ -16,9 +16,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import type { Message, Conversation } from '@momeants/types';
 import { useApi } from '../../src/context/ApiContext';
-import { colors } from '@momeants/design/src/colors';
-import { spacing, radii } from '@momeants/design/src/spacing';
-import { fontSize, fontFamily } from '@momeants/design/src/typography';
+import { colors } from '@momeants/design';
+import { spacing, radii } from '@momeants/design';
+import { fontSize, fontFamily } from '@momeants/design';
 
 function Bubble({ msg }: { msg: Message }) {
   const isMe = msg.isFromMe;
@@ -178,7 +178,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.09)',
     borderBottomLeftRadius: 6,
   },
-  bubbleText: { color: colors.textSecondary, fontFamily: fontFamily.sans, fontSize: fontSize.md, lineHeight: 22 },
+  bubbleText: { color: colors.textSecondary, fontFamily: fontFamily.sans, fontSize: fontSize.body, lineHeight: 22 },
   bubbleTextMe: { color: colors.textPrimary },
   reactionBubble: { fontSize: 28 },
   momentCard: {
@@ -193,7 +193,7 @@ const styles = StyleSheet.create({
   },
   momentCardMe: { backgroundColor: 'rgba(181,124,255,0.15)' },
   momentCardIcon: { fontSize: 20 },
-  momentCardText: { color: colors.textSecondary, fontFamily: fontFamily.sans, fontSize: fontSize.sm },
+  momentCardText: { color: colors.textSecondary, fontFamily: fontFamily.sans, fontSize: fontSize.caption },
   sparkCard: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -205,7 +205,7 @@ const styles = StyleSheet.create({
     maxWidth: '80%',
   },
   sparkIcon: { fontSize: 18 },
-  sparkText: { color: colors.auraPurple, fontFamily: fontFamily.sansMedium, fontSize: fontSize.sm, flex: 1 },
+  sparkText: { color: colors.auraPurple, fontFamily: fontFamily.sansMedium, fontSize: fontSize.caption, flex: 1 },
   inputBar: { backgroundColor: 'transparent' },
   inputRow: {
     flexDirection: 'row',
@@ -223,7 +223,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255,255,255,0.10)',
     color: colors.textPrimary,
     fontFamily: fontFamily.sans,
-    fontSize: fontSize.md,
+    fontSize: fontSize.body,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm + 2,
     maxHeight: 120,

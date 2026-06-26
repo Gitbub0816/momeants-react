@@ -14,9 +14,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import type { SparkSettings, SparkCategory } from '@momeants/types';
 import { useApi } from '../src/context/ApiContext';
-import { colors } from '@momeants/design/src/colors';
-import { spacing, radii } from '@momeants/design/src/spacing';
-import { fontSize, fontFamily } from '@momeants/design/src/typography';
+import { colors } from '@momeants/design';
+import { spacing, radii } from '@momeants/design';
+import { fontSize, fontFamily } from '@momeants/design';
 import { GlassCard } from '../src/components/core/GlassCard';
 
 const ALL_CATEGORIES: { key: SparkCategory; label: string; icon: string }[] = [
@@ -247,7 +247,7 @@ const styles = StyleSheet.create({
   },
   sectionLabel: {
     color: colors.textMuted,
-    fontSize: fontSize.xs,
+    fontSize: fontSize.micro,
     fontFamily: fontFamily.sansMedium,
     letterSpacing: 1.2,
     marginTop: spacing.md,
@@ -268,13 +268,13 @@ const styles = StyleSheet.create({
   rowText: { flex: 1 },
   rowTitle: {
     color: colors.textPrimary,
-    fontSize: fontSize.md,
+    fontSize: fontSize.body,
     fontFamily: fontFamily.sansMedium,
   },
   rowTitleMuted: { color: colors.textMuted },
   rowSub: {
     color: colors.textMuted,
-    fontSize: fontSize.xs,
+    fontSize: fontSize.micro,
     fontFamily: fontFamily.sans,
     marginTop: 2,
   },
@@ -304,7 +304,7 @@ const styles = StyleSheet.create({
   },
   freqText: {
     color: colors.textMuted,
-    fontSize: fontSize.sm,
+    fontSize: fontSize.caption,
     fontFamily: fontFamily.sansMedium,
   },
   freqTextActive: { color: colors.auraPurple },
@@ -332,7 +332,7 @@ const styles = StyleSheet.create({
   },
   savingText: {
     color: colors.textMuted,
-    fontSize: fontSize.sm,
+    fontSize: fontSize.caption,
     fontFamily: fontFamily.sans,
   },
 });

@@ -14,9 +14,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import type { SparkDelivery } from '@momeants/types';
 import { useApi } from '../../src/context/ApiContext';
-import { colors } from '@momeants/design/src/colors';
-import { spacing, radii } from '@momeants/design/src/spacing';
-import { fontSize, fontFamily } from '@momeants/design/src/typography';
+import { colors } from '@momeants/design';
+import { spacing, radii } from '@momeants/design';
+import { fontSize, fontFamily } from '@momeants/design';
 import { GlassCard } from '../../src/components/core/GlassCard';
 
 const CATEGORY_ICON: Record<string, string> = {
@@ -233,7 +233,7 @@ const styles = StyleSheet.create({
   },
   errorText: {
     color: colors.textMuted,
-    fontSize: fontSize.md,
+    fontSize: fontSize.body,
     fontFamily: fontFamily.sans,
   },
   backBtn: {
@@ -256,21 +256,21 @@ const styles = StyleSheet.create({
   },
   category: {
     color: colors.auraPurple,
-    fontSize: fontSize.xs,
+    fontSize: fontSize.micro,
     fontFamily: fontFamily.sansMedium,
     letterSpacing: 1.5,
     marginBottom: spacing.xs,
   },
   title: {
     color: colors.textPrimary,
-    fontSize: fontSize.displaySM,
-    fontFamily: fontFamily.serifBold,
+    fontSize: fontSize.display,
+    fontFamily: fontFamily.serif,
     textAlign: 'center',
     marginBottom: spacing.sm,
   },
   description: {
     color: colors.textSecondary,
-    fontSize: fontSize.md,
+    fontSize: fontSize.body,
     fontFamily: fontFamily.sans,
     textAlign: 'center',
     lineHeight: 24,
@@ -290,7 +290,7 @@ const styles = StyleSheet.create({
   },
   chipText: {
     color: colors.textMuted,
-    fontSize: fontSize.xs,
+    fontSize: fontSize.micro,
     fontFamily: fontFamily.sans,
   },
   bodyCard: {
@@ -299,7 +299,7 @@ const styles = StyleSheet.create({
   },
   bodyText: {
     color: colors.textPrimary,
-    fontSize: fontSize.md,
+    fontSize: fontSize.body,
     fontFamily: fontFamily.sans,
     lineHeight: 26,
   },
@@ -309,7 +309,7 @@ const styles = StyleSheet.create({
   },
   promptLabel: {
     color: colors.textMuted,
-    fontSize: fontSize.xs,
+    fontSize: fontSize.micro,
     fontFamily: fontFamily.sansMedium,
     letterSpacing: 1,
     textAlign: 'center',
@@ -319,8 +319,8 @@ const styles = StyleSheet.create({
   },
   promptText: {
     color: colors.textPrimary,
-    fontSize: fontSize.lg,
-    fontFamily: fontFamily.serifBold,
+    fontSize: fontSize.section,
+    fontFamily: fontFamily.serif,
     textAlign: 'center',
     lineHeight: 28,
   },
@@ -335,7 +335,7 @@ const styles = StyleSheet.create({
   },
   nextBtnText: {
     color: colors.auraPurple,
-    fontSize: fontSize.md,
+    fontSize: fontSize.body,
     fontFamily: fontFamily.sansMedium,
   },
   completeWrapper: {
@@ -349,7 +349,7 @@ const styles = StyleSheet.create({
   },
   completeText: {
     color: '#FFFFFF',
-    fontSize: fontSize.md,
+    fontSize: fontSize.body,
     fontFamily: fontFamily.sansMedium,
   },
 });

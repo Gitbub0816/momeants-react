@@ -14,9 +14,9 @@ import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { colors } from '@momeants/design/src/colors';
-import { spacing, radii } from '@momeants/design/src/spacing';
-import { fontSize, fontFamily } from '@momeants/design/src/typography';
+import { colors } from '@momeants/design';
+import { spacing, radii } from '@momeants/design';
+import { fontSize, fontFamily } from '@momeants/design';
 
 export default function ForgotPasswordScreen() {
   const router = useRouter();
@@ -117,7 +117,7 @@ const styles = StyleSheet.create({
   safe: { flex: 1 },
   kav: { flex: 1 },
   back: { padding: spacing.lg },
-  backText: { color: colors.textMuted, fontSize: fontSize.md, fontFamily: fontFamily.sans },
+  backText: { color: colors.textMuted, fontSize: fontSize.body, fontFamily: fontFamily.sans },
   content: {
     flex: 1,
     padding: spacing.xl,
@@ -127,13 +127,13 @@ const styles = StyleSheet.create({
   icon: { fontSize: 40, textAlign: 'center' },
   title: {
     color: colors.textPrimary,
-    fontSize: fontSize.displaySM,
-    fontFamily: fontFamily.serifBold,
+    fontSize: fontSize.display,
+    fontFamily: fontFamily.serif,
     textAlign: 'center',
   },
   subtitle: {
     color: colors.textSecondary,
-    fontSize: fontSize.md,
+    fontSize: fontSize.body,
     fontFamily: fontFamily.sans,
     textAlign: 'center',
     lineHeight: 24,
@@ -145,14 +145,14 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255,255,255,0.12)',
     color: colors.textPrimary,
     fontFamily: fontFamily.sans,
-    fontSize: fontSize.md,
+    fontSize: fontSize.body,
     padding: spacing.md,
     minHeight: 52,
   },
   button: { borderRadius: radii.lg, overflow: 'hidden' },
   buttonDisabled: { opacity: 0.4 },
   buttonGradient: { paddingVertical: spacing.md + 2, alignItems: 'center' },
-  buttonText: { color: '#fff', fontSize: fontSize.md, fontFamily: fontFamily.sansMedium },
+  buttonText: { color: '#fff', fontSize: fontSize.body, fontFamily: fontFamily.sansMedium },
   doneButton: {
     alignSelf: 'center',
     paddingHorizontal: spacing.xl,
@@ -162,5 +162,5 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(181,124,255,0.35)',
   },
-  doneText: { color: colors.auraPurple, fontSize: fontSize.md, fontFamily: fontFamily.sansMedium },
+  doneText: { color: colors.auraPurple, fontSize: fontSize.body, fontFamily: fontFamily.sansMedium },
 });
