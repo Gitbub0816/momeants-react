@@ -6,6 +6,8 @@ import type {
 } from './moment';
 import type { UserProfile, OnboardingData } from './user';
 import type { CircleMember, CircleMoment } from './circle';
+import type { Clique, CliqueType } from './clique';
+import type { CalendarInference } from './calendar-intelligence';
 import type { SparkDelivery, SparkSettings } from './spark';
 import type { Conversation, Message } from './message';
 import type { CalendarEvent } from './calendar-event';
@@ -22,6 +24,27 @@ export interface MomentsApi {
   // Circle
   listCircleMembers(): Promise<CircleMember[]>;
   listCircleMoments(): Promise<CircleMoment[]>;
+  searchUsers(query: string): Promise<UserProfile[]>;
+  addToCircle(userId: string): Promise<void>;
+  removeFromCircle(userId: string): Promise<void>;
+  sendConnectionRequest(userId: string): Promise<void>;
+  getConnectionRequests(): Promise<Array<{ userId: string; displayName: string; avatarUri?: string; sentAt: string }>>;
+  acceptConnectionRequest(userId: string): Promise<void>;
+  declineConnectionRequest(userId: string): Promise<void>;
+
+  // Cliques
+  createClique(name: string, memberIds: string[], type?: CliqueType, emoji?: string): Promise<Clique>;
+  updateClique(id: string, data: { name?: string; memberIds?: string[]; emoji?: string; type?: CliqueType }): Promise<Clique>;
+  deleteClique(id: string): Promise<void>;
+
+  // Sharing
+  shareMoment(momentId: string, toUserId: string, message?: string): Promise<void>;
+
+  // Calendar Intelligence
+  getCalendarInferences(): Promise<CalendarInference[]>;
+  confirmCalendarInference(inference: CalendarInference): Promise<CalendarEvent>;
+  dismissCalendarInference(momentId: string, inferredType: string): Promise<void>;
+  createCalendarEvent(event: { title: string; date: string; type: string; emoji?: string; personId?: string; isRecurring?: boolean }): Promise<CalendarEvent>;
 
   // Profile
   getProfile(userId?: string): Promise<UserProfile>;
