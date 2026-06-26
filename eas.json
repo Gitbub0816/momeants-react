@@ -4,35 +4,32 @@
     "appVersionSource": "local"
   },
   "build": {
-    "base": {
-      "node": "20.19.4",
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "node": "22.14.0",
       "env": {
+        "APP_VARIANT": "development",
         "YARN_NODE_LINKER": "node-modules"
       }
     },
-    "development": {
-      "extends": "base",
-      "developmentClient": true,
-      "distribution": "internal",
-      "env": {
-        "APP_VARIANT": "development"
-      }
-    },
     "preview": {
-      "extends": "base",
       "distribution": "internal",
+      "node": "22.14.0",
       "ios": {
         "simulator": false
       },
       "env": {
-        "APP_VARIANT": "development"
+        "APP_VARIANT": "development",
+        "YARN_NODE_LINKER": "node-modules"
       }
     },
     "production": {
-      "extends": "base",
       "autoIncrement": true,
+      "node": "22.14.0",
       "env": {
-        "APP_VARIANT": "production"
+        "APP_VARIANT": "production",
+        "YARN_NODE_LINKER": "node-modules"
       }
     }
   },
