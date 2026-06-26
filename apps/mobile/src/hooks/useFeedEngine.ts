@@ -3,7 +3,12 @@ import type { RankedFeedItem } from '@momeants/types';
 import type { EngineContext } from '../engines/types';
 import { buildHomeFeed } from '../engines/feedEngine';
 import { DEMO_RELATIONSHIP_WEIGHTS } from '../demo/relationships';
+import { MOCK_SPONSORED_ITEMS } from '../demo/sponsored';
 import { useApi } from '../context/ApiContext';
+
+// Mock discovery moments — second-degree users who aren't in direct circle.
+// In production this comes from the backend feed candidates endpoint.
+import { MOCK_DISCOVERY_MOMENTS, MOCK_SOCIAL_GRAPH } from '../demo/discovery';
 
 export function useFeedEngine() {
   const api = useApi();
@@ -12,6 +17,7 @@ export function useFeedEngine() {
   const [refreshing, setRefreshing] = useState(false);
   const [seenIds] = useState(() => new Set<string>());
   const [dismissedSparkIds] = useState(() => new Set<string>());
+  const [seenSponsoredIds] = useState(() => new Map<string, number>());
 
   const buildFeed = useCallback(async () => {
     const [
@@ -32,15 +38,10 @@ export function useFeedEngine() {
       api.getSparkSettings(),
     ]);
 
-    // Gather all available spark templates from the spark library via a dummy delivery
-    // We pull them from the spark history's template data, or fall back to spark settings context
     const availableSparks = sparkHistory
       .filter((d) => d.spark)
       .map((d) => d.spark)
       .filter((s, i, arr) => arr.findIndex((x) => x.id === s.id) === i);
-
-    // If no spark history, the engine will still work — it just won't insert sparks
-    // In production this would be fetched from the backend
 
     const allMoments = [
       homeMoments.hero,
@@ -62,6 +63,11 @@ export function useFeedEngine() {
       seenFeedItemIds: seenIds,
       dismissedSparkIds,
       relationshipWeights: DEMO_RELATIONSHIP_WEIGHTS,
+      socialGraph: MOCK_SOCIAL_GRAPH,
+      sponsoredItems: MOCK_SPONSORED_ITEMS,
+      discoveryMoments: MOCK_DISCOVERY_MOMENTS,
+      userInterestSignals: [],
+      seenSponsoredIds,
     };
 
     const ranked = buildHomeFeed(context);
@@ -86,5 +92,9 @@ export function useFeedEngine() {
     dismissedSparkIds.add(sparkId);
   }, [dismissedSparkIds]);
 
-  return { feed, loading, refreshing, refresh, markSeen, dismissSpark };
+  const markSponsoredSeen = useCallback((adId: string) => {
+    seenSponsoredIds.set(adId, (seenSponsoredIds.get(adId) ?? 0) + 1);
+  }, [seenSponsoredIds]);
+
+  return { feed, loading, refreshing, refresh, markSeen, dismissSpark, markSponsoredSeen };
 }

@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   RefreshControl,
   ViewToken,
+  Linking,
 } from 'react-native';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -93,12 +94,67 @@ function EngagementPromptSlide({ item }: { item: RankedFeedItem }) {
   );
 }
 
+// ── Discovery moment slide ────────────────────────────────────────────────
+function DiscoverySlide({ item, isActive }: { item: RankedFeedItem; isActive: boolean }) {
+  return (
+    <View style={{ width: W, height: FEED_ITEM_HEIGHT }}>
+      <MomentFeedItem
+        moment={item.moment!}
+        isActive={isActive}
+        engagementPrompts={item.engagementPrompts}
+      />
+      {item.discoveryContext ? (
+        <View style={styles.discoveryBadge} pointerEvents="none">
+          <Text style={styles.discoveryBadgeText}>✦ {item.discoveryContext}</Text>
+        </View>
+      ) : null}
+    </View>
+  );
+}
+
+// ── Sponsored content slide ───────────────────────────────────────────────
+function SponsoredSlide({ item, onPress }: { item: RankedFeedItem; onPress: () => void }) {
+  const ad = item.sponsored;
+  if (!ad) return null;
+
+  return (
+    <View style={[styles.importantDaySlide, { height: FEED_ITEM_HEIGHT }]}>
+      <LinearGradient colors={['#0C0D14', '#16182A']} style={StyleSheet.absoluteFill} />
+      {ad.imageUri ? (
+        <Image
+          source={{ uri: ad.imageUri }}
+          style={StyleSheet.absoluteFill}
+          contentFit="cover"
+        />
+      ) : null}
+      {/* Overlay gradient so text is readable over image */}
+      <LinearGradient
+        colors={['transparent', 'rgba(0,0,0,0.75)', 'rgba(0,0,0,0.92)']}
+        style={[StyleSheet.absoluteFill, { top: '40%' }]}
+      />
+      <View style={styles.sponsoredContent}>
+        <View style={styles.sponsoredTag}>
+          <Text style={styles.sponsoredTagText}>Sponsored</Text>
+        </View>
+        <Text style={styles.sponsoredHeadline}>{ad.headline}</Text>
+        {ad.subtext ? (
+          <Text style={styles.sponsoredSubtext}>{ad.subtext}</Text>
+        ) : null}
+        <TouchableOpacity style={styles.sponsoredCta} onPress={onPress}>
+          <Text style={styles.sponsoredCtaText}>{ad.ctaLabel}</Text>
+        </TouchableOpacity>
+        <Text style={styles.sponsoredBrand}>{ad.advertiserName}</Text>
+      </View>
+    </View>
+  );
+}
+
 // ── Main home screen ───────────────────────────────────────────────────────
 export default function HomeScreen() {
   const api = useApi();
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { feed, loading, refreshing, refresh, markSeen, dismissSpark } = useFeedEngine();
+  const { feed, loading, refreshing, refresh, markSeen, dismissSpark, markSponsoredSeen } = useFeedEngine();
   const [activeIndex, setActiveIndex] = useState(0);
   const viewabilityConfig = useRef({ itemVisibilityPercentThreshold: 55 });
 
@@ -205,6 +261,24 @@ export default function HomeScreen() {
         return <EngagementPromptSlide item={item} />;
       }
 
+      // Discovery moment — personal content from friends-of-friends
+      if (item.type === 'discovery_moment' && item.moment) {
+        return <DiscoverySlide item={item} isActive={index === activeIndex} />;
+      }
+
+      // Sponsored content
+      if (item.type === 'sponsored' && item.sponsored) {
+        return (
+          <SponsoredSlide
+            item={item}
+            onPress={() => {
+              markSponsoredSeen(item.sponsored!.id);
+              Linking.openURL(item.sponsored!.ctaUrl).catch(() => null);
+            }}
+          />
+        );
+      }
+
       // Fallback for clique_update etc — render as moment if we have one
       if (item.moment) {
         return (
@@ -218,7 +292,7 @@ export default function HomeScreen() {
 
       return null;
     },
-    [activeIndex, dismissSpark]
+    [activeIndex, dismissSpark, markSponsoredSeen]
   );
 
   const getItemLayout = useCallback(
@@ -377,5 +451,80 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     fontFamily: fontFamily.sansMedium,
     fontSize: fontSize.caption,
+  },
+  // Discovery badge
+  discoveryBadge: {
+    position: 'absolute',
+    top: 56,
+    left: spacing.lg,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    borderRadius: 12,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.15)',
+  },
+  discoveryBadgeText: {
+    color: colors.textSecondary,
+    fontFamily: fontFamily.sansMedium,
+    fontSize: fontSize.micro,
+    letterSpacing: 0.5,
+  },
+  // Sponsored slide
+  sponsoredContent: {
+    position: 'absolute',
+    bottom: 80,
+    left: spacing.lg,
+    right: spacing.lg,
+  },
+  sponsoredTag: {
+    alignSelf: 'flex-start',
+    backgroundColor: 'rgba(255,210,138,0.18)',
+    borderRadius: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    marginBottom: spacing.sm,
+    borderWidth: 1,
+    borderColor: 'rgba(255,210,138,0.35)',
+  },
+  sponsoredTagText: {
+    color: '#FFD28A',
+    fontFamily: fontFamily.sansMedium,
+    fontSize: fontSize.micro,
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
+  },
+  sponsoredHeadline: {
+    color: colors.textPrimary,
+    fontFamily: 'PlayfairDisplay_700Bold',
+    fontSize: fontSize.section,
+    marginBottom: spacing.xs,
+  },
+  sponsoredSubtext: {
+    color: colors.textSecondary,
+    fontFamily: fontFamily.sans,
+    fontSize: fontSize.caption,
+    marginBottom: spacing.md,
+    lineHeight: 20,
+  },
+  sponsoredCta: {
+    alignSelf: 'flex-start',
+    backgroundColor: colors.textPrimary,
+    borderRadius: radii.md,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+    marginBottom: spacing.sm,
+  },
+  sponsoredCtaText: {
+    color: colors.ink900,
+    fontFamily: fontFamily.sansMedium,
+    fontSize: fontSize.caption,
+    fontWeight: '600',
+  },
+  sponsoredBrand: {
+    color: colors.textMuted,
+    fontFamily: fontFamily.sans,
+    fontSize: fontSize.micro,
+    letterSpacing: 0.3,
   },
 });
