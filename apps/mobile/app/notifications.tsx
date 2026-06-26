@@ -1,24 +1,38 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import React, { useEffect, useState, useCallback } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { ScreenShell, GlassCard } from '../src/components/core';
-import { colors, fontFamily, fontSize, spacing, radii } from '@momeants/design';
-
-// Placeholder notifications — real ones come from the notifications table via Supabase
-const MOCK_NOTIFICATIONS = [
-  { id: '1', title: 'One year ago today', body: '"That golden hour when everything felt exactly right."', read: false, createdAt: '2025-06-25T08:00:00Z' },
-  { id: '2', title: 'Ava shared a quiet moment with you', body: 'A memory from her afternoon in the garden.', read: false, createdAt: '2025-06-24T15:20:00Z' },
-  { id: '3', title: 'A memory from last summer is glowing again', body: '"We laughed until our stomachs hurt."', read: true, createdAt: '2025-06-20T08:00:00Z' },
-];
+import { useApi } from '../src/context/ApiContext';
+import type { Notification } from '@momeants/types';
+import { colors, fontFamily, fontSize, spacing } from '@momeants/design';
 
 export default function NotificationsScreen() {
   const router = useRouter();
-  const [notifications, setNotifications] = useState(MOCK_NOTIFICATIONS);
+  const api = useApi();
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
-  function markRead(id: string) {
+  const load = useCallback(async () => {
+    const data = await api.listNotifications();
+    setNotifications(data);
+  }, [api]);
+
+  useEffect(() => {
+    load().finally(() => setLoading(false));
+  }, [load]);
+
+  async function onRefresh() {
+    setRefreshing(true);
+    await load();
+    setRefreshing(false);
+  }
+
+  async function markRead(id: string) {
     setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, read: true } : n))
+      prev.map((n) => (n.id === id ? { ...n, readAt: new Date().toISOString() } : n))
     );
+    await api.markNotificationRead(id).catch(() => {});
   }
 
   return (
@@ -31,33 +45,49 @@ export default function NotificationsScreen() {
         <View style={{ width: 44 }} />
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
-        {notifications.length === 0 ? (
-          <View style={styles.empty}>
-            <Text style={styles.emptyIcon}>◎</Text>
-            <Text style={styles.emptyTitle}>All quiet</Text>
-            <Text style={styles.emptyDesc}>Memories will glow here when they resurface.</Text>
-          </View>
-        ) : (
-          notifications.map((n) => (
-            <TouchableOpacity
-              key={n.id}
-              onPress={() => markRead(n.id)}
-              accessibilityRole="button"
-              accessibilityLabel={n.title}
-            >
-              <GlassCard style={n.read ? { ...styles.card, ...styles.cardRead } : styles.card}>
-                {!n.read && <View style={styles.unreadDot} />}
-                <View style={styles.cardContent}>
-                  <Text style={[styles.cardTitle, n.read && styles.cardTitleRead]}>{n.title}</Text>
-                  <Text style={styles.cardBody} numberOfLines={2}>{n.body}</Text>
-                  <Text style={styles.cardTime}>{formatTime(n.createdAt)}</Text>
-                </View>
-              </GlassCard>
-            </TouchableOpacity>
-          ))
-        )}
-      </ScrollView>
+      {loading ? (
+        <View style={styles.center}>
+          <ActivityIndicator color={colors.auraPurple} />
+        </View>
+      ) : (
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scroll}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.auraPurple} />
+          }
+        >
+          {notifications.length === 0 ? (
+            <View style={styles.empty}>
+              <Text style={styles.emptyIcon}>◎</Text>
+              <Text style={styles.emptyTitle}>All quiet</Text>
+              <Text style={styles.emptyDesc}>Memories will glow here when they resurface.</Text>
+            </View>
+          ) : (
+            notifications.map((n) => {
+              const isRead = !!n.readAt;
+              return (
+                <TouchableOpacity
+                  key={n.id}
+                  onPress={() => markRead(n.id)}
+                  accessibilityRole="button"
+                  accessibilityLabel={n.title}
+                  activeOpacity={0.75}
+                >
+                  <GlassCard style={isRead ? { ...styles.card, ...styles.cardRead } : styles.card}>
+                    {!isRead && <View style={styles.unreadDot} />}
+                    <View style={styles.cardContent}>
+                      <Text style={[styles.cardTitle, isRead && styles.cardTitleRead]}>{n.title}</Text>
+                      <Text style={styles.cardBody} numberOfLines={2}>{n.body}</Text>
+                      <Text style={styles.cardTime}>{formatTime(n.createdAt)}</Text>
+                    </View>
+                  </GlassCard>
+                </TouchableOpacity>
+              );
+            })
+          )}
+        </ScrollView>
+      )}
     </ScreenShell>
   );
 }
@@ -81,7 +111,8 @@ const styles = StyleSheet.create({
   },
   back: { width: 44, height: 44, justifyContent: 'center' },
   backIcon: { color: colors.textSecondary, fontSize: 24 },
-  title: { color: colors.textPrimary, fontFamily: 'PlayfairDisplay_700Bold', fontSize: fontSize.title },
+  title: { color: colors.textPrimary, fontFamily: fontFamily.serif, fontSize: fontSize.title },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   scroll: { paddingHorizontal: spacing.lg, paddingTop: spacing.sm, gap: spacing.sm, paddingBottom: spacing.xl },
   card: { padding: spacing.md, flexDirection: 'row', gap: spacing.sm, alignItems: 'flex-start' },
   cardRead: { opacity: 0.65 },
@@ -93,6 +124,6 @@ const styles = StyleSheet.create({
   cardTime: { color: colors.textMuted, fontFamily: fontFamily.sans, fontSize: fontSize.micro },
   empty: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingTop: 120, gap: spacing.md },
   emptyIcon: { fontSize: 48, color: colors.textMuted },
-  emptyTitle: { color: colors.textSecondary, fontFamily: 'PlayfairDisplay_700Bold', fontSize: fontSize.title },
+  emptyTitle: { color: colors.textSecondary, fontFamily: fontFamily.serif, fontSize: fontSize.title },
   emptyDesc: { color: colors.textMuted, fontFamily: fontFamily.sans, fontSize: fontSize.body, textAlign: 'center' },
 });
