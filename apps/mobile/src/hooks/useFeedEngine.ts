@@ -3,13 +3,8 @@ import type { RankedFeedItem } from '@momeants/types';
 import type { EngineContext } from '../engines/types';
 import { buildHomeFeed } from '../engines/feedEngine';
 import { inferCliques } from '../engines/relationshipEngine';
-import { DEMO_RELATIONSHIP_WEIGHTS } from '../demo/relationships';
-import { MOCK_SPONSORED_ITEMS } from '../demo/sponsored';
 import { useApi } from '../context/ApiContext';
-
-// Mock discovery moments — second-degree users who aren't in direct circle.
-// In production this comes from the backend feed candidates endpoint.
-import { MOCK_DISCOVERY_MOMENTS, MOCK_SOCIAL_GRAPH } from '../demo/discovery';
+import type { SocialGraph } from '../engines/types';
 
 export function useFeedEngine() {
   const api = useApi();
@@ -50,6 +45,8 @@ export function useFeedEngine() {
       ...(homeMoments.resurfaced ? [homeMoments.resurfaced] : []),
     ].filter(Boolean);
 
+    const emptySocialGraph: SocialGraph = new Map();
+
     const baseContext: EngineContext = {
       userId: 'me',
       currentTime: new Date(),
@@ -63,10 +60,10 @@ export function useFeedEngine() {
       calendarEvents,
       seenFeedItemIds: seenIds,
       dismissedSparkIds,
-      relationshipWeights: DEMO_RELATIONSHIP_WEIGHTS,
-      socialGraph: MOCK_SOCIAL_GRAPH,
-      sponsoredItems: MOCK_SPONSORED_ITEMS,
-      discoveryMoments: MOCK_DISCOVERY_MOMENTS,
+      relationshipWeights: [],
+      socialGraph: emptySocialGraph,
+      sponsoredItems: [],
+      discoveryMoments: [],
       userInterestSignals: [],
       seenSponsoredIds,
     };

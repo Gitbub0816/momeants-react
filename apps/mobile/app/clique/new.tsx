@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -16,16 +16,9 @@ import { GlassCard } from '../../src/components/core/GlassCard';
 import { CircleAvatar } from '../../src/components/circle';
 import { useApi } from '../../src/context/ApiContext';
 import { colors, fontFamily, fontSize, spacing, radii } from '@momeants/design';
+import type { CircleMember } from '@momeants/types';
 
 const EMOJI_OPTIONS = ['🌟', '🎉', '❤️', '🏕️', '🎵', '✈️', '🍕', '🌙'];
-
-const MOCK_CIRCLE_MEMBERS = [
-  { id: 'p1', displayName: 'Ava Chen', avatarUri: 'https://i.pravatar.cc/100?img=1' },
-  { id: 'p2', displayName: 'Marcus Rivera', avatarUri: 'https://i.pravatar.cc/100?img=3' },
-  { id: 'p3', displayName: 'Sofia Park', avatarUri: 'https://i.pravatar.cc/100?img=5' },
-  { id: 'p4', displayName: 'James Okafor', avatarUri: 'https://i.pravatar.cc/100?img=8' },
-  { id: 'p5', displayName: 'Lily Nguyen', avatarUri: 'https://i.pravatar.cc/100?img=9' },
-];
 
 export default function NewCliqueScreen() {
   const router = useRouter();
@@ -34,6 +27,11 @@ export default function NewCliqueScreen() {
   const [selectedEmoji, setSelectedEmoji] = useState('🌟');
   const [selectedMemberIds, setSelectedMemberIds] = useState<Set<string>>(new Set());
   const [creating, setCreating] = useState(false);
+  const [circleMembers, setCircleMembers] = useState<CircleMember[]>([]);
+
+  useEffect(() => {
+    api.listCircleMembers().then(setCircleMembers).catch(() => {});
+  }, [api]);
 
   function toggleMember(id: string) {
     setSelectedMemberIds((prev) => {
@@ -119,7 +117,7 @@ export default function NewCliqueScreen() {
           <GlassCard style={styles.section}>
             <Text style={styles.sectionLabel}>Add members</Text>
             <View style={styles.memberList}>
-              {MOCK_CIRCLE_MEMBERS.map((member) => {
+              {circleMembers.map((member) => {
                 const selected = selectedMemberIds.has(member.id);
                 return (
                   <TouchableOpacity

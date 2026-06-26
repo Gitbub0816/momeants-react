@@ -1,31 +1,57 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  ActivityIndicator,
 } from 'react-native';
 import { Image } from 'expo-image';
 import { useLocalSearchParams, Stack, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
-import { DEMO_CLIQUES } from '../../src/demo/cliques';
+import { useApi } from '../../src/context/ApiContext';
+import type { Clique } from '@momeants/types';
 import { colors } from '@momeants/design';
 import { spacing, radii } from '@momeants/design';
 import { fontSize, fontFamily } from '@momeants/design';
 
 export default function CliqueDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const clique = DEMO_CLIQUES.find((c) => c.id === id);
   const router = useRouter();
+  const api = useApi();
+  const [clique, setClique] = useState<Clique | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    api.listCliques()
+      .then((cliques) => {
+        setClique(cliques.find((c) => c.id === id) ?? null);
+      })
+      .finally(() => setLoading(false));
+  }, [id]);
+
+  if (loading) {
+    return (
+      <>
+        <Stack.Screen options={{ title: 'Clique', headerStyle: { backgroundColor: colors.ink900 }, headerTintColor: colors.textPrimary }} />
+        <View style={[styles.container, styles.center]}>
+          <ActivityIndicator color={colors.auraPurple} />
+        </View>
+      </>
+    );
+  }
 
   if (!clique) {
     return (
-      <View style={styles.center}>
-        <Text style={styles.errorText}>Clique not found</Text>
-      </View>
+      <>
+        <Stack.Screen options={{ title: 'Clique', headerStyle: { backgroundColor: colors.ink900 }, headerTintColor: colors.textPrimary }} />
+        <View style={[styles.container, styles.center]}>
+          <Text style={styles.errorText}>Clique not found</Text>
+        </View>
+      </>
     );
   }
 
@@ -119,7 +145,8 @@ export default function CliqueDetailScreen() {
                   style={styles.actionBtn}
                   onPress={async () => {
                     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                    router.push('/messages/convo-family');
+                    // Navigate to the clique's conversation if one exists
+                    router.push('/messages');
                   }}
                   accessibilityRole="button"
                   accessibilityLabel="Message this clique"
@@ -151,7 +178,7 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   safe: { flex: 1 },
   scroll: { padding: spacing.lg, gap: spacing.xl, paddingBottom: spacing.xxxl },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.ink900 },
+  center: { alignItems: 'center', justifyContent: 'center' },
   errorText: { color: colors.textMuted, fontFamily: fontFamily.sans },
   heroHeader: { alignItems: 'center', gap: spacing.sm },
   heroEmoji: { fontSize: 52 },

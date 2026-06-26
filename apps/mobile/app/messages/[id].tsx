@@ -16,6 +16,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import type { Message, Conversation } from '@momeants/types';
 import { useApi } from '../../src/context/ApiContext';
+import { getSupabaseClient } from '@momeants/api';
 import { colors } from '@momeants/design';
 import { spacing, radii } from '@momeants/design';
 import { fontSize, fontFamily } from '@momeants/design';
@@ -89,22 +90,43 @@ export default function ConversationScreen() {
     });
   }, [id]);
 
-  // Mock real-time polling — in production this would be Supabase Realtime
   useEffect(() => {
-    setIsLive(true);
-    const interval = setInterval(async () => {
-      const c = await api.getConversation(id);
-      if (c) {
-        const msgs = c.messages ?? [];
-        if (msgs.length !== messageCountRef.current) {
-          messageCountRef.current = msgs.length;
-          setMessages(msgs);
+    const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
+    const supabaseKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
+    if (!supabaseUrl || !supabaseKey) return;
+
+    const sb = getSupabaseClient(supabaseUrl, supabaseKey);
+    const channel = sb
+      .channel(`messages:${id}`)
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'messages', filter: `conversation_id=eq.${id}` },
+        (payload) => {
+          const r = payload.new as any;
+          const msg: Message = {
+            id: r.id,
+            conversationId: r.conversation_id,
+            senderId: r.sender_id,
+            senderName: r.sender_name ?? '',
+            text: r.content,
+            type: r.type ?? 'text',
+            isFromMe: false,
+            sentAt: r.created_at,
+          };
+          setMessages((prev) => {
+            if (prev.some((m) => m.id === msg.id)) return prev;
+            messageCountRef.current += 1;
+            return [...prev, msg];
+          });
           setTimeout(() => listRef.current?.scrollToEnd({ animated: true }), 100);
         }
-      }
-    }, 8000);
+      )
+      .subscribe((status) => {
+        setIsLive(status === 'SUBSCRIBED');
+      });
+
     return () => {
-      clearInterval(interval);
+      sb.removeChannel(channel);
       setIsLive(false);
     };
   }, [id]);

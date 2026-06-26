@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -25,27 +25,13 @@ import { MomeantsButton, GlassCard } from '../src/components/core';
 import { useApi } from '../src/context/ApiContext';
 import { colors, gradients, fontFamily, fontSize, spacing, radii } from '@momeants/design';
 import { moderateMoment } from '../src/engines/moderationEngine';
+import type { CircleMember } from '@momeants/types';
 
 const { width } = Dimensions.get('window');
 
 type Step = 'photo' | 'mood' | 'people' | 'location' | 'caption' | 'privacy' | 'saving';
 
 const STEP_ORDER: Step[] = ['photo', 'mood', 'people', 'location', 'caption', 'privacy', 'saving'];
-
-interface CircleMember {
-  id: string;
-  displayName: string;
-  avatarUri?: string;
-}
-
-const MOCK_CIRCLE_MEMBERS: CircleMember[] = [
-  { id: 'p1', displayName: 'Ava Chen', avatarUri: 'https://i.pravatar.cc/80?u=ava' },
-  { id: 'p2', displayName: 'Marcus Webb', avatarUri: 'https://i.pravatar.cc/80?u=marcus' },
-  { id: 'p3', displayName: 'Priya Nair', avatarUri: 'https://i.pravatar.cc/80?u=priya' },
-  { id: 'p4', displayName: 'Jonah Silva', avatarUri: 'https://i.pravatar.cc/80?u=jonah' },
-  { id: 'p5', displayName: 'Leila Osei', avatarUri: 'https://i.pravatar.cc/80?u=leila' },
-  { id: 'p6', displayName: 'Tom Bergman', avatarUri: 'https://i.pravatar.cc/80?u=tom' },
-];
 
 export default function CaptureScreen() {
   const router = useRouter();
@@ -62,6 +48,11 @@ export default function CaptureScreen() {
   const [caption, setCaption] = useState('');
   const [visibility, setVisibility] = useState<MomentVisibility>('close_circle');
   const [saving, setSaving] = useState(false);
+  const [circleMembers, setCircleMembers] = useState<CircleMember[]>([]);
+
+  useEffect(() => {
+    api.listCircleMembers().then(setCircleMembers).catch(() => {});
+  }, [api]);
 
   function goBack() {
     const idx = STEP_ORDER.indexOf(step);
@@ -285,7 +276,7 @@ export default function CaptureScreen() {
   }
 
   // ─── Filtered people list ─────────────────────────────────────────────────
-  const filteredMembers = MOCK_CIRCLE_MEMBERS.filter(m =>
+  const filteredMembers = circleMembers.filter(m =>
     m.displayName.toLowerCase().includes(peopleSearch.toLowerCase()),
   );
 

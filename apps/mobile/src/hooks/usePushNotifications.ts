@@ -37,10 +37,7 @@ export function usePushNotifications(userId: string | null) {
       }
 
       const tokenData = await Notifications.getExpoPushTokenAsync();
-      // Register token with Supabase via the api
-      // The SupabaseMomentsApi would need a registerPushToken method;
-      // for now store is handled in the app config
-      console.log('[push] token:', tokenData.data);
+      await api.savePushToken(tokenData.data).catch(() => {});
       registered.current = true;
     }
 
