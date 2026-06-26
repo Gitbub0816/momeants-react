@@ -34,23 +34,3 @@ export interface Clique {
   createdAt: string;
 }
 
-// Legacy alias for backward compat
-export interface CircleMember {
-  id: string;
-  userId: string;
-  displayName: string;
-  avatarUri?: string;
-  relationship?: string;
-  hasNewMoment?: boolean;
-}
-
-export interface CircleMoment {
-  momentId: string;
-  authorId: string;
-  authorName: string;
-  authorAvatarUri?: string;
-  imageUri: string;
-  thumbnailUri?: string;
-  caption?: string;
-  createdAt: string;
-}

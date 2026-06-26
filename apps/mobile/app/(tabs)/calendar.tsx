@@ -13,9 +13,7 @@ import { ScreenShell } from '../../src/components/core';
 import { Skeleton } from '../../src/components/core/SkeletonLoader';
 import { useApi } from '../../src/context/ApiContext';
 import type { CalendarEvent, CalendarInference, CalendarNudge } from '@momeants/types';
-import { colors } from '@momeants/design/src/colors';
-import { spacing, radii } from '@momeants/design/src/spacing';
-import { fontSize, fontFamily } from '@momeants/design/src/typography';
+import { colors, spacing, radii, fontSize, fontFamily } from '@momeants/design';
 import { runCalendarIntelligence } from '../../src/engines/calendarIntelligenceEngine';
 import type { EngineContext } from '../../src/engines/types';
 
@@ -83,12 +81,15 @@ export default function CalendarScreen() {
   const year = now.getFullYear();
 
   async function load() {
-    const evts = await api.listCalendarEvents();
+    const [evts, homeMoments] = await Promise.all([
+      api.listCalendarEvents(),
+      api.listHomeMoments().then((h) => [h.hero, ...h.recent, ...(h.resurfaced ? [h.resurfaced] : [])]).catch(() => [] as import('@momeants/types').Moment[]),
+    ]);
     setEvents(evts);
     const ctx: EngineContext = {
       userId: 'me',
       currentTime: new Date(),
-      moments: [],
+      moments: homeMoments,
       circleMembers: [],
       cliques: [],
       circleMoments: [],
@@ -289,7 +290,7 @@ const styles = StyleSheet.create({
   },
   eventLeft: { flexDirection: 'row', gap: spacing.sm, alignItems: 'center', flex: 1 },
   eventEmoji: { fontSize: 24, width: 32, textAlign: 'center' },
-  eventTitle: { color: colors.textPrimary, fontFamily: fontFamily.sansMedium, fontSize: fontSize.md },
+  eventTitle: { color: colors.textPrimary, fontFamily: fontFamily.sansMedium, fontSize: fontSize.body },
   eventSub: { color: colors.textMuted, fontFamily: fontFamily.sans, fontSize: fontSize.caption, marginTop: 2 },
   eventRight: { alignItems: 'flex-end', gap: 2 },
   eventDate: { fontFamily: fontFamily.sansMedium, fontSize: fontSize.body },

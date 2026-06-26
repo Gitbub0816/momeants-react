@@ -59,6 +59,9 @@ function RootNavigator() {
       <Stack.Screen name="sparks/index" options={{ presentation: 'card', headerShown: false }} />
       <Stack.Screen name="privacy" options={{ presentation: 'modal', headerShown: false }} />
       <Stack.Screen name="(auth)/forgot-password" options={{ headerShown: false }} />
+      <Stack.Screen name="search" options={{ headerShown: false }} />
+      <Stack.Screen name="calendar/new" options={{ headerShown: false }} />
+      <Stack.Screen name="profile/[id]" options={{ headerShown: false }} />
     </Stack>
   );
 }

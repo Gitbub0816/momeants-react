@@ -46,7 +46,7 @@ export default function NotificationsScreen() {
               accessibilityRole="button"
               accessibilityLabel={n.title}
             >
-              <GlassCard style={[styles.card, n.read && styles.cardRead]}>
+              <GlassCard style={n.read ? { ...styles.card, ...styles.cardRead } : styles.card}>
                 {!n.read && <View style={styles.unreadDot} />}
                 <View style={styles.cardContent}>
                   <Text style={[styles.cardTitle, n.read && styles.cardTitleRead]}>{n.title}</Text>

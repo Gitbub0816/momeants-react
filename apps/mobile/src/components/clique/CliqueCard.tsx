@@ -5,9 +5,9 @@ import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import type { Clique } from '@momeants/types';
-import { colors } from '@momeants/design/src/colors';
-import { spacing, radii } from '@momeants/design/src/spacing';
-import { fontSize, fontFamily } from '@momeants/design/src/typography';
+import { colors } from '@momeants/design';
+import { spacing, radii } from '@momeants/design';
+import { fontSize, fontFamily } from '@momeants/design';
 
 interface CliqueCardProps {
   clique: Clique;
@@ -102,8 +102,8 @@ const styles = StyleSheet.create({
   },
   emoji: { fontSize: 22 },
   nameBlock: { flex: 1 },
-  name: { color: colors.textPrimary, fontFamily: fontFamily.sansMedium, fontSize: fontSize.md },
-  type: { color: colors.textMuted, fontFamily: fontFamily.sans, fontSize: fontSize.xs, textTransform: 'capitalize' },
+  name: { color: colors.textPrimary, fontFamily: fontFamily.sansMedium, fontSize: fontSize.body },
+  type: { color: colors.textMuted, fontFamily: fontFamily.sans, fontSize: fontSize.micro, textTransform: 'capitalize' },
   sparkBadge: {
     backgroundColor: 'rgba(181,124,255,0.18)',
     borderRadius: radii.full,
@@ -112,7 +112,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(181,124,255,0.30)',
   },
-  sparkBadgeText: { color: colors.auraPurple, fontSize: fontSize.xs, fontFamily: fontFamily.sansMedium },
+  sparkBadgeText: { color: colors.auraPurple, fontSize: fontSize.micro, fontFamily: fontFamily.sansMedium },
   membersRow: { flexDirection: 'row', alignItems: 'center', gap: -8 },
   memberAvatar: { width: 32, height: 32, borderRadius: 16, borderWidth: 2, borderColor: colors.ink900 },
   memberAvatarFallback: {
@@ -139,6 +139,6 @@ const styles = StyleSheet.create({
   },
   extraCountText: { color: colors.textMuted, fontSize: 11, fontFamily: fontFamily.sansMedium },
   stats: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
-  stat: { color: colors.textMuted, fontFamily: fontFamily.sans, fontSize: fontSize.xs },
-  statDot: { color: colors.textMuted, fontSize: fontSize.xs },
+  stat: { color: colors.textMuted, fontFamily: fontFamily.sans, fontSize: fontSize.micro },
+  statDot: { color: colors.textMuted, fontSize: fontSize.micro },
 });

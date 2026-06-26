@@ -1,4 +1,4 @@
-import type { CalendarEvent } from '@momeants/types';
+import type { CalendarEvent, Clique } from '@momeants/types';
 import type { EngineContext, RelationshipWeight } from './types';
 
 const RELATIONSHIP_BASE_WEIGHTS: Record<string, number> = {
@@ -94,4 +94,55 @@ export function rankCircleMembersByCloseness(context: EngineContext): string[] {
 export function getRelationshipType(targetId: string, context: EngineContext): string {
   const rw = context.relationshipWeights.find((r) => r.targetId === targetId);
   return rw?.relationshipType ?? 'friend';
+}
+
+// Groups circle members into inferred Clique objects based on relationship type + closeness.
+export function inferCliques(context: EngineContext): Clique[] {
+  const GROUP_DEFS: Array<{
+    type: Clique['type'];
+    relTypes: RelationshipWeight['relationshipType'][];
+    name: string;
+    emoji: string;
+    minCloseness: number;
+  }> = [
+    { type: 'family', relTypes: ['family'], name: 'Family', emoji: '🏠', minCloseness: 0 },
+    { type: 'couple', relTypes: ['couple'], name: 'Us', emoji: '💑', minCloseness: 0 },
+    { type: 'besties', relTypes: ['bestie', 'close_friend'], name: 'Close Friends', emoji: '🫂', minCloseness: 0.5 },
+  ];
+
+  const cliques: Clique[] = [];
+
+  for (const def of GROUP_DEFS) {
+    const matched = context.circleMembers.filter((m) => {
+      const rw = context.relationshipWeights.find((r) => r.targetId === m.id);
+      if (!rw) return false;
+      if (!def.relTypes.includes(rw.relationshipType)) return false;
+      const closeness = computeClosenessScore(m.id, context);
+      return closeness >= def.minCloseness;
+    });
+
+    if (matched.length === 0) continue;
+
+    cliques.push({
+      id: `inferred_${def.type}`,
+      name: def.name,
+      emoji: def.emoji,
+      type: def.type,
+      ownerId: context.userId,
+      memberCount: matched.length,
+      momentCount: 0,
+      activeSparks: 0,
+      members: matched.map((m) => ({
+        id: m.id,
+        userId: m.id,
+        displayName: m.displayName,
+        avatarUri: m.avatarUri,
+        isOwner: false,
+        joinedAt: new Date().toISOString(),
+      })),
+      createdAt: new Date().toISOString(),
+    });
+  }
+
+  return cliques;
 }

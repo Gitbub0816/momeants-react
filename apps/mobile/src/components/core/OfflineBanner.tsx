@@ -2,9 +2,9 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNetworkStatus } from '../../hooks/useNetworkStatus';
-import { colors } from '@momeants/design/src/colors';
-import { fontSize, fontFamily } from '@momeants/design/src/typography';
-import { spacing } from '@momeants/design/src/spacing';
+import { colors } from '@momeants/design';
+import { fontSize, fontFamily } from '@momeants/design';
+import { spacing } from '@momeants/design';
 
 export function OfflineBanner() {
   const online = useNetworkStatus();
@@ -32,7 +32,7 @@ const styles = StyleSheet.create({
   },
   text: {
     color: '#fff',
-    fontSize: fontSize.xs,
+    fontSize: fontSize.micro,
     fontFamily: fontFamily.sansMedium,
   },
 });

@@ -9,7 +9,7 @@ export const MOCK_DISCOVERY_MOMENTS: Moment[] = [
     imageUri: 'https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=800',
     caption: 'Golden hour at the lake. Nothing better.',
     moods: ['Peaceful', 'Free'],
-    visibility: 'open',
+    visibility: 'close_circle',
     people: [],
     reactions: [
       { emoji: '❤️', count: 12, reactedByMe: false },
@@ -27,7 +27,7 @@ export const MOCK_DISCOVERY_MOMENTS: Moment[] = [
     imageUri: 'https://images.unsplash.com/photo-1511632765486-a01980e01a18?w=800',
     caption: 'Three years of friendship. So grateful for these people.',
     moods: ['Grateful', 'Loved'],
-    visibility: 'open',
+    visibility: 'close_circle',
     people: [{ id: 'p2', name: 'Marcus', avatarUri: 'https://i.pravatar.cc/100?img=3' }],
     reactions: [
       { emoji: '❤️', count: 8, reactedByMe: false },
@@ -42,7 +42,7 @@ export const MOCK_DISCOVERY_MOMENTS: Moment[] = [
     imageUri: 'https://images.unsplash.com/photo-1501854140801-50d01698950b?w=800',
     caption: 'Finally made it to Big Sur. Worth every mile.',
     moods: ['Adventurous', 'Excited'],
-    visibility: 'open',
+    visibility: 'close_circle',
     people: [],
     reactions: [
       { emoji: '🌊', count: 21, reactedByMe: false },

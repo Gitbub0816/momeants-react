@@ -59,6 +59,26 @@ export default function SparksScreen() {
 
   const completedSparks = history.filter((d) => d.status === 'completed');
 
+  // Compute streak: consecutive days with at least one completion
+  const streak = (() => {
+    const completedDates = completedSparks
+      .map((d) => new Date(d.deliveredAt).toDateString())
+      .filter((v, i, a) => a.indexOf(v) === i)
+      .sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
+    let count = 0;
+    let checkDate = new Date();
+    checkDate.setHours(0, 0, 0, 0);
+    for (const dateStr of completedDates) {
+      const d = new Date(dateStr);
+      d.setHours(0, 0, 0, 0);
+      if (d.getTime() === checkDate.getTime()) {
+        count++;
+        checkDate.setDate(checkDate.getDate() - 1);
+      } else break;
+    }
+    return count;
+  })();
+
   return (
     <ScreenShell edges={['top']}>
       <ScrollView
@@ -91,7 +111,7 @@ export default function SparksScreen() {
         <View style={styles.statsRow}>
           {[
             { label: 'Completed', value: completedSparks.length },
-            { label: 'Streak', value: '3 days' },
+            { label: 'Streak', value: streak > 0 ? `${streak}d` : '—' },
             { label: 'Favorites', value: '—' },
           ].map((s) => (
             <View key={s.label} style={styles.statBox}>
@@ -110,6 +130,7 @@ export default function SparksScreen() {
               onAccept={(id) => {
                 api.acceptSpark(id);
                 Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                router.push(`/spark/${id}`);
               }}
               onDismiss={(id) => {
                 api.dismissSpark(id);
@@ -156,7 +177,14 @@ export default function SparksScreen() {
                 const cat = delivery.spark?.category ?? 'conversation';
                 const color = CATEGORY_COLORS[cat] ?? colors.auraPurple;
                 return (
-                  <View key={delivery.id} style={[styles.historyCard, { borderLeftColor: color }]}>
+                  <TouchableOpacity
+                    key={delivery.id}
+                    style={[styles.historyCard, { borderLeftColor: color }]}
+                    activeOpacity={0.8}
+                    onPress={() => router.push(`/spark/${delivery.id}`)}
+                    accessibilityRole="button"
+                    accessibilityLabel={delivery.spark?.title ?? 'Spark'}
+                  >
                     <View style={styles.historyTop}>
                       <Text style={styles.historyTitle} numberOfLines={1}>
                         {delivery.spark?.title ?? 'Spark'}
@@ -168,7 +196,7 @@ export default function SparksScreen() {
                       </View>
                     </View>
                     <Text style={styles.historyCat}>{cat}</Text>
-                  </View>
+                  </TouchableOpacity>
                 );
               })}
             </View>

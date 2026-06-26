@@ -3,9 +3,9 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { colors } from '@momeants/design/src/colors';
-import { spacing, radii } from '@momeants/design/src/spacing';
-import { fontSize, fontFamily } from '@momeants/design/src/typography';
+import { colors } from '@momeants/design';
+import { spacing, radii } from '@momeants/design';
+import { fontSize, fontFamily } from '@momeants/design';
 
 export default function ErrorScreen() {
   const router = useRouter();
@@ -47,12 +47,12 @@ const styles = StyleSheet.create({
   title: {
     color: colors.textPrimary,
     fontSize: fontSize.title,
-    fontFamily: fontFamily.serifBold,
+    fontFamily: fontFamily.serif,
     textAlign: 'center',
   },
   body: {
     color: colors.textSecondary,
-    fontSize: fontSize.md,
+    fontSize: fontSize.body,
     fontFamily: fontFamily.sans,
     textAlign: 'center',
     lineHeight: 24,
@@ -68,7 +68,7 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: colors.auraPurple,
-    fontSize: fontSize.md,
+    fontSize: fontSize.body,
     fontFamily: fontFamily.sansMedium,
   },
 });

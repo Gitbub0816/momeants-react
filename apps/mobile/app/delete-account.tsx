@@ -14,9 +14,9 @@ import * as Haptics from 'expo-haptics';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '../src/context/AuthContext';
-import { colors } from '@momeants/design/src/colors';
-import { spacing, radii } from '@momeants/design/src/spacing';
-import { fontSize, fontFamily } from '@momeants/design/src/typography';
+import { colors } from '@momeants/design';
+import { spacing, radii } from '@momeants/design';
+import { fontSize, fontFamily } from '@momeants/design';
 import { GlassCard } from '../src/components/core/GlassCard';
 
 const CONFIRM_PHRASE = 'delete my account';
@@ -149,12 +149,12 @@ const styles = StyleSheet.create({
   title: {
     color: colors.textPrimary,
     fontSize: fontSize.title,
-    fontFamily: fontFamily.serifBold,
+    fontFamily: fontFamily.serif,
     textAlign: 'center',
   },
   body: {
     color: colors.textSecondary,
-    fontSize: fontSize.md,
+    fontSize: fontSize.body,
     fontFamily: fontFamily.sans,
     textAlign: 'center',
   },
@@ -165,13 +165,13 @@ const styles = StyleSheet.create({
   },
   listItem: {
     color: colors.textSecondary,
-    fontSize: fontSize.sm,
+    fontSize: fontSize.caption,
     fontFamily: fontFamily.sans,
     lineHeight: 22,
   },
   confirmLabel: {
     color: colors.textMuted,
-    fontSize: fontSize.sm,
+    fontSize: fontSize.caption,
     fontFamily: fontFamily.sans,
     textAlign: 'center',
     marginTop: spacing.md,
@@ -188,7 +188,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255,255,255,0.12)',
     color: colors.textPrimary,
     fontFamily: fontFamily.sans,
-    fontSize: fontSize.md,
+    fontSize: fontSize.body,
     padding: spacing.md,
   },
   deleteButton: {
@@ -204,7 +204,7 @@ const styles = StyleSheet.create({
   },
   deleteButtonText: {
     color: '#fff',
-    fontSize: fontSize.md,
+    fontSize: fontSize.body,
     fontFamily: fontFamily.sansMedium,
   },
   cancelButton: {
@@ -212,7 +212,7 @@ const styles = StyleSheet.create({
   },
   cancelText: {
     color: colors.textMuted,
-    fontSize: fontSize.md,
+    fontSize: fontSize.body,
     fontFamily: fontFamily.sans,
   },
 });

@@ -131,7 +131,7 @@ export function buildOutreachTargets(
 
   // 3. Friends-of-friends (only if not private, amplification score high enough)
   const ampScore = organicAmplificationScore(moment);
-  if (ampScore >= 0.35 && moment.visibility !== 'private') {
+  if (ampScore >= 0.35) {
     const secondDegree = getSecondDegreeIds(context);
     secondDegree.forEach((userId) => {
       const score = targetRelevanceScore(userId, 'friend_of_friend', moment, context);
