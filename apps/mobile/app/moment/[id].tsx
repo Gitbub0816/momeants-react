@@ -10,12 +10,14 @@ import {
   Dimensions,
   KeyboardAvoidingView,
   Platform,
+  Modal,
+  Pressable,
 } from 'react-native';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
-import type { Moment } from '@momeants/types';
+import type { Moment, CircleMember } from '@momeants/types';
 import { MoodPill } from '../../src/components/memory';
 import { CircleAvatar } from '../../src/components/circle';
 import { useApi } from '../../src/context/ApiContext';
@@ -34,6 +36,9 @@ export default function MomentDetailScreen() {
   const [commentText, setCommentText] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [commentPrompts, setCommentPrompts] = useState<string[]>([]);
+  const [shareVisible, setShareVisible] = useState(false);
+  const [circleMembers, setCircleMembers] = useState<CircleMember[]>([]);
+  const [sharedTo, setSharedTo] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (id) api.getMoment(id).then((m) => {
@@ -86,6 +91,21 @@ export default function MomentDetailScreen() {
     await api.reactToMoment(moment.id, emoji);
   }
 
+  async function openShare() {
+    if (circleMembers.length === 0) {
+      const mems = await api.listCircleMembers();
+      setCircleMembers(mems);
+    }
+    setShareVisible(true);
+  }
+
+  async function shareTo(userId: string) {
+    if (!moment || sharedTo.has(userId)) return;
+    await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    await api.shareMoment(moment.id, userId);
+    setSharedTo((prev) => new Set([...prev, userId]));
+  }
+
   async function submitComment() {
     if (!moment || !commentText.trim()) return;
     setSubmitting(true);
@@ -123,8 +143,8 @@ export default function MomentDetailScreen() {
           >
             <Text style={styles.topBtnIcon}>←</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.topBtn} accessibilityLabel="More options">
-            <Text style={styles.topBtnIcon}>···</Text>
+          <TouchableOpacity style={styles.topBtn} onPress={openShare} accessibilityLabel="Share moment">
+            <Text style={styles.topBtnIcon}>↗</Text>
           </TouchableOpacity>
         </View>
 
@@ -250,6 +270,35 @@ export default function MomentDetailScreen() {
           </View>
         </ScrollView>
       </View>
+
+      {/* Share modal */}
+      <Modal visible={shareVisible} transparent animationType="slide" onRequestClose={() => setShareVisible(false)}>
+        <Pressable style={styles.modalBackdrop} onPress={() => setShareVisible(false)}>
+          <Pressable style={styles.shareSheet} onPress={(e) => e.stopPropagation()}>
+            <View style={styles.shareHandle} />
+            <Text style={styles.shareTitle}>Share with…</Text>
+            <ScrollView showsVerticalScrollIndicator={false} style={{ maxHeight: 300 }}>
+              {circleMembers.map((m) => {
+                const done = sharedTo.has(m.id);
+                return (
+                  <TouchableOpacity
+                    key={m.id}
+                    style={styles.shareRow}
+                    onPress={() => shareTo(m.id)}
+                    activeOpacity={0.8}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Share with ${m.displayName}`}
+                  >
+                    <CircleAvatar name={m.displayName} avatarUri={m.avatarUri} size={40} />
+                    <Text style={styles.shareName}>{m.displayName}</Text>
+                    {done && <Text style={styles.shareDone}>Shared ✓</Text>}
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </KeyboardAvoidingView>
   );
 }
@@ -377,4 +426,45 @@ const styles = StyleSheet.create({
   },
   commentSend: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   commentSendText: { color: colors.auraPurple, fontSize: 22 },
+  modalBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
+  shareSheet: {
+    backgroundColor: colors.ink900,
+    borderTopLeftRadius: radii.xxl,
+    borderTopRightRadius: radii.xxl,
+    padding: spacing.lg,
+    paddingBottom: spacing.xxxl,
+    borderWidth: 1,
+    borderColor: colors.border,
+    gap: spacing.md,
+  },
+  shareHandle: {
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: colors.borderSubtle,
+    alignSelf: 'center',
+    marginBottom: spacing.sm,
+  },
+  shareTitle: {
+    color: colors.textPrimary,
+    fontFamily: 'PlayfairDisplay_700Bold',
+    fontSize: fontSize.section,
+  },
+  shareRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    paddingVertical: spacing.sm,
+  },
+  shareName: {
+    flex: 1,
+    color: colors.textPrimary,
+    fontFamily: fontFamily.sans,
+    fontSize: fontSize.body,
+  },
+  shareDone: {
+    color: colors.auraPurple,
+    fontFamily: fontFamily.sansMedium,
+    fontSize: fontSize.caption,
+  },
 });

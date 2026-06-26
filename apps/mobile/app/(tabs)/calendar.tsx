@@ -81,12 +81,15 @@ export default function CalendarScreen() {
   const year = now.getFullYear();
 
   async function load() {
-    const evts = await api.listCalendarEvents();
+    const [evts, homeMoments] = await Promise.all([
+      api.listCalendarEvents(),
+      api.listHomeMoments().then((h) => [h.hero, ...h.recent, ...(h.resurfaced ? [h.resurfaced] : [])]).catch(() => [] as import('@momeants/types').Moment[]),
+    ]);
     setEvents(evts);
     const ctx: EngineContext = {
       userId: 'me',
       currentTime: new Date(),
-      moments: [],
+      moments: homeMoments,
       circleMembers: [],
       cliques: [],
       circleMoments: [],

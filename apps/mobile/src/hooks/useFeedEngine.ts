@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import type { RankedFeedItem } from '@momeants/types';
 import type { EngineContext } from '../engines/types';
 import { buildHomeFeed } from '../engines/feedEngine';
+import { inferCliques } from '../engines/relationshipEngine';
 import { DEMO_RELATIONSHIP_WEIGHTS } from '../demo/relationships';
 import { MOCK_SPONSORED_ITEMS } from '../demo/sponsored';
 import { useApi } from '../context/ApiContext';
@@ -49,7 +50,7 @@ export function useFeedEngine() {
       ...(homeMoments.resurfaced ? [homeMoments.resurfaced] : []),
     ].filter(Boolean);
 
-    const context: EngineContext = {
+    const baseContext: EngineContext = {
       userId: 'me',
       currentTime: new Date(),
       moments: allMoments,
@@ -69,6 +70,9 @@ export function useFeedEngine() {
       userInterestSignals: [],
       seenSponsoredIds,
     };
+    const inferredCliques = inferCliques(baseContext);
+
+    const context: EngineContext = { ...baseContext, cliques: inferredCliques };
 
     const ranked = buildHomeFeed(context);
     setFeed(ranked);
