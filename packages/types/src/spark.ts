@@ -7,6 +7,7 @@ export type SparkCategory =
   | 'seasonal'
   | 'location'
   | 'family'
+  | 'storytelling'
   | 'friendship'
   | 'couple'
   | 'clique'
@@ -14,6 +15,8 @@ export type SparkCategory =
   | 'storytelling'
   | 'creative'
   | 'discovery';
+
+export type SparkMode = 'background_engagement' | 'minigame';
 
 export type SparkGameType =
   | 'this_or_that'
@@ -27,7 +30,27 @@ export type SparkGameType =
   | 'conversation'
   | 'prompt'
   | 'group_challenge'
-  | 'seasonal';
+  | 'seasonal'
+  | 'never_have_i_ever'
+  | 'one_word_story'
+  | 'emoji_story'
+  | 'guess_the_memory'
+  | 'guess_the_year'
+  | 'guess_the_place'
+  | 'caption_battle'
+  | 'family_story'
+  | 'clique_challenge'
+  | 'bestie_challenge'
+  | 'holiday_game'
+  | 'important_day_game'
+  | 'then_and_now'
+  | 'memory_recreation'
+  | 'gratitude_round'
+  | 'who_said_it'
+  | 'memory_draft'
+  | 'pet_day'
+  | 'food_draft'
+  | 'bucket_list_builder';
 
 export type SparkStatus = 'pending' | 'accepted' | 'dismissed' | 'completed' | 'expired';
 
@@ -38,6 +61,7 @@ export interface Spark {
   body: string;
   category: SparkCategory;
   gameType: SparkGameType;
+  mode: SparkMode;
   estimatedMinutes: number;
   minPlayers: number;
   maxPlayers: number;
@@ -52,10 +76,17 @@ export interface Spark {
   emotionalWeight: number;
   noveltyScore: number;
   completionCta: string;
-  // Prompt items for multi-step games
   prompts?: string[];
-  // Tags for recommendation engine
   tags: string[];
+  supportsMomentCreation?: boolean;
+  suitableForBesties?: boolean;
+  suitableForCliques?: boolean;
+  suitableForSolo?: boolean;
+  engagementScore?: number;
+  cooldownDays?: number;
+  visualIntensity?: 'low' | 'medium' | 'high';
+  completionLikelihood?: number;
+  active?: boolean;
 }
 
 export interface SparkDelivery {
@@ -84,6 +115,8 @@ export interface SparkSettings {
   allowHolidays: boolean;
   allowRelationship: boolean;
   allowAiPersonalization: boolean;
+  backgroundEngagementSparksEnabled: boolean;
+  minigameSparksEnabled: boolean;
 }
 
 export interface SparkParticipation {

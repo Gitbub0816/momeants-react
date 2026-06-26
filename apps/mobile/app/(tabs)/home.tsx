@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useCallback } from 'react';
+import React, { useRef, useCallback, useState } from 'react';
 import {
   View,
   Text,
@@ -10,92 +10,215 @@ import {
   RefreshControl,
   ViewToken,
 } from 'react-native';
+import { Image } from 'expo-image';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import type { Moment, SparkDelivery } from '@momeants/types';
+import * as Haptics from 'expo-haptics';
+import type { RankedFeedItem } from '@momeants/types';
 import { HomeScreenSkeleton } from '../../src/components/core/SkeletonLoader';
 import { EmptyState } from '../../src/components/core/EmptyState';
 import { MomentFeedItem, FEED_ITEM_HEIGHT } from '../../src/components/memory/MomentFeedItem';
 import { SparkCard } from '../../src/components/spark/SparkCard';
+import { useFeedEngine } from '../../src/hooks/useFeedEngine';
 import { useApi } from '../../src/context/ApiContext';
-import { colors, gradients, fontFamily, fontSize, spacing } from '@momeants/design';
-import { LinearGradient } from 'expo-linear-gradient';
+import { colors, gradients, fontFamily, fontSize, spacing, radii } from '@momeants/design';
 
 const { width: W } = Dimensions.get('window');
+const TAB_CLEARANCE = 114;
 
-type FeedItem =
-  | { type: 'moment'; key: string; data: Moment }
-  | { type: 'spark'; key: string; data: SparkDelivery };
+// ── Important Day slide ────────────────────────────────────────────────────
+function ImportantDaySlide({ item }: { item: RankedFeedItem }) {
+  const event = item.calendarEvent;
+  const accent = item.accentColor ?? colors.auraPurple;
 
+  return (
+    <View style={[styles.importantDaySlide, { height: FEED_ITEM_HEIGHT }]}>
+      <LinearGradient
+        colors={['#0A0D1E', '#12183A']}
+        style={StyleSheet.absoluteFill}
+      />
+      <View style={[styles.importantDayCard, { borderColor: accent + '50' }]}>
+        <Text style={styles.importantDayEmoji}>{event?.emoji ?? '📅'}</Text>
+        <View style={{ flex: 1 }}>
+          <Text style={[styles.importantDayTitle, { color: accent }]}>{item.headline}</Text>
+          {item.subtext ? (
+            <Text style={styles.importantDaySubtext}>{item.subtext}</Text>
+          ) : null}
+        </View>
+      </View>
+    </View>
+  );
+}
+
+// ── Engagement prompt card slide ───────────────────────────────────────────
+function EngagementPromptSlide({ item }: { item: RankedFeedItem }) {
+  const router = useRouter();
+  const accent = item.accentColor ?? colors.auraBlue;
+
+  return (
+    <View style={[styles.importantDaySlide, { height: FEED_ITEM_HEIGHT }]}>
+      <LinearGradient
+        colors={['#080C1A', '#111827']}
+        style={StyleSheet.absoluteFill}
+      />
+      <View style={[styles.importantDayCard, { borderColor: accent + '40' }]}>
+        <Text style={styles.importantDayEmoji}>💬</Text>
+        <View style={{ flex: 1 }}>
+          <Text style={[styles.importantDayTitle, { color: accent }]}>{item.headline ?? 'Someone you care about'}</Text>
+          {item.subtext ? (
+            <Text style={styles.importantDaySubtext}>{item.subtext}</Text>
+          ) : null}
+          {item.engagementPrompts && item.engagementPrompts.length > 0 && (
+            <View style={styles.promptRow}>
+              {item.engagementPrompts.map((p, i) => (
+                <TouchableOpacity
+                  key={i}
+                  style={[styles.promptChip, { borderColor: accent + '60' }]}
+                  onPress={async () => {
+                    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                    if (p.type === 'message' && p.targetId) {
+                      router.push(`/messages/${p.targetId}`);
+                    }
+                  }}
+                >
+                  <Text style={styles.promptChipText}>{p.icon} {p.label}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
+        </View>
+      </View>
+    </View>
+  );
+}
+
+// ── Main home screen ───────────────────────────────────────────────────────
 export default function HomeScreen() {
   const api = useApi();
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const [feedItems, setFeedItems] = useState<FeedItem[]>([]);
+  const { feed, loading, refreshing, refresh, markSeen, dismissSpark } = useFeedEngine();
   const [activeIndex, setActiveIndex] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
   const viewabilityConfig = useRef({ itemVisibilityPercentThreshold: 55 });
-
-  async function load() {
-    const [home, todaySpark] = await Promise.all([
-      api.listHomeMoments(),
-      api.getTodaySpark(),
-    ]);
-
-    const momentItems: FeedItem[] = [
-      ...(home.hero ? [{ type: 'moment' as const, key: home.hero.id, data: home.hero }] : []),
-      ...(home.resurfaced ? [{ type: 'moment' as const, key: `resurfaced-${home.resurfaced.id}`, data: home.resurfaced }] : []),
-      ...home.recent.map((m) => ({ type: 'moment' as const, key: `recent-${m.id}`, data: m })),
-    ];
-
-    const items: FeedItem[] = [];
-    if (todaySpark && todaySpark.status !== 'dismissed' && todaySpark.status !== 'completed') {
-      items.push({ type: 'spark', key: `spark-${todaySpark.id}`, data: todaySpark });
-    }
-    items.push(...momentItems);
-    setFeedItems(items);
-  }
-
-  useEffect(() => {
-    load().finally(() => setLoading(false));
-  }, []);
-
-  async function onRefresh() {
-    setRefreshing(true);
-    await load();
-    setRefreshing(false);
-  }
 
   const onViewableItemsChanged = useCallback(
     ({ viewableItems }: { viewableItems: ViewToken[] }) => {
       if (viewableItems.length > 0 && viewableItems[0].index != null) {
-        setActiveIndex(viewableItems[0].index);
+        const idx = viewableItems[0].index;
+        setActiveIndex(idx);
+        const item = feed[idx];
+        if (item?.moment) markSeen(item.moment.id);
       }
     },
-    []
+    [feed, markSeen]
   );
 
   const renderItem = useCallback(
-    ({ item, index }: { item: FeedItem; index: number }) => {
-      if (item.type === 'spark') {
+    ({ item, index }: { item: RankedFeedItem; index: number }) => {
+      // Moment-based full-screen slides
+      if (item.moment && (
+        item.type === 'moment' ||
+        item.type === 'resurfaced_memory' ||
+        item.type === 'circle_moment' ||
+        item.type === 'bestie_update' ||
+        item.type === 'trip_memory'
+      )) {
+        return (
+          <MomentFeedItem
+            moment={item.moment}
+            isActive={index === activeIndex}
+            resurfaceLabel={item.resurfaceLabel}
+            engagementPrompts={item.engagementPrompts}
+          />
+        );
+      }
+
+      // Spark slides — minigame full screen
+      if (item.spark && item.type === 'minigame_spark') {
+        const syntheticDelivery = {
+          id: `engine-${item.spark.id}`,
+          sparkId: item.spark.id,
+          spark: item.spark,
+          userId: 'me',
+          status: 'pending' as const,
+          deliveredAt: new Date().toISOString(),
+          recommendationReason: item.subtext,
+        };
         return (
           <View style={styles.sparkSlide}>
             <LinearGradient colors={gradients.background} style={StyleSheet.absoluteFill} />
             <SparkCard
-              delivery={item.data}
-              onAccept={(id) => api.acceptSpark(id)}
-              onDismiss={(id) => {
-                api.dismissSpark(id);
-                setFeedItems((prev) => prev.filter((_, i) => i !== index));
+              delivery={syntheticDelivery}
+              onAccept={async () => {
+                await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                router.push('/sparks');
               }}
+              onDismiss={() => dismissSpark(item.spark!.id)}
             />
           </View>
         );
       }
-      return <MomentFeedItem moment={item.data} isActive={index === activeIndex} />;
+
+      // Background engagement spark (smaller card in feed)
+      if (item.spark && item.type === 'spark_card') {
+        const syntheticDelivery = {
+          id: `engine-bg-${item.spark.id}`,
+          sparkId: item.spark.id,
+          spark: item.spark,
+          userId: 'me',
+          status: 'pending' as const,
+          deliveredAt: new Date().toISOString(),
+          recommendationReason: item.subtext,
+        };
+        return (
+          <View style={styles.sparkSlide}>
+            <LinearGradient colors={gradients.background} style={StyleSheet.absoluteFill} />
+            <SparkCard
+              delivery={syntheticDelivery}
+              onAccept={async () => {
+                await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                router.push('/sparks');
+              }}
+              onDismiss={() => dismissSpark(item.spark!.id)}
+            />
+          </View>
+        );
+      }
+
+      // Important day cards
+      if (
+        item.type === 'important_day' ||
+        item.type === 'birthday_reminder' ||
+        item.type === 'anniversary' ||
+        item.type === 'memory_anniversary'
+      ) {
+        return <ImportantDaySlide item={item} />;
+      }
+
+      // Engagement prompts (conversation starters, gratitude nudges)
+      if (
+        item.type === 'engagement_prompt' ||
+        item.type === 'conversation_starter' ||
+        item.type === 'gratitude_nudge'
+      ) {
+        return <EngagementPromptSlide item={item} />;
+      }
+
+      // Fallback for clique_update etc — render as moment if we have one
+      if (item.moment) {
+        return (
+          <MomentFeedItem
+            moment={item.moment}
+            isActive={index === activeIndex}
+            resurfaceLabel={item.resurfaceLabel}
+          />
+        );
+      }
+
+      return null;
     },
-    [activeIndex]
+    [activeIndex, dismissSpark]
   );
 
   const getItemLayout = useCallback(
@@ -116,7 +239,7 @@ export default function HomeScreen() {
     );
   }
 
-  if (feedItems.length === 0) {
+  if (feed.length === 0) {
     return (
       <View style={styles.fill}>
         <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
@@ -151,7 +274,7 @@ export default function HomeScreen() {
       </View>
 
       <FlatList
-        data={feedItems}
+        data={feed}
         keyExtractor={(item) => item.key}
         renderItem={renderItem}
         pagingEnabled
@@ -169,7 +292,7 @@ export default function HomeScreen() {
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
-            onRefresh={onRefresh}
+            onRefresh={refresh}
             tintColor={colors.auraPurple}
           />
         }
@@ -200,12 +323,7 @@ const styles = StyleSheet.create({
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 6,
   },
-  notifBtn: {
-    width: 44,
-    height: 44,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+  notifBtn: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   notifIcon: {
     color: colors.textPrimary,
     fontSize: 22,
@@ -218,5 +336,46 @@ const styles = StyleSheet.create({
     height: FEED_ITEM_HEIGHT,
     justifyContent: 'center',
     paddingHorizontal: spacing.lg,
+  },
+  importantDaySlide: {
+    width: W,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: spacing.lg,
+  },
+  importantDayCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    borderRadius: radii.xl,
+    borderWidth: 1,
+    padding: spacing.xl,
+    width: '100%',
+  },
+  importantDayEmoji: { fontSize: 40 },
+  importantDayTitle: {
+    fontFamily: 'PlayfairDisplay_700Bold',
+    fontSize: fontSize.title,
+    marginBottom: spacing.xs,
+  },
+  importantDaySubtext: {
+    color: colors.textMuted,
+    fontFamily: fontFamily.sans,
+    fontSize: fontSize.caption,
+    lineHeight: 20,
+  },
+  promptRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 12 },
+  promptChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    borderWidth: 1,
+    backgroundColor: 'rgba(255,255,255,0.06)',
+  },
+  promptChipText: {
+    color: colors.textSecondary,
+    fontFamily: fontFamily.sansMedium,
+    fontSize: fontSize.caption,
   },
 });

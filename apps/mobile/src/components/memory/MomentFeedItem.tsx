@@ -12,6 +12,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import type { Moment } from '@momeants/types';
+import type { FeedEngagementPrompt } from '@momeants/types';
 import { MoodPill } from './MoodPill';
 import { CircleAvatar } from '../circle/CircleAvatar';
 import { colors, fontFamily, fontSize, spacing, radii } from '@momeants/design';
@@ -27,9 +28,11 @@ const TAB_CLEARANCE = 114;
 interface Props {
   moment: Moment;
   isActive: boolean;
+  resurfaceLabel?: string;
+  engagementPrompts?: FeedEngagementPrompt[];
 }
 
-export function MomentFeedItem({ moment, isActive }: Props) {
+export function MomentFeedItem({ moment, isActive, resurfaceLabel, engagementPrompts }: Props) {
   const router = useRouter();
   const api = useApi();
   const [reactions, setReactions] = useState(moment.reactions);
@@ -78,9 +81,9 @@ export function MomentFeedItem({ moment, isActive }: Props) {
       />
 
       {/* Resurfaced badge */}
-      {moment.isResurfaced && moment.resurfaceLabel && (
+      {(resurfaceLabel || (moment.isResurfaced && moment.resurfaceLabel)) && (
         <View style={styles.resurfaceBadge}>
-          <Text style={styles.resurfaceText}>✦ {moment.resurfaceLabel}</Text>
+          <Text style={styles.resurfaceText}>✦ {resurfaceLabel ?? moment.resurfaceLabel}</Text>
         </View>
       )}
 

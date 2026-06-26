@@ -5,4 +5,5 @@ export * from './clique';
 export * from './message';
 export * from './calendar-event';
 export * from './spark';
+export * from './feed';
 export * from './api';
