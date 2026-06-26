@@ -12,9 +12,16 @@ import type {
   OnboardingData,
   CircleMember,
   CircleMoment,
+  Clique,
+  CliqueType,
+  CliqueMember,
+  CalendarInference,
+  CalendarEvent,
   SparkDelivery,
   SparkSettings,
   Spark,
+  Conversation,
+  Message,
 } from '@momeants/types';
 import type { Database, MomentDetailRow } from './database.types';
 
@@ -79,6 +86,29 @@ function rowToSparkDeliveryFromJoin(r: any): SparkDelivery {
     completedAt: r.completed_at ?? undefined,
     resultMomentId: r.result_moment_id ?? undefined,
     recommendationReason: r.recommendation_reason ?? undefined,
+  };
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function rowToClique(r: any): Clique {
+  const members: CliqueMember[] = (r.clique_members ?? []).map((cm: any) => ({
+    id: cm.user_id,
+    userId: cm.user_id,
+    displayName: cm.profiles?.display_name ?? cm.user_id,
+    avatarUri: cm.profiles?.avatar_url ?? undefined,
+    isOwner: cm.user_id === r.owner_id,
+    joinedAt: cm.joined_at ?? new Date().toISOString(),
+  }));
+  return {
+    id: r.id,
+    name: r.name,
+    type: r.type as CliqueType,
+    emoji: r.emoji ?? undefined,
+    ownerId: r.owner_id,
+    members,
+    memberCount: members.length,
+    momentCount: r.moment_count ?? 0,
+    createdAt: r.created_at,
   };
 }
 
@@ -200,12 +230,12 @@ export class SupabaseMomentsApi implements MomentsApi {
     };
   }
 
-  async updateProfile(data: Partial<OnboardingData>): Promise<UserProfile> {
+  async updateProfile(data: Partial<OnboardingData> & { displayName?: string }): Promise<UserProfile> {
     const { data: session } = await this.sb.auth.getSession();
     const userId = session.session!.user.id;
 
     await this.sb.from('profiles').update({
-      ...(data.fullName && { display_name: data.fullName }),
+      ...((data.fullName || data.displayName) && { display_name: data.fullName ?? data.displayName }),
       ...(data.username && { username: data.username }),
       ...(data.city && { city: data.city }),
       ...(data.country && { country: data.country }),
@@ -558,6 +588,340 @@ export class SupabaseMomentsApi implements MomentsApi {
     if (error) throw error;
 
     return this.getSparkSettings();
+  }
+
+  // ── User Search ───────────────────────────────────────────────────────────
+
+  async searchUsers(query: string): Promise<UserProfile[]> {
+    const q = `%${query}%`;
+    const { data, error } = await this.sb
+      .from('profiles')
+      .select('*')
+      .or(`display_name.ilike.${q},username.ilike.${q}`)
+      .limit(20);
+    if (error) throw error;
+    return (data ?? []).map((p: any) => ({
+      id: p.id,
+      displayName: p.display_name,
+      username: p.username,
+      avatarUri: p.avatar_url ?? undefined,
+      tagline: p.tagline ?? undefined,
+      city: p.city ?? undefined,
+      country: p.country ?? undefined,
+      defaultPrivacy: p.default_privacy,
+      momentCount: 0,
+      daysRemembered: 0,
+      peopleCount: 0,
+      topMoods: [],
+      createdAt: p.created_at,
+    }));
+  }
+
+  async addToCircle(userId: string): Promise<void> {
+    const { data: { user } } = await this.sb.auth.getUser();
+    if (!user) throw new Error('Not authenticated');
+    const { error } = await this.sb.from('circle_members').upsert({
+      owner_id: user.id,
+      member_id: userId,
+    });
+    if (error) throw error;
+  }
+
+  async removeFromCircle(userId: string): Promise<void> {
+    const { data: { user } } = await this.sb.auth.getUser();
+    if (!user) throw new Error('Not authenticated');
+    const { error } = await this.sb
+      .from('circle_members')
+      .delete()
+      .eq('owner_id', user.id)
+      .eq('member_id', userId);
+    if (error) throw error;
+  }
+
+  async sendConnectionRequest(toUserId: string): Promise<void> {
+    const { data: { user } } = await this.sb.auth.getUser();
+    if (!user) throw new Error('Not authenticated');
+    const { error } = await this.sb.from('connection_requests').upsert({
+      from_user_id: user.id,
+      to_user_id: toUserId,
+      status: 'pending',
+    });
+    if (error) throw error;
+  }
+
+  async getConnectionRequests(): Promise<Array<{ userId: string; displayName: string; avatarUri?: string; sentAt: string }>> {
+    const { data: { user } } = await this.sb.auth.getUser();
+    if (!user) return [];
+    const { data, error } = await this.sb
+      .from('connection_requests')
+      .select('from_user_id, created_at, profiles!from_user_id(display_name, avatar_url)')
+      .eq('to_user_id', user.id)
+      .eq('status', 'pending');
+    if (error) throw error;
+    return (data ?? []).map((r: any) => ({
+      userId: r.from_user_id,
+      displayName: r.profiles?.display_name ?? 'Unknown',
+      avatarUri: r.profiles?.avatar_url ?? undefined,
+      sentAt: r.created_at,
+    }));
+  }
+
+  async acceptConnectionRequest(fromUserId: string): Promise<void> {
+    const { data: { user } } = await this.sb.auth.getUser();
+    if (!user) throw new Error('Not authenticated');
+    await this.sb
+      .from('connection_requests')
+      .update({ status: 'accepted' })
+      .eq('from_user_id', fromUserId)
+      .eq('to_user_id', user.id);
+    // Add both directions to circle
+    await Promise.all([
+      this.sb.from('circle_members').upsert({ owner_id: user.id, member_id: fromUserId }),
+      this.sb.from('circle_members').upsert({ owner_id: fromUserId, member_id: user.id }),
+    ]);
+  }
+
+  async declineConnectionRequest(fromUserId: string): Promise<void> {
+    const { data: { user } } = await this.sb.auth.getUser();
+    if (!user) throw new Error('Not authenticated');
+    await this.sb
+      .from('connection_requests')
+      .update({ status: 'declined' })
+      .eq('from_user_id', fromUserId)
+      .eq('to_user_id', user.id);
+  }
+
+  // ── Cliques ───────────────────────────────────────────────────────────────
+
+  async createClique(name: string, memberIds: string[], type: CliqueType = 'custom', emoji?: string): Promise<Clique> {
+    const { data: { user } } = await this.sb.auth.getUser();
+    if (!user) throw new Error('Not authenticated');
+    const { data: clique, error } = await this.sb
+      .from('cliques')
+      .insert({ name, type, emoji, owner_id: user.id })
+      .select()
+      .single();
+    if (error) throw error;
+    if (memberIds.length) {
+      await this.sb.from('clique_members').insert(
+        memberIds.map((uid) => ({ clique_id: clique.id, user_id: uid }))
+      );
+    }
+    return this.getCliqueById(clique.id);
+  }
+
+  async updateClique(id: string, data: { name?: string; memberIds?: string[]; emoji?: string; type?: CliqueType }): Promise<Clique> {
+    if (data.name || data.emoji || data.type) {
+      await this.sb.from('cliques').update({
+        ...(data.name ? { name: data.name } : {}),
+        ...(data.emoji !== undefined ? { emoji: data.emoji } : {}),
+        ...(data.type ? { type: data.type } : {}),
+      }).eq('id', id);
+    }
+    if (data.memberIds) {
+      await this.sb.from('clique_members').delete().eq('clique_id', id);
+      if (data.memberIds.length) {
+        await this.sb.from('clique_members').insert(
+          data.memberIds.map((uid) => ({ clique_id: id, user_id: uid }))
+        );
+      }
+    }
+    return this.getCliqueById(id);
+  }
+
+  async deleteClique(id: string): Promise<void> {
+    await this.sb.from('cliques').delete().eq('id', id);
+  }
+
+  private async getCliqueById(id: string): Promise<Clique> {
+    const { data, error } = await this.sb
+      .from('cliques')
+      .select('*, clique_members(user_id, profiles(display_name, avatar_url))')
+      .eq('id', id)
+      .single();
+    if (error) throw error;
+    return rowToClique(data);
+  }
+
+  // ── Sharing ───────────────────────────────────────────────────────────────
+
+  async shareMoment(momentId: string, toUserId: string, message?: string): Promise<void> {
+    const { data: { user } } = await this.sb.auth.getUser();
+    if (!user) throw new Error('Not authenticated');
+    const { error } = await this.sb.from('moment_shares').insert({
+      moment_id: momentId,
+      from_user_id: user.id,
+      to_user_id: toUserId,
+      message: message ?? null,
+    });
+    if (error) throw error;
+  }
+
+  // ── Calendar ──────────────────────────────────────────────────────────────
+
+  async listCalendarEvents(): Promise<CalendarEvent[]> {
+    const { data: { user } } = await this.sb.auth.getUser();
+    if (!user) return [];
+    const { data, error } = await this.sb
+      .from('calendar_events')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('date', { ascending: true });
+    if (error) throw error;
+    return (data ?? []).map((e: any) => ({
+      id: e.id,
+      title: e.title,
+      date: e.date,
+      type: e.type,
+      emoji: e.emoji ?? undefined,
+      personId: e.person_id ?? undefined,
+      personName: e.person_name ?? undefined,
+      cliqueName: e.clique_name ?? undefined,
+      momentId: e.moment_id ?? undefined,
+      isRecurring: e.is_recurring ?? false,
+      description: e.description ?? undefined,
+    }));
+  }
+
+  async createCalendarEvent(event: { title: string; date: string; type: string; emoji?: string; personId?: string; isRecurring?: boolean }): Promise<CalendarEvent> {
+    const { data: { user } } = await this.sb.auth.getUser();
+    if (!user) throw new Error('Not authenticated');
+    const { data, error } = await this.sb
+      .from('calendar_events')
+      .insert({
+        user_id: user.id,
+        title: event.title,
+        date: event.date,
+        type: event.type,
+        emoji: event.emoji ?? null,
+        person_id: event.personId ?? null,
+        is_recurring: event.isRecurring ?? false,
+      })
+      .select()
+      .single();
+    if (error) throw error;
+    return {
+      id: data.id,
+      title: data.title,
+      date: data.date,
+      type: data.type as CalendarEvent['type'],
+      emoji: data.emoji ?? undefined,
+      personId: data.person_id ?? undefined,
+      isRecurring: data.is_recurring ?? false,
+    };
+  }
+
+  async getCalendarInferences(): Promise<CalendarInference[]> {
+    // Inferences are computed client-side by calendarIntelligenceEngine
+    return [];
+  }
+
+  async confirmCalendarInference(inference: CalendarInference): Promise<CalendarEvent> {
+    return this.createCalendarEvent({
+      title: inference.suggestedTitle,
+      date: inference.suggestedDate,
+      type: inference.inferredType,
+      emoji: inference.suggestedEmoji,
+      personId: inference.involvedPersonIds[0],
+      isRecurring: inference.isRecurring,
+    });
+  }
+
+  async dismissCalendarInference(_momentId: string, _inferredType: string): Promise<void> {
+    // No server state needed; dismissed inferences are filtered client-side
+  }
+
+  // ── Messages ──────────────────────────────────────────────────────────────
+
+  async listConversations(): Promise<Conversation[]> {
+    const { data: { user } } = await this.sb.auth.getUser();
+    if (!user) return [];
+    const { data, error } = await this.sb
+      .from('conversations')
+      .select(`
+        id, type, name, created_at, updated_at,
+        conversation_participants!inner(user_id),
+        messages(id, sender_id, text, sent_at, profiles!sender_id(display_name, avatar_url))
+      `)
+      .eq('conversation_participants.user_id', user.id)
+      .order('updated_at', { ascending: false });
+    if (error) throw error;
+    return (data ?? []).map((c: any) => {
+      const msgs = (c.messages ?? []).sort((a: any, b: any) => new Date(b.sent_at).getTime() - new Date(a.sent_at).getTime());
+      const last = msgs[0];
+      return {
+        id: c.id,
+        type: c.type ?? 'direct',
+        name: c.name ?? undefined,
+        participants: [],
+        lastMessage: last ? {
+          text: last.text,
+          senderName: last.profiles?.display_name ?? 'Unknown',
+          sentAt: last.sent_at,
+          isFromMe: last.sender_id === user.id,
+        } : undefined,
+        unreadCount: 0,
+        messages: [],
+      };
+    });
+  }
+
+  async getConversation(id: string): Promise<Conversation | null> {
+    const { data: { user } } = await this.sb.auth.getUser();
+    if (!user) return null;
+    const { data, error } = await this.sb
+      .from('conversations')
+      .select(`
+        id, type, name,
+        messages(id, sender_id, text, sent_at, profiles!sender_id(display_name, avatar_url))
+      `)
+      .eq('id', id)
+      .single();
+    if (error) return null;
+    const messages: Message[] = (data.messages ?? [])
+      .sort((a: any, b: any) => new Date(a.sent_at).getTime() - new Date(b.sent_at).getTime())
+      .map((m: any) => ({
+        id: m.id,
+        conversationId: id,
+        senderId: m.sender_id,
+        senderName: m.profiles?.display_name ?? 'Unknown',
+        senderAvatarUri: m.profiles?.avatar_url ?? undefined,
+        type: 'text' as const,
+        text: m.text,
+        sentAt: m.sent_at,
+        isFromMe: m.sender_id === user.id,
+      }));
+    return {
+      id: data.id,
+      type: data.type ?? 'direct',
+      name: data.name ?? undefined,
+      participants: [],
+      unreadCount: 0,
+      messages,
+    };
+  }
+
+  async sendMessage(conversationId: string, text: string): Promise<Message> {
+    const { data: { user } } = await this.sb.auth.getUser();
+    if (!user) throw new Error('Not authenticated');
+    const { data, error } = await this.sb
+      .from('messages')
+      .insert({ conversation_id: conversationId, sender_id: user.id, text })
+      .select()
+      .single();
+    if (error) throw error;
+    // Touch conversation updated_at
+    await this.sb.from('conversations').update({ updated_at: new Date().toISOString() }).eq('id', conversationId);
+    return {
+      id: data.id,
+      conversationId,
+      senderId: user.id,
+      senderName: 'Me',
+      type: 'text',
+      text: data.text,
+      sentAt: data.sent_at,
+      isFromMe: true,
+    };
   }
 
   // ── Storage ───────────────────────────────────────────────────────────────

@@ -39,10 +39,9 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
     const final = { ...data, notificationsEnabled };
     try {
       await api.updateProfile({
-        displayName: final.name,
+        fullName: final.name,
         username: final.username,
         avatarUri: final.avatarUri ?? undefined,
-        birthday: final.birthday || undefined,
       });
     } catch (e) {
       console.warn('[OnboardingContext] profile update failed:', e);
