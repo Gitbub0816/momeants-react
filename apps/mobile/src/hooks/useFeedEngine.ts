@@ -16,6 +16,7 @@ export function useFeedEngine() {
   const [seenSponsoredIds] = useState(() => new Map<string, number>());
 
   const buildFeed = useCallback(async () => {
+    const fallbackHome = { hero: null as any, recent: [], resurfaced: undefined };
     const [
       homeMoments,
       circleMembers,
@@ -23,15 +24,13 @@ export function useFeedEngine() {
       conversations,
       sparkHistory,
       calendarEvents,
-      sparkSettings,
     ] = await Promise.all([
-      api.listHomeMoments(),
-      api.listCircleMembers(),
-      api.listCircleMoments(),
-      api.listConversations(),
-      api.getSparkHistory(30),
-      api.listCalendarEvents(),
-      api.getSparkSettings(),
+      api.listHomeMoments().catch(() => fallbackHome),
+      api.listCircleMembers().catch(() => []),
+      api.listCircleMoments().catch(() => []),
+      api.listConversations().catch(() => []),
+      api.getSparkHistory(30).catch(() => []),
+      api.listCalendarEvents().catch(() => []),
     ]);
 
     const availableSparks = sparkHistory
@@ -57,7 +56,7 @@ export function useFeedEngine() {
       conversations,
       sparkHistory,
       availableSparks,
-      calendarEvents,
+      calendarEvents: calendarEvents ?? [],
       seenFeedItemIds: seenIds,
       dismissedSparkIds,
       relationshipWeights: [],

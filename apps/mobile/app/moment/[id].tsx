@@ -23,7 +23,6 @@ import { CircleAvatar } from '../../src/components/circle';
 import { useApi } from '../../src/context/ApiContext';
 import { colors, gradients, fontFamily, fontSize, spacing, radii } from '@momeants/design';
 import { buildCommentNudge } from '../../src/engines/commentEngagementEngine';
-import { DEMO_RELATIONSHIP_WEIGHTS } from '../../src/demo/relationships';
 
 const { width, height } = Dimensions.get('window');
 const REACTIONS = ['❤️', '✨', '🌙', '😌', '🔥'];
@@ -58,7 +57,7 @@ export default function MomentDetailScreen() {
           seenFeedItemIds: new Set<string>(),
           dismissedSparkIds: new Set<string>(),
           seenSponsoredIds: new Map<string, number>(),
-          relationshipWeights: DEMO_RELATIONSHIP_WEIGHTS,
+          relationshipWeights: [],
           socialGraph: new Map(),
           sponsoredItems: [],
           discoveryMoments: [],

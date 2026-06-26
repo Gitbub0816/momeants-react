@@ -1083,11 +1083,10 @@ export class SupabaseMomentsApi implements MomentsApi {
     const { data: { user } } = await this.sb.auth.getUser();
     if (!user) throw new Error('Not authenticated');
 
-    const { error } = await (this.sb.from('push_tokens') as any).upsert({
-      user_id: user.id,
-      token,
-      updated_at: new Date().toISOString(),
-    });
+    const { error } = await (this.sb.from('push_tokens') as any).upsert(
+      { user_id: user.id, token, updated_at: new Date().toISOString() },
+      { onConflict: 'user_id,token' }
+    );
     if (error) throw error;
   }
 
