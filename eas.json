@@ -30,7 +30,7 @@
       "autoIncrement": true,
       "node": "22.14.0",
       "ios": {
-        "image": "macos-sequoia-15.6-xcode-26.1"
+        "image": "macos-sequoia-15.6-xcode-26.2"
       },
       "env": {
         "APP_VARIANT": "production",
