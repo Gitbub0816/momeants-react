@@ -29,6 +29,9 @@
     "production": {
       "autoIncrement": true,
       "node": "22.14.0",
+      "ios": {
+        "image": "macos-sequoia-15.6-xcode-26.2"
+      },
       "env": {
         "APP_VARIANT": "production",
         "YARN_NODE_LINKER": "node-modules",
