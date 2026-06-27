@@ -30,6 +30,7 @@ module.exports = {
     bundleIdentifier: bundleId,
     buildNumber: '1',
     infoPlist: {
+      ITSAppUsesNonExemptEncryption: false,
       NSPhotoLibraryUsageDescription:
         'Momeants accesses your photos to let you capture and share moments.',
       NSCameraUsageDescription: 'Momeants uses your camera to capture moments.',
