@@ -12,6 +12,7 @@ module.exports = {
   name: appName,
   slug: 'momeants',
   version: '1.0.0',
+  sdkVersion: '55.0.0',
   runtimeVersion: {
     policy: 'appVersion',
   },
