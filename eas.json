@@ -29,7 +29,10 @@
     "production": {
       "autoIncrement": true,
       "node": "22.14.0",
-      "image": "latest",
+      "image": "macos-sequoia-15.6-xcode-26.2",
+      "cache": {
+        "disabled": true
+      },
       "env": {
         "APP_VARIANT": "production",
         "YARN_NODE_LINKER": "node-modules",
