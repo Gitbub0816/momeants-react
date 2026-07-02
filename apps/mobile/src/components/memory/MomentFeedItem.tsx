@@ -77,15 +77,15 @@ export function MomentFeedItem({ moment, isActive, resurfaceLabel, engagementPro
 
       {/* Gradient: subtle top vignette + strong bottom */}
       <LinearGradient
-        colors={['rgba(5,7,17,0.45)', 'transparent', 'transparent', 'rgba(5,7,17,0.72)', 'rgba(5,7,17,0.92)']}
-        locations={[0, 0.15, 0.55, 0.82, 1]}
+        colors={['rgba(5,7,17,0.5)', 'transparent', 'transparent', 'rgba(5,7,17,0.35)', 'rgba(5,7,17,0.85)', 'rgba(5,7,17,0.97)']}
+        locations={[0, 0.16, 0.5, 0.68, 0.86, 1]}
         style={StyleSheet.absoluteFill}
       />
 
       {/* Resurfaced badge */}
       {(resurfaceLabel || (moment.isResurfaced && moment.resurfaceLabel)) && (
         <View style={styles.resurfaceBadge}>
-          <Text style={styles.resurfaceText}>✦ {resurfaceLabel ?? moment.resurfaceLabel}</Text>
+          <Text style={styles.resurfaceText}><Ionicons name="sparkles" size={11} color={colors.auraLavender} /> {resurfaceLabel ?? moment.resurfaceLabel}</Text>
         </View>
       )}
 
@@ -129,7 +129,7 @@ export function MomentFeedItem({ moment, isActive, resurfaceLabel, engagementPro
           style={styles.toolbarBtn}
           accessibilityLabel="Share"
         >
-          <Text style={styles.toolbarSymbol}>↗</Text>
+          <Ionicons name="paper-plane-outline" size={19} color={colors.textSecondary} />
         </TouchableOpacity>
       </View>
 
@@ -218,13 +218,21 @@ const styles = StyleSheet.create({
     position: 'absolute',
     right: spacing.lg,
     alignItems: 'center',
-    gap: spacing.xl,
+    gap: 26,
   },
   toolbarBtn: {
     alignItems: 'center',
-    gap: 3,
-    minHeight: 44,
     justifyContent: 'center',
+    width: 46,
+    height: 46,
+    borderRadius: 23,
+    backgroundColor: 'rgba(12,16,32,0.55)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.14)',
+    shadowColor: '#000',
+    shadowOpacity: 0.35,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 6 },
   },
   toolbarEmoji: {
     fontSize: 30,
@@ -241,13 +249,14 @@ const styles = StyleSheet.create({
     textShadowRadius: 4,
   },
   toolbarCount: {
+    position: 'absolute',
+    bottom: -16,
     color: colors.textPrimary,
     fontFamily: fontFamily.sansMedium,
-    fontSize: fontSize.caption,
-    textShadowColor: 'rgba(0,0,0,0.6)',
+    fontSize: fontSize.micro,
+    textShadowColor: 'rgba(0,0,0,0.7)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 3,
-    minHeight: 14,
   },
   reactionPicker: {
     position: 'absolute',
@@ -289,16 +298,20 @@ const styles = StyleSheet.create({
     flexShrink: 1,
   },
   date: {
-    color: 'rgba(248,244,255,0.55)',
+    color: 'rgba(248,244,255,0.66)',
     fontFamily: fontFamily.sansMedium,
     fontSize: fontSize.micro,
-    letterSpacing: 1.2,
+    letterSpacing: 2.2,
   },
   caption: {
     color: colors.textPrimary,
-    fontFamily: fontFamily.serifRegular,
-    fontSize: 19,
-    lineHeight: 27,
+    fontFamily: 'PlayfairDisplay_700Bold',
+    fontSize: 26,
+    lineHeight: 32,
+    letterSpacing: -0.3,
+    textShadowColor: 'rgba(0,0,0,0.45)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 8,
   },
   moodsRow: {
     flexDirection: 'row',
