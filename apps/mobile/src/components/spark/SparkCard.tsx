@@ -1,3 +1,4 @@
+import { Glyph } from '../core/Glyph';
 import React from 'react';
 import {
   View,
@@ -15,18 +16,18 @@ import { spacing, radii } from '@momeants/design';
 import { fontSize, fontFamily } from '@momeants/design';
 
 const CATEGORY_ICON: Record<string, string> = {
-  conversation: '💬',
-  memory: '✨',
+  conversation: 'chatbubble-ellipses-outline',
+  memory: 'sparkles-outline',
   relationship: '🤝',
-  holiday: '🎉',
-  anniversary: '🎂',
+  holiday: 'gift-outline',
+  anniversary: 'heart-circle-outline',
   seasonal: '🌿',
-  location: '📍',
+  location: 'location-outline',
   family: '👨‍👩‍👧',
-  friendship: '🫂',
+  friendship: 'people-outline',
   couple: '💑',
   clique: '🙌',
-  photo: '📸',
+  photo: 'camera-outline',
   storytelling: '📖',
   creative: '🎨',
   discovery: '🔍',
@@ -41,7 +42,7 @@ interface SparkCardProps {
 export function SparkCard({ delivery, onAccept, onDismiss }: SparkCardProps) {
   const router = useRouter();
   const { spark } = delivery;
-  const icon = CATEGORY_ICON[spark.category] ?? '✨';
+  const icon = CATEGORY_ICON[spark.category] ?? 'sparkles-outline';
 
   const handleAccept = async () => {
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -77,7 +78,7 @@ export function SparkCard({ delivery, onAccept, onDismiss }: SparkCardProps) {
         </View>
 
         <View style={styles.body}>
-          <Text style={styles.icon}>{icon}</Text>
+          <Glyph value={icon} size={20} />
           <View style={styles.textBlock}>
             <Text style={styles.title}>{spark.title}</Text>
             <Text style={styles.description} numberOfLines={2}>

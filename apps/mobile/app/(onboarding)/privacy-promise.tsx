@@ -1,3 +1,4 @@
+import { Glyph } from '../../src/components/core/Glyph';
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
@@ -5,7 +6,7 @@ import { ScreenShell, MomeantsButton, GlassCard } from '../../src/components/cor
 import { colors, fontFamily, fontSize, spacing } from '@momeants/design';
 
 const PROMISES = [
-  { icon: '🔒', title: 'Private by default', body: 'Every moment you save is private until you choose otherwise.' },
+  { icon: 'lock-closed-outline', title: 'Private by default', body: 'Every moment you save is private until you choose otherwise.' },
   { icon: '◎', title: 'No public feed', body: 'Your memories aren\'t fodder for strangers. They\'re for the people you love.' },
   { icon: '○', title: 'No follower counts', body: 'We don\'t measure your relationships in numbers.' },
   { icon: '✦', title: 'You own your memories', body: 'Export or delete everything, anytime. No questions asked.' },
@@ -26,7 +27,7 @@ export default function PrivacyPromiseScreen() {
         <View style={styles.list}>
           {PROMISES.map((p) => (
             <GlassCard key={p.title} style={styles.card}>
-              <Text style={styles.icon}>{p.icon}</Text>
+              <Glyph value={p.icon} size={22} />
               <View style={styles.cardText}>
                 <Text style={styles.cardTitle}>{p.title}</Text>
                 <Text style={styles.cardBody}>{p.body}</Text>

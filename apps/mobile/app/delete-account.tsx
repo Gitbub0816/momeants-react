@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import {
   View,
@@ -70,7 +71,7 @@ export default function DeleteAccountScreen() {
       <LinearGradient colors={[colors.ink900, '#1A0A0A']} style={styles.container}>
         <SafeAreaView style={styles.safe} edges={['bottom']}>
           <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-            <Text style={styles.icon}>⚠️</Text>
+            <Ionicons name="warning-outline" size={34} color={colors.danger} />
             <Text style={styles.title}>Delete your account</Text>
             <Text style={styles.body}>
               This will permanently and irreversibly delete:

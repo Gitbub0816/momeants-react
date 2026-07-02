@@ -1,3 +1,4 @@
+import { Glyph } from '../../src/components/core/Glyph';
 import React, { useState } from 'react';
 import {
   View,
@@ -26,7 +27,7 @@ const EVENT_TYPES = [
 
 type EventType = typeof EVENT_TYPES[number]['key'];
 
-const EMOJI_OPTIONS = ['🎂', '💕', '🎉', '✨', '🏆', '🎓', '🏠', '👶'];
+const EMOJI_OPTIONS = ['heart-circle', 'heart', 'gift', 'sparkles', 'trophy', 'school', 'home', 'happy'];
 
 const TYPE_COLORS: Record<string, string> = {
   birthday: '#FF7AC8',
@@ -43,7 +44,7 @@ export default function NewCalendarEventScreen() {
   const [title, setTitle] = useState('');
   const [dateStr, setDateStr] = useState('');
   const [eventType, setEventType] = useState<EventType>('birthday');
-  const [emoji, setEmoji] = useState('🎂');
+  const [emoji, setEmoji] = useState('heart-circle');
   const [person, setPerson] = useState('');
   const [isRecurring, setIsRecurring] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -197,7 +198,7 @@ export default function NewCalendarEventScreen() {
                   accessibilityLabel={`Choose ${e} emoji`}
                   accessibilityState={{ selected: emoji === e }}
                 >
-                  <Text style={styles.emojiText}>{e}</Text>
+                  <Glyph value={e} size={22} />
                 </TouchableOpacity>
               ))}
             </View>

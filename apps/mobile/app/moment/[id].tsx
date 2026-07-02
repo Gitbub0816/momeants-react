@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useState } from 'react';
 import {
   View,
@@ -26,7 +27,7 @@ import { colors, gradients, fontFamily, fontSize, spacing, radii } from '@momean
 import { buildCommentNudge } from '../../src/engines/commentEngagementEngine';
 
 const { width, height } = Dimensions.get('window');
-const REACTIONS = ['❤️', '✨', '🌙', '😌', '🔥'];
+const REACTIONS = ['heart', 'sparkles', 'moon', 'happy-outline', 'flame'];
 
 export default function MomentDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -200,7 +201,7 @@ export default function MomentDetailScreen() {
             )}
 
             {moment.location && (
-              <Text style={styles.location}>📍 {moment.location.label}</Text>
+              <Text style={styles.location}><Ionicons name="location-outline" size={13} color={colors.textMuted} /> {moment.location.label}</Text>
             )}
 
             {/* Reactions */}

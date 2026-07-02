@@ -1,35 +1,29 @@
 import React from 'react';
-import { View, TouchableOpacity, Text, StyleSheet, Platform } from 'react-native';
+import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { colors, radii, shadows, fontFamily, fontSize, gradients } from '@momeants/design';
 
-const TAB_ICONS: Record<string, string> = {
-  home: '⌂',
-  timeline: '◷',
-  capture: '+',
-  circle: '◎',
-  messages: '💬',
-  calendar: '📅',
-  you: '○',
+type IconName = keyof typeof Ionicons.glyphMap;
+
+const TABS: Record<string, { label: string; icon: IconName; iconActive: IconName }> = {
+  home: { label: 'Home', icon: 'home-outline', iconActive: 'home' },
+  timeline: { label: 'Timeline', icon: 'time-outline', iconActive: 'time' },
+  circle: { label: 'Circle', icon: 'people-outline', iconActive: 'people' },
+  you: { label: 'You', icon: 'person-circle-outline', iconActive: 'person-circle' },
 };
 
-const TAB_LABELS: Record<string, string> = {
-  home: 'Home',
-  timeline: 'Timeline',
-  capture: 'Capture',
-  circle: 'Circle',
-  messages: 'Messages',
-  calendar: 'Calendar',
-  you: 'You',
-};
+// Routes that exist under (tabs) but are reached from elsewhere in the UI
+const HIDDEN_TABS = new Set(['messages', 'calendar']);
 
-export function MomeantsTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
+export function MomeantsTabBar({ state, navigation }: BottomTabBarProps) {
   return (
     <View style={styles.wrapper} pointerEvents="box-none">
       <View style={styles.bar}>
         {state.routes.map((route, index) => {
+          if (HIDDEN_TABS.has(route.name)) return null;
           const isFocused = state.index === index;
           const isCapture = route.name === 'capture';
 
@@ -43,40 +37,47 @@ export function MomeantsTabBar({ state, descriptors, navigation }: BottomTabBarP
 
           if (isCapture) {
             return (
-              <TouchableOpacity
-                key={route.key}
-                onPress={onPress}
-                accessibilityRole="button"
-                accessibilityLabel="Capture a moment"
-                style={styles.captureWrapper}
-              >
-                <LinearGradient
-                  colors={gradients.aura}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                  style={styles.captureButton}
+              <View key={route.key} style={styles.captureWrapper}>
+                <View style={styles.captureGlow} />
+                <TouchableOpacity
+                  onPress={onPress}
+                  accessibilityRole="button"
+                  accessibilityLabel="Capture a moment"
+                  activeOpacity={0.85}
                 >
-                  <Text style={styles.captureIcon}>+</Text>
-                </LinearGradient>
-              </TouchableOpacity>
+                  <LinearGradient
+                    colors={gradients.aura}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={styles.captureButton}
+                  >
+                    <Ionicons name="add" size={30} color={colors.textPrimary} />
+                  </LinearGradient>
+                </TouchableOpacity>
+              </View>
             );
           }
+
+          const tab = TABS[route.name];
+          if (!tab) return null;
 
           return (
             <TouchableOpacity
               key={route.key}
               onPress={onPress}
               accessibilityRole="tab"
-              accessibilityLabel={TAB_LABELS[route.name] ?? route.name}
+              accessibilityLabel={tab.label}
               accessibilityState={{ selected: isFocused }}
               style={styles.tab}
+              activeOpacity={0.7}
             >
-              <Text style={[styles.icon, isFocused && styles.iconFocused]}>
-                {TAB_ICONS[route.name] ?? '·'}
-              </Text>
-              <Text style={[styles.label, isFocused && styles.labelFocused]}>
-                {TAB_LABELS[route.name] ?? route.name}
-              </Text>
+              <Ionicons
+                name={isFocused ? tab.iconActive : tab.icon}
+                size={22}
+                color={isFocused ? colors.auraLavender : colors.textMuted}
+              />
+              <Text style={[styles.label, isFocused && styles.labelFocused]}>{tab.label}</Text>
+              {isFocused && <View style={styles.activeDot} />}
             </TouchableOpacity>
           );
         })}
@@ -88,20 +89,20 @@ export function MomeantsTabBar({ state, descriptors, navigation }: BottomTabBarP
 const styles = StyleSheet.create({
   wrapper: {
     position: 'absolute',
-    bottom: 20,
-    left: 16,
-    right: 16,
+    bottom: 24,
+    left: 18,
+    right: 18,
     alignItems: 'center',
   },
   bar: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(10, 13, 27, 0.82)',
+    backgroundColor: 'rgba(10, 13, 27, 0.92)',
     borderRadius: radii.xxl,
-    height: 78,
-    paddingHorizontal: 8,
+    height: 74,
+    paddingHorizontal: 10,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: 'rgba(255,255,255,0.10)',
     ...shadows.glow,
     width: '100%',
   },
@@ -112,23 +113,25 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     minHeight: 44,
     minWidth: 44,
-  },
-  icon: {
-    fontSize: 20,
-    color: colors.textMuted,
-  },
-  iconFocused: {
-    color: colors.auraPurple,
+    gap: 3,
   },
   label: {
     fontSize: fontSize.micro,
     fontFamily: fontFamily.sans,
     color: colors.textMuted,
-    marginTop: 2,
+    letterSpacing: 0.2,
   },
   labelFocused: {
-    color: colors.auraPurple,
+    color: colors.auraLavender,
     fontFamily: fontFamily.sansMedium,
+  },
+  activeDot: {
+    position: 'absolute',
+    top: 6,
+    width: 3,
+    height: 3,
+    borderRadius: 2,
+    backgroundColor: colors.auraPurple,
   },
   captureWrapper: {
     flex: 1,
@@ -137,20 +140,21 @@ const styles = StyleSheet.create({
     minHeight: 44,
     minWidth: 44,
   },
+  captureGlow: {
+    position: 'absolute',
+    width: 74,
+    height: 74,
+    borderRadius: 37,
+    backgroundColor: 'rgba(181,124,255,0.22)',
+  },
   captureButton: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    width: 58,
+    height: 58,
+    borderRadius: 29,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.4)',
+    borderColor: 'rgba(255,255,255,0.45)',
     ...shadows.captureButton,
-  },
-  captureIcon: {
-    fontSize: 28,
-    color: colors.textPrimary,
-    fontFamily: fontFamily.sans,
-    lineHeight: 32,
   },
 });

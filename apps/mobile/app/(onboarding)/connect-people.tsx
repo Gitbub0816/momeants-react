@@ -1,3 +1,4 @@
+import { Glyph } from '../../src/components/core/Glyph';
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
@@ -12,7 +13,7 @@ export default function ConnectPeopleScreen() {
       <View style={styles.container}>
         <Text style={styles.step}>5 of 6</Text>
         <View style={styles.hero}>
-          <Text style={styles.emoji}>◎</Text>
+          <Glyph value="people-circle-outline" size={40} />
           <Text style={styles.title}>Build your circle</Text>
           <Text style={styles.subtitle}>
             Momeants is better with the people who matter to you.{'\n\n'}

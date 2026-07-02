@@ -1,3 +1,5 @@
+import { Ionicons } from '@expo/vector-icons';
+import { Glyph } from '../core/Glyph';
 import React, { useState } from 'react';
 import {
   View,
@@ -21,7 +23,7 @@ import { useApi } from '../../context/ApiContext';
 const { width: W, height: H } = Dimensions.get('window');
 export const FEED_ITEM_HEIGHT = H;
 
-const REACTIONS = ['❤️', '✨', '🌙', '😌', '🔥'];
+const REACTIONS = ['heart', 'sparkles', 'moon', 'happy-outline', 'flame'];
 // Tab bar: bottom:20 + height:78 = 98px from bottom. Add 16px clearance.
 const TAB_CLEARANCE = 114;
 
@@ -98,7 +100,7 @@ export function MomentFeedItem({ moment, isActive, resurfaceLabel, engagementPro
           style={styles.toolbarBtn}
           accessibilityLabel="React"
         >
-          <Text style={styles.toolbarEmoji}>{myReaction?.emoji ?? '❤️'}</Text>
+          <Glyph value={myReaction?.emoji ?? 'heart-outline'} size={20} color={myReaction ? colors.love : colors.textSecondary} />
           <Text style={[styles.toolbarCount, myReaction && { color: colors.auraPurple }]}>
             {totalReactions > 0 ? totalReactions : ''}
           </Text>
@@ -106,7 +108,7 @@ export function MomentFeedItem({ moment, isActive, resurfaceLabel, engagementPro
 
         {/* Comment */}
         <TouchableOpacity onPress={openComments} style={styles.toolbarBtn} accessibilityLabel="Comments">
-          <Text style={styles.toolbarEmoji}>💬</Text>
+          <Ionicons name="chatbubble-outline" size={19} color={colors.textSecondary} />
           <Text style={styles.toolbarCount}>
             {moment.comments.length > 0 ? moment.comments.length : ''}
           </Text>
@@ -118,7 +120,7 @@ export function MomentFeedItem({ moment, isActive, resurfaceLabel, engagementPro
           style={styles.toolbarBtn}
           accessibilityLabel="Spark"
         >
-          <Text style={styles.toolbarEmoji}>⚡</Text>
+          <Ionicons name="flash-outline" size={19} color={colors.textSecondary} />
         </TouchableOpacity>
 
         {/* Share */}
@@ -141,7 +143,7 @@ export function MomentFeedItem({ moment, isActive, resurfaceLabel, engagementPro
               style={styles.reactionPickerBtn}
               accessibilityLabel={`React with ${emoji}`}
             >
-              <Text style={styles.reactionPickerEmoji}>{emoji}</Text>
+              <Glyph value={emoji} size={22} color={colors.textPrimary} />
             </TouchableOpacity>
           ))}
         </View>
@@ -182,7 +184,7 @@ export function MomentFeedItem({ moment, isActive, resurfaceLabel, engagementPro
 
         {/* Location */}
         {moment.location && (
-          <Text style={styles.location}>📍 {moment.location.label}</Text>
+          <Text style={styles.location}><Ionicons name="location-outline" size={12} color={colors.textMuted} /> {moment.location.label}</Text>
         )}
       </View>
     </View>

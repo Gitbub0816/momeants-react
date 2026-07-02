@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import * as Sentry from '../src/utils/crashReporter';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
@@ -34,18 +34,30 @@ function RootNavigator() {
   const segments = useSegments();
   const router = useRouter();
 
+  const lastRedirect = useRef<string | null>(null);
+
   useEffect(() => {
     if (isLoading) return;
     const inAuth = segments[0] === '(auth)';
     const inOnboarding = segments[0] === '(onboarding)';
+    const atRootIndex = !segments[0] || (segments[0] as string) === 'index';
 
-    if (!userId && !inAuth) {
-      router.replace('/(auth)/welcome');
-    } else if (userId && !isOnboarded && !inOnboarding) {
-      router.replace('/(onboarding)/your-name');
+    // index.tsx handles the initial route; this guard only covers auth-state
+    // changes mid-session (e.g. sign out). Guarded against redirect loops:
+    // never re-issue the same redirect for the same auth state.
+    let target: string | null = null;
+    if (!userId && !inAuth && !atRootIndex) {
+      target = '/(auth)/welcome';
     } else if (userId && isOnboarded && (inAuth || inOnboarding)) {
-      router.replace('/(tabs)/home');
+      target = '/(tabs)/home';
     }
+
+    const key = `${userId ?? 'anon'}:${target}`;
+    if (target && lastRedirect.current !== key) {
+      lastRedirect.current = key;
+      router.replace(target as any);
+    }
+    if (!target) lastRedirect.current = null;
   }, [userId, isOnboarded, isLoading, segments]);
 
   return (

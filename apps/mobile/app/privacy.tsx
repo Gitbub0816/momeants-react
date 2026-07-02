@@ -1,3 +1,4 @@
+import { Glyph } from '../src/components/core/Glyph';
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -27,13 +28,13 @@ const VISIBILITY_OPTIONS: { value: Visibility; label: string; description: strin
     value: 'clique',
     label: 'Specific clique',
     description: 'Only visible to members of a chosen clique',
-    icon: '🫂',
+    icon: 'people-outline',
   },
   {
     value: 'private',
     label: 'Just me',
     description: 'Only you can see this moment',
-    icon: '🔒',
+    icon: 'lock-closed-outline',
   },
 ];
 
@@ -120,7 +121,7 @@ export default function PrivacyScreen() {
                 accessibilityRole="radio"
                 accessibilityState={{ checked: defaultVisibility === opt.value }}
               >
-                <Text style={styles.optionIcon}>{opt.icon}</Text>
+                <Glyph value={opt.icon} size={18} color={colors.textSecondary} />
                 <View style={styles.optionText}>
                   <Text style={styles.optionLabel}>{opt.label}</Text>
                   <Text style={styles.optionDesc}>{opt.description}</Text>
@@ -198,7 +199,7 @@ export default function PrivacyScreen() {
                 accessibilityRole="button"
                 accessibilityLabel={item.label}
               >
-                <Text style={[styles.optionIcon, item.danger && { color: colors.danger }]}>{item.icon}</Text>
+                <Glyph value={item.icon} size={18} color={item.danger ? colors.danger : colors.textSecondary} />
                 <Text style={[styles.optionLabel, item.danger && { color: colors.danger }]}>{item.label}</Text>
                 <Text style={styles.chevron}>›</Text>
               </TouchableOpacity>

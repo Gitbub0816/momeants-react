@@ -181,7 +181,7 @@ export default function CircleScreen() {
 
         {members.length === 0 ? (
           <EmptyState
-            icon="🫂"
+            icon="people-outline"
             title="Your circle is empty"
             body="Find people you know and add them to your circle."
             actionLabel="Find people"

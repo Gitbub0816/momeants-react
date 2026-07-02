@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useState } from 'react';
 import {
   View,
@@ -138,7 +139,7 @@ export default function CliqueDetailScreen() {
                   accessibilityRole="button"
                   accessibilityLabel="Capture a moment for this clique"
                 >
-                  <Text style={styles.actionIcon}>📸</Text>
+                  <Ionicons name="camera-outline" size={22} color={colors.auraLavender} />
                   <Text style={styles.actionLabel}>Add Moment</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
@@ -151,7 +152,7 @@ export default function CliqueDetailScreen() {
                   accessibilityRole="button"
                   accessibilityLabel="Message this clique"
                 >
-                  <Text style={styles.actionIcon}>💬</Text>
+                  <Ionicons name="chatbubble-ellipses-outline" size={22} color={colors.auraLavender} />
                   <Text style={styles.actionLabel}>Message</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
@@ -162,7 +163,7 @@ export default function CliqueDetailScreen() {
                   accessibilityRole="button"
                   accessibilityLabel="Start a Spark"
                 >
-                  <Text style={styles.actionIcon}>⚡</Text>
+                  <Ionicons name="flash-outline" size={22} color={colors.auraLavender} />
                   <Text style={styles.actionLabel}>Start Spark</Text>
                 </TouchableOpacity>
               </View>

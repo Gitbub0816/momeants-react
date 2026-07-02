@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -253,7 +254,7 @@ export default function CaptureScreen() {
                 accessibilityLabel="Take photo"
               >
                 <LinearGradient colors={gradients.aura} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.photoOptionGradient}>
-                  <Text style={styles.photoOptionIcon}>📷</Text>
+                  <Ionicons name="camera-outline" size={30} color={colors.auraLavender} />
                 </LinearGradient>
                 <Text style={styles.photoOptionLabel}>Take Photo</Text>
               </TouchableOpacity>
@@ -265,7 +266,7 @@ export default function CaptureScreen() {
                 accessibilityLabel="Choose from library"
               >
                 <View style={styles.photoOptionGlass}>
-                  <Text style={styles.photoOptionIcon}>🖼</Text>
+                  <Ionicons name="images-outline" size={30} color={colors.auraLavender} />
                 </View>
                 <Text style={styles.photoOptionLabel}>Choose from Library</Text>
               </TouchableOpacity>
@@ -281,7 +282,7 @@ export default function CaptureScreen() {
     return (
       <LinearGradient colors={gradients.background} style={styles.fill}>
         <View style={styles.savingCenter}>
-          <Text style={styles.savingIcon}>✦</Text>
+          <Ionicons name="sparkles" size={34} color={colors.auraPurple} />
           <Text style={styles.savingText}>Saving your moment…</Text>
         </View>
       </LinearGradient>
@@ -414,7 +415,7 @@ export default function CaptureScreen() {
 
               {location && (
                 <View style={styles.locationBadge}>
-                  <Text style={styles.locationBadgeText}>📍 {location.label}</Text>
+                  <Text style={styles.locationBadgeText}><Ionicons name="location-outline" size={13} color={colors.auraLavender} /> {location.label}</Text>
                   <TouchableOpacity onPress={() => { setLocation(null); setManualLocation(''); }} accessibilityLabel="Clear location">
                     <Text style={styles.locationBadgeClear}>✕</Text>
                   </TouchableOpacity>

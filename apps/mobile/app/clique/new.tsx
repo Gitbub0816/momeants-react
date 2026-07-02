@@ -1,3 +1,4 @@
+import { Glyph } from '../../src/components/core/Glyph';
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -18,13 +19,13 @@ import { useApi } from '../../src/context/ApiContext';
 import { colors, fontFamily, fontSize, spacing, radii } from '@momeants/design';
 import type { CircleMember } from '@momeants/types';
 
-const EMOJI_OPTIONS = ['🌟', '🎉', '❤️', '🏕️', '🎵', '✈️', '🍕', '🌙'];
+const EMOJI_OPTIONS = ['star', 'gift', 'heart', 'bonfire', 'musical-notes', 'airplane', 'pizza', 'moon'];
 
 export default function NewCliqueScreen() {
   const router = useRouter();
   const api = useApi();
   const [name, setName] = useState('');
-  const [selectedEmoji, setSelectedEmoji] = useState('🌟');
+  const [selectedEmoji, setSelectedEmoji] = useState('star');
   const [selectedMemberIds, setSelectedMemberIds] = useState<Set<string>>(new Set());
   const [creating, setCreating] = useState(false);
   const [circleMembers, setCircleMembers] = useState<CircleMember[]>([]);
@@ -107,7 +108,7 @@ export default function NewCliqueScreen() {
                   accessibilityLabel={`Select emoji ${emoji}`}
                   accessibilityState={{ selected: selectedEmoji === emoji }}
                 >
-                  <Text style={styles.emojiText}>{emoji}</Text>
+                  <Glyph value={emoji} size={22} />
                 </TouchableOpacity>
               ))}
             </View>
@@ -155,7 +156,7 @@ export default function NewCliqueScreen() {
             accessibilityLabel="Create clique"
           >
             <Text style={styles.createBtnText}>
-              {creating ? 'Creating…' : `Create ${selectedEmoji} ${name.trim() || 'Clique'}`}
+              {creating ? 'Creating…' : `Create ${name.trim() || 'Clique'}`}
             </Text>
           </TouchableOpacity>
         </View>

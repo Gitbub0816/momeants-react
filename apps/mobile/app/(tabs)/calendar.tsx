@@ -1,3 +1,4 @@
+import { Glyph } from '../../src/components/core/Glyph';
 import React, { useEffect, useState, useMemo } from 'react';
 import {
   View,
@@ -52,7 +53,7 @@ function EventCard({ event }: { event: CalendarEvent }) {
       accessibilityLabel={event.title}
     >
       <View style={styles.eventLeft}>
-        <Text style={styles.eventEmoji}>{event.emoji ?? '📅'}</Text>
+        <Glyph value={event.emoji ?? 'calendar-outline'} size={20} />
         <View style={{ flex: 1 }}>
           <Text style={styles.eventTitle}>{event.title}</Text>
           {event.description ? <Text style={styles.eventSub}>{event.description}</Text> : null}

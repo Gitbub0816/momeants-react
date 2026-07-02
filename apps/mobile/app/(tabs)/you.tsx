@@ -1,3 +1,4 @@
+import { Glyph } from '../../src/components/core/Glyph';
 import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
@@ -69,13 +70,13 @@ export default function YouScreen() {
           <Text style={styles.sectionTitle}>Settings</Text>
           <GlassCard style={styles.settingsCard}>
             {[
-              { label: 'Edit profile', icon: '○', route: '/edit-profile' },
-              { label: 'Privacy & visibility', icon: '🔒', route: '/privacy' },
-              { label: 'Resurfacing controls', icon: '✦', route: '/resurfacing-controls' },
-              { label: 'Spark settings', icon: '⚡', route: '/spark-settings' },
-              { label: 'Browse sparks', icon: '⚡', route: '/sparks' },
-              { label: 'Notifications', icon: '◎', route: '/notifications' },
-              { label: 'Delete account', icon: '⚠', route: '/delete-account' },
+              { label: 'Edit profile', icon: 'person-outline', route: '/edit-profile' },
+              { label: 'Privacy & visibility', icon: 'lock-closed-outline', route: '/privacy' },
+              { label: 'Resurfacing controls', icon: 'sparkles-outline', route: '/resurfacing-controls' },
+              { label: 'Spark settings', icon: 'flash-outline', route: '/spark-settings' },
+              { label: 'Browse sparks', icon: 'flame-outline', route: '/sparks' },
+              { label: 'Notifications', icon: 'notifications-outline', route: '/notifications' },
+              { label: 'Delete account', icon: 'trash-outline', route: '/delete-account' },
             ].map((item, i) => (
               <TouchableOpacity
                 key={item.label}
@@ -84,7 +85,7 @@ export default function YouScreen() {
                 accessibilityRole="button"
                 accessibilityLabel={item.label}
               >
-                <Text style={styles.settingsIcon}>{item.icon}</Text>
+                <Glyph value={item.icon} size={18} color={colors.textSecondary} />
                 <Text style={styles.settingsLabel}>{item.label}</Text>
                 <Text style={styles.settingsChevron}>›</Text>
               </TouchableOpacity>

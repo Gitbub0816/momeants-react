@@ -1,3 +1,4 @@
+import { Glyph } from '../src/components/core/Glyph';
 import React, { useEffect, useState } from 'react';
 import {
   View,
@@ -20,17 +21,17 @@ import { fontSize, fontFamily } from '@momeants/design';
 import { GlassCard } from '../src/components/core/GlassCard';
 
 const ALL_CATEGORIES: { key: SparkCategory; label: string; icon: string }[] = [
-  { key: 'conversation', label: 'Conversations', icon: '💬' },
-  { key: 'memory', label: 'Memories', icon: '✨' },
+  { key: 'conversation', label: 'Conversations', icon: 'chatbubble-ellipses-outline' },
+  { key: 'memory', label: 'Memories', icon: 'sparkles-outline' },
   { key: 'relationship', label: 'Relationships', icon: '🤝' },
   { key: 'family', label: 'Family', icon: '👨‍👩‍👧' },
   { key: 'couple', label: 'Couples', icon: '💑' },
-  { key: 'friendship', label: 'Friendships', icon: '🫂' },
-  { key: 'photo', label: 'Photo Challenges', icon: '📸' },
+  { key: 'friendship', label: 'Friendships', icon: 'people-outline' },
+  { key: 'photo', label: 'Photo Challenges', icon: 'camera-outline' },
   { key: 'creative', label: 'Creative', icon: '🎨' },
   { key: 'discovery', label: 'Discovery', icon: '🔍' },
   { key: 'seasonal', label: 'Seasonal', icon: '🌿' },
-  { key: 'holiday', label: 'Holidays', icon: '🎉' },
+  { key: 'holiday', label: 'Holidays', icon: 'gift-outline' },
   { key: 'storytelling', label: 'Storytelling', icon: '📖' },
   { key: 'clique', label: 'Group Fun', icon: '🙌' },
 ];
@@ -203,7 +204,7 @@ export default function SparkSettingsScreen() {
                           accessibilityRole="button"
                           accessibilityLabel={`${active ? 'Disable' : 'Enable'} ${label}`}
                         >
-                          <Text style={styles.catIcon}>{icon}</Text>
+                          <Glyph value={icon} size={18} />
                           <View style={styles.rowText}>
                             <Text style={[styles.rowTitle, !active && styles.rowTitleMuted]}>
                               {label}

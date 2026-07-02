@@ -1,3 +1,5 @@
+import { Ionicons } from '@expo/vector-icons';
+import { Glyph } from '../../src/components/core/Glyph';
 import React, { useRef, useCallback, useState } from 'react';
 import {
   View,
@@ -41,7 +43,7 @@ function ImportantDaySlide({ item }: { item: RankedFeedItem }) {
         style={StyleSheet.absoluteFill}
       />
       <View style={[styles.importantDayCard, { borderColor: accent + '50' }]}>
-        <Text style={styles.importantDayEmoji}>{event?.emoji ?? '📅'}</Text>
+        <Glyph value={event?.emoji ?? 'calendar-outline'} size={20} />
         <View style={{ flex: 1 }}>
           <Text style={[styles.importantDayTitle, { color: accent }]}>{item.headline}</Text>
           {item.subtext ? (
@@ -65,7 +67,7 @@ function EngagementPromptSlide({ item }: { item: RankedFeedItem }) {
         style={StyleSheet.absoluteFill}
       />
       <View style={[styles.importantDayCard, { borderColor: accent + '40' }]}>
-        <Text style={styles.importantDayEmoji}>💬</Text>
+        <Ionicons name="chatbubble-ellipses-outline" size={20} color={colors.auraLavender} />
         <View style={{ flex: 1 }}>
           <Text style={[styles.importantDayTitle, { color: accent }]}>{item.headline ?? 'Someone you care about'}</Text>
           {item.subtext ? (
@@ -322,7 +324,7 @@ export default function HomeScreen() {
           <Text style={styles.wordmark}>momeants</Text>
         </View>
         <EmptyState
-          icon="📷"
+          icon="camera-outline"
           title="No moments yet"
           body="Capture your first moment — a photo, a feeling, a place."
           actionLabel="Capture a moment"

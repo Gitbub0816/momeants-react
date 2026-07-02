@@ -1,3 +1,4 @@
+import { Glyph } from '../core/Glyph';
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import * as Haptics from 'expo-haptics';
@@ -5,7 +6,7 @@ import type { MomentVisibility } from '@momeants/types';
 import { colors, radii, fontFamily, fontSize, spacing } from '@momeants/design';
 
 const OPTIONS: { value: MomentVisibility; label: string; description: string; icon: string }[] = [
-  { value: 'private', label: 'Only Me', description: 'Your memory, kept close.', icon: '🔒' },
+  { value: 'private', label: 'Only Me', description: 'Your memory, kept close.', icon: 'lock-closed-outline' },
   { value: 'close_circle', label: 'Close Circle', description: 'People who matter most.', icon: '◎' },
   { value: 'selected_people', label: 'Selected People', description: 'Choose who sees this.', icon: '○' },
 ];
@@ -34,7 +35,7 @@ export function MomentPrivacyPicker({ value, onChange }: Props) {
               accessibilityState={{ selected: isSelected }}
               style={[styles.option, isSelected && styles.optionSelected]}
             >
-              <Text style={styles.icon}>{opt.icon}</Text>
+              <Glyph value={opt.icon} size={20} />
               <View style={styles.optionText}>
                 <Text style={[styles.optionLabel, isSelected && styles.optionLabelSelected]}>
                   {opt.label}

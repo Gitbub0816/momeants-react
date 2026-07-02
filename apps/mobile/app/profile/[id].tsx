@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useState } from 'react';
 import {
   View,
@@ -131,7 +132,7 @@ export default function OtherProfileScreen() {
           <View style={styles.momentGrid}>
             {[0, 1, 2, 3].map((i) => (
               <View key={i} style={styles.momentPlaceholder}>
-                <Text style={styles.momentLock}>🔒</Text>
+                <Ionicons name="lock-closed" size={16} color={colors.textSecondary} />
               </View>
             ))}
           </View>

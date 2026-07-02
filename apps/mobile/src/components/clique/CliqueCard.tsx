@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Image } from 'expo-image';
@@ -44,7 +45,7 @@ export function CliqueCard({ clique }: CliqueCardProps) {
           </View>
           {clique.activeSparks ? (
             <View style={styles.sparkBadge}>
-              <Text style={styles.sparkBadgeText}>⚡ {clique.activeSparks}</Text>
+              <Text style={styles.sparkBadgeText}><Ionicons name="flash" size={11} color={colors.candleGold} /> {clique.activeSparks}</Text>
             </View>
           ) : null}
         </View>

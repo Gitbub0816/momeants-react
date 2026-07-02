@@ -59,7 +59,7 @@ export default function TimelineScreen() {
           <Text style={styles.year}>{selectedYear}</Text>
         </View>
         <EmptyState
-          icon="📅"
+          icon="calendar-outline"
           title="No memories yet"
           body="Your moments will appear here, grouped by day."
         />

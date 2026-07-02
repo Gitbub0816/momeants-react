@@ -1,3 +1,5 @@
+import { Ionicons } from '@expo/vector-icons';
+import { Glyph } from '../../src/components/core/Glyph';
 import React, { useEffect, useState, useCallback } from 'react';
 import {
   View,
@@ -20,18 +22,18 @@ import { fontSize, fontFamily } from '@momeants/design';
 import { GlassCard } from '../../src/components/core/GlassCard';
 
 const CATEGORY_ICON: Record<string, string> = {
-  conversation: '💬',
-  memory: '✨',
+  conversation: 'chatbubble-ellipses-outline',
+  memory: 'sparkles-outline',
   relationship: '🤝',
-  holiday: '🎉',
-  anniversary: '🎂',
+  holiday: 'gift-outline',
+  anniversary: 'heart-circle-outline',
   seasonal: '🌿',
-  location: '📍',
+  location: 'location-outline',
   family: '👨‍👩‍👧',
-  friendship: '🫂',
+  friendship: 'people-outline',
   couple: '💑',
   clique: '🙌',
-  photo: '📸',
+  photo: 'camera-outline',
   storytelling: '📖',
   creative: '🎨',
   discovery: '🔍',
@@ -80,7 +82,7 @@ export default function SparkDetailScreen() {
     try {
       await api.completeSpark(delivery.id);
       Alert.alert(
-        'Spark Complete! ✨',
+        'Spark Complete',
         'Want to capture this moment?',
         [
           { text: 'Capture Moment', onPress: () => router.replace('/capture') },
@@ -114,7 +116,7 @@ export default function SparkDetailScreen() {
   }
 
   const { spark } = delivery;
-  const icon = CATEGORY_ICON[spark.category] ?? '✨';
+  const icon = CATEGORY_ICON[spark.category] ?? 'sparkles-outline';
   const prompts = spark.prompts ?? [];
   const hasPrompts = prompts.length > 0;
   const isLastPrompt = currentPromptIndex >= prompts.length - 1;
@@ -133,7 +135,7 @@ export default function SparkDetailScreen() {
         <SafeAreaView style={styles.safe} edges={['bottom']}>
           <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
             <View style={styles.headerBlock}>
-              <Text style={styles.iconLarge}>{icon}</Text>
+              <Glyph value={icon} size={34} />
               <Text style={styles.category}>{spark.category.toUpperCase()}</Text>
               <Text style={styles.title}>{spark.title}</Text>
               <Text style={styles.description}>{spark.description}</Text>
@@ -148,7 +150,7 @@ export default function SparkDetailScreen() {
               </View>
               {spark.requiresPhoto && (
                 <View style={styles.chip}>
-                  <Text style={styles.chipText}>📸 Photo</Text>
+                  <Text style={styles.chipText}><Ionicons name="camera-outline" size={12} color={colors.auraLavender} /> Photo</Text>
                 </View>
               )}
             </View>

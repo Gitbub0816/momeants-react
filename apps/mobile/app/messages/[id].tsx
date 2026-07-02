@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
@@ -36,7 +37,7 @@ function Bubble({ msg }: { msg: Message }) {
     return (
       <View style={[styles.bubbleWrap, { justifyContent: isMe ? 'flex-end' : 'flex-start' }]}>
         <View style={[styles.momentCard, isMe && styles.momentCardMe]}>
-          <Text style={styles.momentCardIcon}>📸</Text>
+          <Ionicons name="image-outline" size={20} color={colors.auraLavender} />
           <Text style={styles.momentCardText}>{msg.text ?? 'Shared a memory'}</Text>
         </View>
       </View>
@@ -50,7 +51,7 @@ function Bubble({ msg }: { msg: Message }) {
           colors={['rgba(181,124,255,0.25)', 'rgba(120,167,255,0.15)']}
           style={styles.sparkCard}
         >
-          <Text style={styles.sparkIcon}>⚡</Text>
+          <Ionicons name="flash" size={16} color={colors.candleGold} />
           <Text style={styles.sparkText}>{msg.text}</Text>
         </LinearGradient>
       </View>
