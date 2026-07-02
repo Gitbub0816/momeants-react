@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
+import { useRouter } from 'expo-router';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -19,6 +20,7 @@ const TABS: Record<string, { label: string; icon: IconName; iconActive: IconName
 const HIDDEN_TABS = new Set(['messages', 'calendar']);
 
 export function MomeantsTabBar({ state, navigation }: BottomTabBarProps) {
+  const router = useRouter();
   return (
     <View style={styles.wrapper} pointerEvents="box-none">
       <View style={styles.bar}>
@@ -36,11 +38,17 @@ export function MomeantsTabBar({ state, navigation }: BottomTabBarProps) {
           }
 
           if (isCapture) {
+            // Push the full-screen capture modal directly — never navigate to
+            // the capture tab route (a redirect there causes an infinite loop).
+            const openCapture = () => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+              router.push('/capture');
+            };
             return (
               <View key={route.key} style={styles.captureWrapper}>
                 <View style={styles.captureGlow} />
                 <TouchableOpacity
-                  onPress={onPress}
+                  onPress={openCapture}
                   accessibilityRole="button"
                   accessibilityLabel="Capture a moment"
                   activeOpacity={0.85}

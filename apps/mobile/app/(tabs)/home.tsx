@@ -320,8 +320,21 @@ export default function HomeScreen() {
     return (
       <View style={styles.fill}>
         <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
+        <LinearGradient
+          colors={['#151B31', '#090C18', '#050711']}
+          start={{ x: 0.1, y: 0 }}
+          end={{ x: 0.9, y: 1 }}
+          style={StyleSheet.absoluteFill}
+        />
+        <View style={styles.emptyGlowPurple} />
+        <View style={styles.emptyGlowBlue} />
         <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
-          <Text style={styles.wordmark}>momeants</Text>
+          <View>
+            <Text style={styles.wordmark}>
+              momeants <Ionicons name="sparkles" size={14} color={colors.auraLavender} />
+            </Text>
+            <Text style={styles.tagline}>Capture life. Relive feelings.</Text>
+          </View>
         </View>
         <EmptyState
           icon="camera-outline"
@@ -346,7 +359,7 @@ export default function HomeScreen() {
           style={styles.notifBtn}
           accessibilityLabel="Notifications"
         >
-          <Text style={styles.notifIcon}>◎</Text>
+          <Ionicons name="notifications-outline" size={22} color={colors.textPrimary} />
         </TouchableOpacity>
       </View>
 
@@ -403,6 +416,31 @@ const styles = StyleSheet.create({
     textShadowRadius: 6,
   },
   notifBtn: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
+  tagline: {
+    color: colors.textMuted,
+    fontFamily: fontFamily.sans,
+    fontSize: fontSize.micro,
+    letterSpacing: 0.4,
+    marginTop: 2,
+  },
+  emptyGlowPurple: {
+    position: 'absolute',
+    top: -70,
+    right: -70,
+    width: 240,
+    height: 240,
+    borderRadius: 120,
+    backgroundColor: 'rgba(181, 124, 255, 0.16)',
+  },
+  emptyGlowBlue: {
+    position: 'absolute',
+    bottom: 140,
+    left: -110,
+    width: 280,
+    height: 280,
+    borderRadius: 140,
+    backgroundColor: 'rgba(120, 167, 255, 0.10)',
+  },
   notifIcon: {
     color: colors.textPrimary,
     fontSize: 22,
