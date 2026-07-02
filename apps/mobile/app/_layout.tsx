@@ -2,7 +2,6 @@ import { useEffect } from 'react';
 import * as Sentry from '../src/utils/crashReporter';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import * as SplashScreen from 'expo-splash-screen';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import {
   useFonts,
@@ -21,8 +20,6 @@ import { useOfflineQueue } from '../src/hooks/useOfflineQueue';
 import { ErrorBoundary } from '../src/components/core/ErrorBoundary';
 import { OfflineBanner } from '../src/components/core/OfflineBanner';
 import { colors } from '@momeants/design';
-
-SplashScreen.preventAutoHideAsync().catch(() => {});
 
 Sentry.init({
   dsn: process.env.EXPO_PUBLIC_SENTRY_DSN ?? '',
@@ -78,7 +75,9 @@ function RootNavigator() {
 }
 
 export default function RootLayout() {
-  const [fontsLoaded, fontError] = useFonts({
+  // Fonts load in the background; the app renders immediately with system
+  // fonts and swaps in the brand faces when ready. Startup never blocks.
+  useFonts({
     Inter_400Regular,
     Inter_500Medium,
     Inter_600SemiBold,
@@ -86,20 +85,6 @@ export default function RootLayout() {
     PlayfairDisplay_400Regular,
     PlayfairDisplay_700Bold,
   });
-
-  useEffect(() => {
-    if (fontsLoaded || fontError) {
-      SplashScreen.hideAsync().catch(() => {});
-    }
-  }, [fontsLoaded, fontError]);
-
-  // Safety net: never leave the user stranded on the splash screen
-  useEffect(() => {
-    const t = setTimeout(() => SplashScreen.hideAsync().catch(() => {}), 4000);
-    return () => clearTimeout(t);
-  }, []);
-
-  if (!fontsLoaded && !fontError) return null;
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
