@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Glyph } from '../core/Glyph';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -11,6 +11,14 @@ import {
 } from 'react-native';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  withDelay,
+  withSpring,
+  Easing,
+} from 'react-native-reanimated';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import type { Moment } from '@momeants/types';
@@ -40,6 +48,30 @@ export function MomentFeedItem({ moment, isActive, resurfaceLabel, engagementPro
   const [reactions, setReactions] = useState(moment.reactions);
   const [showReactionPicker, setShowReactionPicker] = useState(false);
 
+  // Ken Burns: the active photo drifts imperceptibly larger over ~9s.
+  // Metadata rises in softly as the card takes the stage.
+  const kenBurns = useSharedValue(1);
+  const metaIn = useSharedValue(0);
+
+  useEffect(() => {
+    if (isActive) {
+      kenBurns.value = 1;
+      kenBurns.value = withTiming(1.07, { duration: 9000, easing: Easing.out(Easing.quad) });
+      metaIn.value = 0;
+      metaIn.value = withDelay(120, withSpring(1, { damping: 18, stiffness: 120 }));
+    } else {
+      metaIn.value = 0;
+    }
+  }, [isActive]);
+
+  const photoStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: kenBurns.value }],
+  }));
+  const metaStyle = useAnimatedStyle(() => ({
+    opacity: metaIn.value,
+    transform: [{ translateY: 26 * (1 - metaIn.value) }],
+  }));
+
   const date = new Date(moment.createdAt)
     .toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
     .toUpperCase();
@@ -67,13 +99,15 @@ export function MomentFeedItem({ moment, isActive, resurfaceLabel, engagementPro
 
   return (
     <View style={styles.container}>
-      {/* Full-bleed photo */}
-      <Image
-        source={{ uri: moment.imageUri }}
-        style={StyleSheet.absoluteFill}
-        contentFit="cover"
-        transition={isActive ? 200 : 0}
-      />
+      {/* Full-bleed photo with slow Ken Burns drift */}
+      <Animated.View style={[StyleSheet.absoluteFill, photoStyle]}>
+        <Image
+          source={{ uri: moment.imageUri }}
+          style={StyleSheet.absoluteFill}
+          contentFit="cover"
+          transition={isActive ? 350 : 0}
+        />
+      </Animated.View>
 
       {/* Gradient: subtle top vignette + strong bottom */}
       <LinearGradient
@@ -150,7 +184,7 @@ export function MomentFeedItem({ moment, isActive, resurfaceLabel, engagementPro
       )}
 
       {/* Bottom-left metadata */}
-      <View style={[styles.bottomMeta, { bottom: TAB_CLEARANCE }]}>
+      <Animated.View style={[styles.bottomMeta, { bottom: TAB_CLEARANCE }, metaStyle]}>
         {/* Tagged people */}
         {moment.people.length > 0 && (
           <View style={styles.peopleRow}>
@@ -186,7 +220,7 @@ export function MomentFeedItem({ moment, isActive, resurfaceLabel, engagementPro
         {moment.location && (
           <Text style={styles.location}><Ionicons name="location-outline" size={12} color={colors.textMuted} /> {moment.location.label}</Text>
         )}
-      </View>
+      </Animated.View>
     </View>
   );
 }

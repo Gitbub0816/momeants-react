@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import Animated, { FadeInDown, FadeIn } from 'react-native-reanimated';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ScreenShell, MomeantsButton, GradientText } from '../../src/components/core';
@@ -11,7 +12,7 @@ export default function WelcomeScreen() {
   return (
     <ScreenShell>
       <View style={styles.container}>
-        <View style={styles.hero}>
+        <Animated.View entering={FadeInDown.duration(700).delay(80).springify().damping(16)} style={styles.hero}>
           <View style={styles.logoMark}>
             <LinearGradient colors={gradients.aura} style={styles.logoGradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
               <Text style={styles.logoIcon}>✦</Text>
@@ -19,15 +20,15 @@ export default function WelcomeScreen() {
           </View>
           <GradientText style={styles.wordmark}>momeants</GradientText>
           <Text style={styles.tagline}>Capture life. Relive feelings.</Text>
-        </View>
+        </Animated.View>
 
-        <View style={styles.description}>
+        <Animated.View entering={FadeIn.duration(900).delay(420)} style={styles.description}>
           <Text style={styles.descText}>
             A quiet, beautiful place for{'\n'}your most meaningful memories.
           </Text>
-        </View>
+        </Animated.View>
 
-        <View style={styles.actions}>
+        <Animated.View entering={FadeInDown.duration(700).delay(600).springify().damping(16)} style={styles.actions}>
           <MomeantsButton
             label="Create an account"
             onPress={() => router.push('/(auth)/create-account')}
@@ -37,11 +38,11 @@ export default function WelcomeScreen() {
             onPress={() => router.push('/(auth)/sign-in')}
             variant="glass"
           />
-        </View>
+        </Animated.View>
 
-        <Text style={styles.privacy}>
+        <Animated.Text entering={FadeIn.duration(900).delay(900)} style={styles.privacy}>
           Private by default. No public feed. No follower counts.
-        </Text>
+        </Animated.Text>
       </View>
     </ScreenShell>
   );

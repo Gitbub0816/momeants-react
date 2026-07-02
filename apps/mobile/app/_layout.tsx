@@ -61,7 +61,7 @@ function RootNavigator() {
   }, [userId, isOnboarded, isLoading, segments]);
 
   return (
-    <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.ink900 } }}>
+    <Stack screenOptions={{ headerShown: false, animation: 'fade', animationDuration: 260, contentStyle: { backgroundColor: colors.ink900 } }}>
       <Stack.Screen name="index" />
       <Stack.Screen name="(auth)" />
       <Stack.Screen name="(onboarding)" />

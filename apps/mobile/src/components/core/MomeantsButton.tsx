@@ -1,12 +1,12 @@
 import React from 'react';
 import {
-  TouchableOpacity,
   Text,
   StyleSheet,
   ViewStyle,
   TextStyle,
   ActivityIndicator,
 } from 'react-native';
+import { SpringPressable } from './SpringPressable';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
 import { colors, gradients, radii, fontFamily, fontSize } from '@momeants/design';
@@ -41,7 +41,9 @@ export function MomeantsButton({
 
   if (variant === 'primary') {
     return (
-      <TouchableOpacity
+      <SpringPressable
+        pressScale={0.955}
+        haptic={false}
         onPress={handlePress}
         disabled={isDisabled}
         accessibilityRole="button"
@@ -60,7 +62,7 @@ export function MomeantsButton({
             <Text style={[styles.textPrimary, textStyle]}>{label}</Text>
           )}
         </LinearGradient>
-      </TouchableOpacity>
+      </SpringPressable>
     );
   }
 
@@ -68,7 +70,9 @@ export function MomeantsButton({
   const variantText = variant === 'danger' ? styles.textDanger : styles.textSecondary;
 
   return (
-    <TouchableOpacity
+    <SpringPressable
+      pressScale={0.955}
+      haptic={false}
       onPress={handlePress}
       disabled={isDisabled}
       accessibilityRole="button"
@@ -80,7 +84,7 @@ export function MomeantsButton({
       ) : (
         <Text style={[variantText, textStyle]}>{label}</Text>
       )}
-    </TouchableOpacity>
+    </SpringPressable>
   );
 }
 

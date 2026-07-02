@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import { colors } from '@momeants/design';
 import { spacing } from '@momeants/design';
 import { fontSize, fontFamily } from '@momeants/design';
@@ -17,9 +18,9 @@ interface EmptyStateProps {
 export function EmptyState({ icon = 'sparkles-outline', title, body, actionLabel, onAction }: EmptyStateProps) {
   return (
     <View style={styles.container}>
-      <View style={styles.iconHalo}>
+      <Animated.View entering={FadeInDown.duration(600).springify().damping(16)} style={styles.iconHalo}>
         <Ionicons name={icon} size={30} color={colors.auraLavender} />
-      </View>
+      </Animated.View>
       <Text style={styles.title}>{title}</Text>
       {body ? <Text style={styles.body}>{body}</Text> : null}
       {actionLabel && onAction ? (

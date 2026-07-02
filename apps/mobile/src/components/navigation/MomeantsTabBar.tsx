@@ -1,11 +1,22 @@
-import React from 'react';
-import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
+import React, { useEffect } from 'react';
+import { View, Text, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+  withRepeat,
+  withTiming,
+  withSequence,
+  Easing,
+  FadeIn,
+} from 'react-native-reanimated';
 import { colors, radii, shadows, fontFamily, fontSize, gradients } from '@momeants/design';
+import { SpringPressable } from '../core/SpringPressable';
 
 type IconName = keyof typeof Ionicons.glyphMap;
 
@@ -19,6 +30,93 @@ const TABS: Record<string, { label: string; icon: IconName; iconActive: IconName
 // Routes that exist under (tabs) but are reached from elsewhere in the UI
 const HIDDEN_TABS = new Set(['messages', 'calendar']);
 
+function TabItem({
+  label,
+  icon,
+  iconActive,
+  isFocused,
+  onPress,
+}: {
+  label: string;
+  icon: IconName;
+  iconActive: IconName;
+  isFocused: boolean;
+  onPress: () => void;
+}) {
+  const lift = useSharedValue(isFocused ? 1 : 0);
+
+  useEffect(() => {
+    lift.value = withSpring(isFocused ? 1 : 0, { damping: 16, stiffness: 200 });
+  }, [isFocused]);
+
+  const iconStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: -2 * lift.value }, { scale: 1 + 0.08 * lift.value }],
+  }));
+
+  return (
+    <SpringPressable
+      onPress={onPress}
+      accessibilityRole="tab"
+      accessibilityLabel={label}
+      accessibilityState={{ selected: isFocused }}
+      style={styles.tab}
+      pressScale={0.9}
+    >
+      <Animated.View style={[styles.tabInner, iconStyle]}>
+        <Ionicons
+          name={isFocused ? iconActive : icon}
+          size={22}
+          color={isFocused ? colors.auraLavender : colors.textMuted}
+        />
+        <Text style={[styles.label, isFocused && styles.labelFocused]}>{label}</Text>
+      </Animated.View>
+      {isFocused && <Animated.View entering={FadeIn.duration(260)} style={styles.activeDot} />}
+    </SpringPressable>
+  );
+}
+
+function CaptureButton({ onPress }: { onPress: () => void }) {
+  const breathe = useSharedValue(0);
+
+  useEffect(() => {
+    // A slow, candle-like breathing glow — alive, never busy
+    breathe.value = withRepeat(
+      withSequence(
+        withTiming(1, { duration: 2600, easing: Easing.inOut(Easing.sin) }),
+        withTiming(0, { duration: 2600, easing: Easing.inOut(Easing.sin) })
+      ),
+      -1
+    );
+  }, []);
+
+  const glowStyle = useAnimatedStyle(() => ({
+    opacity: 0.55 + 0.45 * breathe.value,
+    transform: [{ scale: 1 + 0.10 * breathe.value }],
+  }));
+
+  return (
+    <View style={styles.captureWrapper}>
+      <Animated.View style={[styles.captureGlow, glowStyle]} />
+      <SpringPressable
+        onPress={onPress}
+        accessibilityRole="button"
+        accessibilityLabel="Capture a moment"
+        pressScale={0.88}
+        haptic={false}
+      >
+        <LinearGradient
+          colors={gradients.aura}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.captureButton}
+        >
+          <Ionicons name="add" size={30} color={colors.textPrimary} />
+        </LinearGradient>
+      </SpringPressable>
+    </View>
+  );
+}
+
 export function MomeantsTabBar({ state, navigation }: BottomTabBarProps) {
   const router = useRouter();
   return (
@@ -27,42 +125,18 @@ export function MomeantsTabBar({ state, navigation }: BottomTabBarProps) {
         {state.routes.map((route, index) => {
           if (HIDDEN_TABS.has(route.name)) return null;
           const isFocused = state.index === index;
-          const isCapture = route.name === 'capture';
 
-          function onPress() {
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-            const event = navigation.emit({ type: 'tabPress', target: route.key, canPreventDefault: true });
-            if (!isFocused && !event.defaultPrevented) {
-              navigation.navigate(route.name);
-            }
-          }
-
-          if (isCapture) {
+          if (route.name === 'capture') {
             // Push the full-screen capture modal directly — never navigate to
             // the capture tab route (a redirect there causes an infinite loop).
-            const openCapture = () => {
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-              router.push('/capture');
-            };
             return (
-              <View key={route.key} style={styles.captureWrapper}>
-                <View style={styles.captureGlow} />
-                <TouchableOpacity
-                  onPress={openCapture}
-                  accessibilityRole="button"
-                  accessibilityLabel="Capture a moment"
-                  activeOpacity={0.85}
-                >
-                  <LinearGradient
-                    colors={gradients.aura}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
-                    style={styles.captureButton}
-                  >
-                    <Ionicons name="add" size={30} color={colors.textPrimary} />
-                  </LinearGradient>
-                </TouchableOpacity>
-              </View>
+              <CaptureButton
+                key={route.key}
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                  router.push('/capture');
+                }}
+              />
             );
           }
 
@@ -70,23 +144,23 @@ export function MomeantsTabBar({ state, navigation }: BottomTabBarProps) {
           if (!tab) return null;
 
           return (
-            <TouchableOpacity
+            <TabItem
               key={route.key}
-              onPress={onPress}
-              accessibilityRole="tab"
-              accessibilityLabel={tab.label}
-              accessibilityState={{ selected: isFocused }}
-              style={styles.tab}
-              activeOpacity={0.7}
-            >
-              <Ionicons
-                name={isFocused ? tab.iconActive : tab.icon}
-                size={22}
-                color={isFocused ? colors.auraLavender : colors.textMuted}
-              />
-              <Text style={[styles.label, isFocused && styles.labelFocused]}>{tab.label}</Text>
-              {isFocused && <View style={styles.activeDot} />}
-            </TouchableOpacity>
+              label={tab.label}
+              icon={tab.icon}
+              iconActive={tab.iconActive}
+              isFocused={isFocused}
+              onPress={() => {
+                const event = navigation.emit({
+                  type: 'tabPress',
+                  target: route.key,
+                  canPreventDefault: true,
+                });
+                if (!isFocused && !event.defaultPrevented) {
+                  navigation.navigate(route.name);
+                }
+              }}
+            />
           );
         })}
       </View>
@@ -121,6 +195,9 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     minHeight: 44,
     minWidth: 44,
+  },
+  tabInner: {
+    alignItems: 'center',
     gap: 3,
   },
   label: {
@@ -153,7 +230,7 @@ const styles = StyleSheet.create({
     width: 74,
     height: 74,
     borderRadius: 37,
-    backgroundColor: 'rgba(181,124,255,0.22)',
+    backgroundColor: 'rgba(181,124,255,0.24)',
   },
   captureButton: {
     width: 58,
