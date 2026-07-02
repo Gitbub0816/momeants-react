@@ -15,16 +15,35 @@ export default function YouScreen() {
   const { signOut } = useAuth();
   const router = useRouter();
   const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    api.getProfile().then(setProfile);
-  }, []);
+  function loadProfile() {
+    setError(null);
+    api
+      .getProfile()
+      .then(setProfile)
+      .catch((e) => setError(e instanceof Error ? e.message : 'Could not load your profile.'));
+  }
+
+  useEffect(loadProfile, []);
 
   if (!profile) {
     return (
       <ScreenShell>
         <View style={styles.loadingCenter}>
-          <ActivityIndicator color={colors.auraPurple} />
+          {error ? (
+            <>
+              <Text style={styles.errorText}>{error}</Text>
+              <TouchableOpacity onPress={loadProfile} style={styles.retryBtn} accessibilityRole="button" accessibilityLabel="Retry">
+                <Text style={styles.retryText}>Try again</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={signOut} style={styles.retryBtn} accessibilityRole="button" accessibilityLabel="Sign out">
+                <Text style={[styles.retryText, { color: colors.danger }]}>Sign out</Text>
+              </TouchableOpacity>
+            </>
+          ) : (
+            <ActivityIndicator color={colors.auraPurple} />
+          )}
         </View>
       </ScreenShell>
     );
@@ -104,7 +123,29 @@ export default function YouScreen() {
 }
 
 const styles = StyleSheet.create({
-  loadingCenter: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  loadingCenter: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: spacing.xl, gap: spacing.md },
+  errorText: {
+    color: colors.textSecondary,
+    fontFamily: fontFamily.sans,
+    fontSize: fontSize.caption,
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+  retryBtn: {
+    paddingHorizontal: spacing.xl,
+    paddingVertical: spacing.sm,
+    borderRadius: radii.full,
+    backgroundColor: 'rgba(181,124,255,0.15)',
+    borderWidth: 1,
+    borderColor: 'rgba(181,124,255,0.35)',
+    minHeight: 44,
+    justifyContent: 'center',
+  },
+  retryText: {
+    color: colors.auraPurple,
+    fontFamily: fontFamily.sansMedium,
+    fontSize: fontSize.caption,
+  },
   scroll: { paddingTop: spacing.md, paddingHorizontal: spacing.lg, gap: spacing.xl },
   profileHeader: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   profileText: { flex: 1, gap: 4 },

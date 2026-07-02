@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useMemo } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { MockMomentsApi, SupabaseMomentsApi, getSupabaseClient } from '@momeants/api';
 import type { MomentsApi } from '@momeants/types';
 
@@ -11,7 +12,7 @@ const SUPABASE_ANON_KEY = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ?? '';
 function createApi(): MomentsApi {
   try {
     if (SUPABASE_URL && SUPABASE_ANON_KEY) {
-      const sb = getSupabaseClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      const sb = getSupabaseClient(SUPABASE_URL, SUPABASE_ANON_KEY, AsyncStorage);
       return new SupabaseMomentsApi(sb);
     }
   } catch (e) {

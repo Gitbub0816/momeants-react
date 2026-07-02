@@ -117,21 +117,19 @@ function CaptureButton({ onPress }: { onPress: () => void }) {
   );
 }
 
+// Fixed visual order; 'capture' is not a route — it pushes the modal directly.
+const BAR_ORDER = ['home', 'timeline', 'capture', 'circle', 'you'];
+
 export function MomeantsTabBar({ state, navigation }: BottomTabBarProps) {
   const router = useRouter();
   return (
     <View style={styles.wrapper} pointerEvents="box-none">
       <View style={styles.bar}>
-        {state.routes.map((route, index) => {
-          if (HIDDEN_TABS.has(route.name)) return null;
-          const isFocused = state.index === index;
-
-          if (route.name === 'capture') {
-            // Push the full-screen capture modal directly — never navigate to
-            // the capture tab route (a redirect there causes an infinite loop).
+        {BAR_ORDER.map((name) => {
+          if (name === 'capture') {
             return (
               <CaptureButton
-                key={route.key}
+                key="capture"
                 onPress={() => {
                   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
                   router.push('/capture');
@@ -140,7 +138,11 @@ export function MomeantsTabBar({ state, navigation }: BottomTabBarProps) {
             );
           }
 
-          const tab = TABS[route.name];
+          const routeIndex = state.routes.findIndex((r) => r.name === name);
+          if (routeIndex === -1) return null;
+          const route = state.routes[routeIndex];
+          const isFocused = state.index === routeIndex;
+          const tab = TABS[name];
           if (!tab) return null;
 
           return (
