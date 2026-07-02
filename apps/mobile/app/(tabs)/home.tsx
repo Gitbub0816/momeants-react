@@ -22,8 +22,9 @@ import * as Haptics from 'expo-haptics';
 import type { RankedFeedItem } from '@momeants/types';
 import { HomeScreenSkeleton } from '../../src/components/core/SkeletonLoader';
 import { EmptyState } from '../../src/components/core/EmptyState';
+import Animated, { FadeIn } from 'react-native-reanimated';
 import { MomentFeedItem, FEED_ITEM_HEIGHT } from '../../src/components/memory/MomentFeedItem';
-import { SparkCard } from '../../src/components/spark/SparkCard';
+import { SparkPill } from '../../src/components/spark/SparkPill';
 import { useFeedEngine } from '../../src/hooks/useFeedEngine';
 import { useApi } from '../../src/context/ApiContext';
 import { colors, gradients, fontFamily, fontSize, spacing, radii } from '@momeants/design';
@@ -86,7 +87,7 @@ function EngagementPromptSlide({ item }: { item: RankedFeedItem }) {
                     }
                   }}
                 >
-                  <Text style={styles.promptChipText}>{p.icon} {p.label}</Text>
+                  <Text style={styles.promptChipText}>{p.label}</Text>
                 </TouchableOpacity>
               ))}
             </View>
@@ -108,7 +109,8 @@ function DiscoverySlide({ item, isActive }: { item: RankedFeedItem; isActive: bo
       />
       {item.discoveryContext ? (
         <View style={styles.discoveryBadge} pointerEvents="none">
-          <Text style={styles.discoveryBadgeText}>✦ {item.discoveryContext}</Text>
+          <Ionicons name="sparkles" size={11} color={colors.auraLavender} />
+          <Text style={styles.discoveryBadgeText}>{item.discoveryContext}</Text>
         </View>
       ) : null}
     </View>
@@ -193,10 +195,11 @@ export default function HomeScreen() {
         );
       }
 
-      // Spark slides — minigame full screen
-      if (item.spark && item.type === 'minigame_spark') {
+      // Spark slides — rendered as a delightful floating widget-pill
+      if (item.spark && (item.type === 'minigame_spark' || item.type === 'spark_card')) {
+        const prefix = item.type === 'minigame_spark' ? 'engine' : 'engine-bg';
         const syntheticDelivery = {
-          id: `engine-${item.spark.id}`,
+          id: `${prefix}-${item.spark.id}`,
           sparkId: item.spark.id,
           spark: item.spark,
           userId: 'me',
@@ -207,40 +210,16 @@ export default function HomeScreen() {
         return (
           <View style={styles.sparkSlide}>
             <LinearGradient colors={gradients.background} style={StyleSheet.absoluteFill} />
-            <SparkCard
-              delivery={syntheticDelivery}
-              onAccept={async () => {
-                await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-                router.push('/sparks');
-              }}
-              onDismiss={() => dismissSpark(item.spark!.id)}
-            />
-          </View>
-        );
-      }
-
-      // Background engagement spark (smaller card in feed)
-      if (item.spark && item.type === 'spark_card') {
-        const syntheticDelivery = {
-          id: `engine-bg-${item.spark.id}`,
-          sparkId: item.spark.id,
-          spark: item.spark,
-          userId: 'me',
-          status: 'pending' as const,
-          deliveredAt: new Date().toISOString(),
-          recommendationReason: item.subtext,
-        };
-        return (
-          <View style={styles.sparkSlide}>
-            <LinearGradient colors={gradients.background} style={StyleSheet.absoluteFill} />
-            <SparkCard
-              delivery={syntheticDelivery}
-              onAccept={async () => {
-                await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                router.push('/sparks');
-              }}
-              onDismiss={() => dismissSpark(item.spark!.id)}
-            />
+            <Animated.View entering={FadeIn.duration(320)} style={styles.sparkSlideInner}>
+              <Text style={styles.sparkKicker}>A Spark For You</Text>
+              <SparkPill
+                delivery={syntheticDelivery}
+                onPress={async () => {
+                  await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  router.push('/sparks');
+                }}
+              />
+            </Animated.View>
           </View>
         );
       }
@@ -331,16 +310,16 @@ export default function HomeScreen() {
         <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
           <View>
             <Text style={styles.wordmark}>
-              momeants <Ionicons name="sparkles" size={14} color={colors.auraLavender} />
+              Momeants <Ionicons name="sparkles" size={14} color={colors.auraLavender} />
             </Text>
             <Text style={styles.tagline}>Capture life. Relive feelings.</Text>
           </View>
         </View>
         <EmptyState
           icon="camera-outline"
-          title="No moments yet"
+          title="No Moments Yet"
           body="Capture your first moment — a photo, a feeling, a place."
-          actionLabel="Capture a moment"
+          actionLabel="Capture a Moment"
           onAction={() => router.push('/capture')}
         />
       </View>
@@ -353,7 +332,7 @@ export default function HomeScreen() {
 
       {/* Fixed overlay header */}
       <View style={[styles.header, { paddingTop: insets.top + 8 }]} pointerEvents="box-none">
-        <Text style={styles.wordmark}>momeants</Text>
+        <Text style={styles.wordmark}>Momeants</Text>
         <TouchableOpacity
           onPress={() => router.push('/notifications')}
           style={styles.notifBtn}
@@ -454,6 +433,17 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: spacing.lg,
   },
+  sparkSlideInner: {
+    gap: spacing.md,
+  },
+  sparkKicker: {
+    color: colors.auraLavender,
+    fontFamily: fontFamily.sansMedium,
+    fontSize: fontSize.micro,
+    letterSpacing: 1.4,
+    textTransform: 'uppercase',
+    textAlign: 'center',
+  },
   importantDaySlide: {
     width: W,
     alignItems: 'center',
@@ -500,6 +490,9 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 56,
     left: spacing.lg,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
     backgroundColor: 'rgba(0,0,0,0.55)',
     borderRadius: 12,
     paddingHorizontal: 10,

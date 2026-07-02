@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -14,8 +15,8 @@ export default function ErrorScreen() {
     <LinearGradient colors={[colors.ink900, '#151B31']} style={styles.container}>
       <SafeAreaView style={styles.safe}>
         <View style={styles.content}>
-          <Text style={styles.icon}>✦</Text>
-          <Text style={styles.title}>Something went wrong</Text>
+          <Ionicons name="cloud-offline-outline" size={40} color={colors.auraPurple} style={styles.icon} />
+          <Text style={styles.title}>Something Went Wrong</Text>
           <Text style={styles.body}>
             We couldn't load this page. Your memories are safe.
           </Text>
@@ -23,9 +24,9 @@ export default function ErrorScreen() {
             style={styles.button}
             onPress={() => router.replace('/(tabs)/home')}
             accessibilityRole="button"
-            accessibilityLabel="Go home"
+            accessibilityLabel="Go Home"
           >
-            <Text style={styles.buttonText}>Go home</Text>
+            <Text style={styles.buttonText}>Go Home</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>

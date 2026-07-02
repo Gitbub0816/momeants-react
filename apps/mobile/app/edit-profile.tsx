@@ -3,6 +3,7 @@ import {
   View, Text, TextInput, StyleSheet, TouchableOpacity,
   ScrollView, Image, KeyboardAvoidingView, Platform, ActivityIndicator,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import { ScreenShell, MomeantsButton } from '../src/components/core';
@@ -76,8 +77,8 @@ export default function EditProfileScreen() {
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
           <View style={styles.topBar}>
-            <TouchableOpacity onPress={() => router.back()} style={styles.back} accessibilityLabel="Cancel">
-              <Text style={styles.backIcon}>✕</Text>
+            <TouchableOpacity onPress={() => router.back()} style={styles.back} accessibilityRole="button" accessibilityLabel="Cancel">
+              <Ionicons name="close" size={22} color={colors.textSecondary} />
             </TouchableOpacity>
             <Text style={styles.navTitle}>Edit Profile</Text>
             <View style={{ width: 44 }} />
@@ -96,7 +97,7 @@ export default function EditProfileScreen() {
                 </View>
               )}
               <View style={styles.avatarEditBadge}>
-                <Text style={styles.avatarEditIcon}>✎</Text>
+                <Ionicons name="pencil" size={14} color={colors.textPrimary} />
               </View>
             </TouchableOpacity>
           </View>
@@ -126,11 +127,11 @@ export default function EditProfileScreen() {
 
           {/* Default privacy */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Default moment privacy</Text>
+            <Text style={styles.sectionTitle}>Default Moment Privacy</Text>
             <MomentPrivacyPicker value={defaultPrivacy} onChange={setDefaultPrivacy} />
           </View>
 
-          <MomeantsButton label="Save changes" onPress={save} loading={saving} />
+          <MomeantsButton label="Save Changes" onPress={save} loading={saving} />
           <View style={{ height: spacing.xl }} />
         </ScrollView>
       </KeyboardAvoidingView>

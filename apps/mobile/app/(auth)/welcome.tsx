@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import Animated, { FadeInDown, FadeIn } from 'react-native-reanimated';
+import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ScreenShell, MomeantsButton, GradientText } from '../../src/components/core';
@@ -15,10 +16,10 @@ export default function WelcomeScreen() {
         <Animated.View entering={FadeInDown.duration(700).delay(80).springify().damping(16)} style={styles.hero}>
           <View style={styles.logoMark}>
             <LinearGradient colors={gradients.aura} style={styles.logoGradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
-              <Text style={styles.logoIcon}>✦</Text>
+              <Ionicons name="sparkles" size={34} color={colors.textPrimary} />
             </LinearGradient>
           </View>
-          <GradientText style={styles.wordmark}>momeants</GradientText>
+          <GradientText style={styles.wordmark}>Momeants</GradientText>
           <Text style={styles.tagline}>Capture life. Relive feelings.</Text>
         </Animated.View>
 
@@ -30,11 +31,11 @@ export default function WelcomeScreen() {
 
         <Animated.View entering={FadeInDown.duration(700).delay(600).springify().damping(16)} style={styles.actions}>
           <MomeantsButton
-            label="Create an account"
+            label="Create an Account"
             onPress={() => router.push('/(auth)/create-account')}
           />
           <MomeantsButton
-            label="Sign in"
+            label="Sign In"
             onPress={() => router.push('/(auth)/sign-in')}
             variant="glass"
           />

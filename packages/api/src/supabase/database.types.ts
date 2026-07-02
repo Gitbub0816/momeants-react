@@ -16,7 +16,7 @@ export interface Database {
           avatar_url: string | null;
           city: string | null;
           country: string | null;
-          default_privacy: 'private' | 'close_circle' | 'selected_people';
+          default_privacy: 'private' | 'close_circle' | 'selected_people' | 'public';
           onboarded_at: string | null;
           created_at: string;
           updated_at: string;
@@ -29,7 +29,7 @@ export interface Database {
           avatar_url?: string | null;
           city?: string | null;
           country?: string | null;
-          default_privacy: 'private' | 'close_circle' | 'selected_people';
+          default_privacy: 'private' | 'close_circle' | 'selected_people' | 'public';
           onboarded_at?: string | null;
         };
         Update: {
@@ -40,7 +40,7 @@ export interface Database {
           avatar_url?: string | null;
           city?: string | null;
           country?: string | null;
-          default_privacy?: 'private' | 'close_circle' | 'selected_people';
+          default_privacy?: 'private' | 'close_circle' | 'selected_people' | 'public';
           onboarded_at?: string | null;
         };
       } & NoRelationships;
@@ -51,7 +51,7 @@ export interface Database {
           image_url: string;
           thumbnail_url: string | null;
           caption: string | null;
-          visibility: 'private' | 'close_circle' | 'selected_people';
+          visibility: 'private' | 'close_circle' | 'selected_people' | 'public';
           created_at: string;
           updated_at: string;
         };
@@ -60,13 +60,13 @@ export interface Database {
           image_url: string;
           thumbnail_url?: string | null;
           caption?: string | null;
-          visibility: 'private' | 'close_circle' | 'selected_people';
+          visibility: 'private' | 'close_circle' | 'selected_people' | 'public';
         };
         Update: {
           image_url?: string;
           thumbnail_url?: string | null;
           caption?: string | null;
-          visibility?: 'private' | 'close_circle' | 'selected_people';
+          visibility?: 'private' | 'close_circle' | 'selected_people' | 'public';
         };
       } & NoRelationships;
       moment_moods: {
@@ -188,7 +188,7 @@ export interface MomentDetailRow {
   image_url: string;
   thumbnail_url: string | null;
   caption: string | null;
-  visibility: 'private' | 'close_circle' | 'selected_people';
+  visibility: 'private' | 'close_circle' | 'selected_people' | 'public';
   created_at: string;
   updated_at: string;
   author_name: string;

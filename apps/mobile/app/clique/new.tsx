@@ -63,9 +63,9 @@ export default function NewCliqueScreen() {
             onPress={() => router.back()}
             style={styles.backBtn}
             accessibilityRole="button"
-            accessibilityLabel="Go back"
+            accessibilityLabel="Go Back"
           >
-            <Text style={styles.backIcon}>←</Text>
+            <Glyph value="chevron-back" size={24} color={colors.textSecondary} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>New Clique</Text>
           <View style={styles.backBtn} />
@@ -135,7 +135,7 @@ export default function NewCliqueScreen() {
                     <CircleAvatar name={member.displayName} avatarUri={member.avatarUri} size={36} />
                     <Text style={styles.memberName}>{member.displayName}</Text>
                     <View style={[styles.checkbox, selected && styles.checkboxSelected]}>
-                      {selected && <Text style={styles.checkmark}>✓</Text>}
+                      {selected && <Glyph value="checkmark" size={14} color="#fff" />}
                     </View>
                   </TouchableOpacity>
                 );

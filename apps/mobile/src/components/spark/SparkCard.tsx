@@ -1,4 +1,4 @@
-import { Glyph } from '../core/Glyph';
+import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import {
   View,
@@ -14,24 +14,7 @@ import type { SparkDelivery } from '@momeants/types';
 import { colors } from '@momeants/design';
 import { spacing, radii } from '@momeants/design';
 import { fontSize, fontFamily } from '@momeants/design';
-
-const CATEGORY_ICON: Record<string, string> = {
-  conversation: 'chatbubble-ellipses-outline',
-  memory: 'sparkles-outline',
-  relationship: '🤝',
-  holiday: 'gift-outline',
-  anniversary: 'heart-circle-outline',
-  seasonal: '🌿',
-  location: 'location-outline',
-  family: '👨‍👩‍👧',
-  friendship: 'people-outline',
-  couple: '💑',
-  clique: '🙌',
-  photo: 'camera-outline',
-  storytelling: '📖',
-  creative: '🎨',
-  discovery: '🔍',
-};
+import { sparkCategoryMeta } from './sparkCategoryMeta';
 
 interface SparkCardProps {
   delivery: SparkDelivery;
@@ -42,7 +25,7 @@ interface SparkCardProps {
 export function SparkCard({ delivery, onAccept, onDismiss }: SparkCardProps) {
   const router = useRouter();
   const { spark } = delivery;
-  const icon = CATEGORY_ICON[spark.category] ?? 'sparkles-outline';
+  const meta = sparkCategoryMeta(spark.category);
 
   const handleAccept = async () => {
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -71,14 +54,16 @@ export function SparkCard({ delivery, onAccept, onDismiss }: SparkCardProps) {
             onPress={handleDismiss}
             hitSlop={12}
             accessibilityRole="button"
-            accessibilityLabel="Dismiss spark"
+            accessibilityLabel="Dismiss Spark"
           >
-            <Text style={styles.dismissIcon}>×</Text>
+            <Ionicons name="close" size={20} color={colors.textMuted} />
           </Pressable>
         </View>
 
         <View style={styles.body}>
-          <Glyph value={icon} size={20} />
+          <View style={[styles.iconHalo, { backgroundColor: meta.accent + '22', borderColor: meta.accent + '55' }]}>
+            <Ionicons name={meta.icon as keyof typeof Ionicons.glyphMap} size={20} color={meta.accent} />
+          </View>
           <View style={styles.textBlock}>
             <Text style={styles.title}>{spark.title}</Text>
             <Text style={styles.description} numberOfLines={2}>
@@ -109,7 +94,8 @@ export function SparkCard({ delivery, onAccept, onDismiss }: SparkCardProps) {
             end={{ x: 1, y: 0 }}
             style={styles.acceptGradient}
           >
-            <Text style={styles.acceptText}>Start the Spark →</Text>
+            <Text style={styles.acceptText}>Start the Spark</Text>
+            <Ionicons name="arrow-forward" size={16} color="#FFFFFF" />
           </LinearGradient>
         </TouchableOpacity>
       </LinearGradient>
@@ -204,8 +190,20 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   acceptGradient: {
+    flexDirection: 'row',
+    gap: spacing.xs,
     paddingVertical: spacing.sm + 2,
     alignItems: 'center',
+    justifyContent: 'center',
+  },
+  iconHalo: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    marginTop: 2,
   },
   acceptText: {
     color: '#FFFFFF',

@@ -211,7 +211,7 @@ export default function SparkSettingsScreen() {
                             </Text>
                           </View>
                           <View style={[styles.check, active && styles.checkActive]}>
-                            {active && <Text style={styles.checkMark}>✓</Text>}
+                            {active && <Glyph value="checkmark" size={13} color="#fff" />}
                           </View>
                         </TouchableOpacity>
                         {idx < ALL_CATEGORIES.length - 1 && <View style={styles.divider} />}

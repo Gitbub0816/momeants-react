@@ -1,4 +1,5 @@
 import { Glyph } from '../../src/components/core/Glyph';
+import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
@@ -35,10 +36,10 @@ export default function YouScreen() {
             <>
               <Text style={styles.errorText}>{error}</Text>
               <TouchableOpacity onPress={loadProfile} style={styles.retryBtn} accessibilityRole="button" accessibilityLabel="Retry">
-                <Text style={styles.retryText}>Try again</Text>
+                <Text style={styles.retryText}>Try Again</Text>
               </TouchableOpacity>
-              <TouchableOpacity onPress={signOut} style={styles.retryBtn} accessibilityRole="button" accessibilityLabel="Sign out">
-                <Text style={[styles.retryText, { color: colors.danger }]}>Sign out</Text>
+              <TouchableOpacity onPress={signOut} style={styles.retryBtn} accessibilityRole="button" accessibilityLabel="Sign Out">
+                <Text style={[styles.retryText, { color: colors.danger }]}>Sign Out</Text>
               </TouchableOpacity>
             </>
           ) : (
@@ -76,7 +77,7 @@ export default function YouScreen() {
 
         {profile.topMoods.length > 0 && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Top feelings</Text>
+            <Text style={styles.sectionTitle}>Top Feelings</Text>
             <View style={styles.moodsRow}>
               {profile.topMoods.map((mood) => (
                 <MoodPill key={mood} mood={mood as MoodTag} />
@@ -89,13 +90,13 @@ export default function YouScreen() {
           <Text style={styles.sectionTitle}>Settings</Text>
           <GlassCard style={styles.settingsCard}>
             {[
-              { label: 'Edit profile', icon: 'person-outline', route: '/edit-profile' },
-              { label: 'Privacy & visibility', icon: 'lock-closed-outline', route: '/privacy' },
-              { label: 'Resurfacing controls', icon: 'sparkles-outline', route: '/resurfacing-controls' },
-              { label: 'Spark settings', icon: 'flash-outline', route: '/spark-settings' },
-              { label: 'Browse sparks', icon: 'flame-outline', route: '/sparks' },
+              { label: 'Edit Profile', icon: 'person-outline', route: '/edit-profile' },
+              { label: 'Privacy & Visibility', icon: 'lock-closed-outline', route: '/privacy' },
+              { label: 'Resurfacing Controls', icon: 'sparkles-outline', route: '/resurfacing-controls' },
+              { label: 'Spark Settings', icon: 'flash-outline', route: '/spark-settings' },
+              { label: 'Browse Sparks', icon: 'flame-outline', route: '/sparks' },
               { label: 'Notifications', icon: 'notifications-outline', route: '/notifications' },
-              { label: 'Delete account', icon: 'trash-outline', route: '/delete-account' },
+              { label: 'Delete Account', icon: 'trash-outline', route: '/delete-account' },
             ].map((item, i) => (
               <TouchableOpacity
                 key={item.label}
@@ -106,14 +107,14 @@ export default function YouScreen() {
               >
                 <Glyph value={item.icon} size={18} color={colors.textSecondary} />
                 <Text style={styles.settingsLabel}>{item.label}</Text>
-                <Text style={styles.settingsChevron}>›</Text>
+                <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
               </TouchableOpacity>
             ))}
           </GlassCard>
         </View>
 
-        <TouchableOpacity onPress={signOut} style={styles.signOut} accessibilityRole="button" accessibilityLabel="Sign out">
-          <Text style={styles.signOutText}>Sign out</Text>
+        <TouchableOpacity onPress={signOut} style={styles.signOut} accessibilityRole="button" accessibilityLabel="Sign Out">
+          <Text style={styles.signOutText}>Sign Out</Text>
         </TouchableOpacity>
 
         <View style={styles.tabBarSpacer} />

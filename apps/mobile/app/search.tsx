@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { ScreenShell, GlassCard } from '../src/components/core';
 import { CircleAvatar } from '../src/components/circle';
@@ -71,11 +72,11 @@ export default function SearchScreen() {
     <ScreenShell>
       {/* Top bar */}
       <View style={styles.topBar}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.back} accessibilityLabel="Go back">
-          <Text style={styles.backIcon}>←</Text>
+        <TouchableOpacity onPress={() => router.back()} style={styles.back} accessibilityRole="button" accessibilityLabel="Go Back">
+          <Ionicons name="chevron-back" size={24} color={colors.textSecondary} />
         </TouchableOpacity>
         <View style={styles.inputWrapper}>
-          <Text style={styles.searchIcon}>⌕</Text>
+          <Ionicons name="search" size={16} color={colors.textMuted} style={styles.searchIcon} />
           <TextInput
             ref={inputRef}
             value={query}
@@ -99,8 +100,8 @@ export default function SearchScreen() {
       >
         {showEmpty && (
           <View style={styles.emptyState}>
-            <Text style={styles.emptyIcon}>⌕</Text>
-            <Text style={styles.emptyTitle}>Search for people you know</Text>
+            <Ionicons name="search-outline" size={30} color={colors.textMuted} style={styles.emptyIcon} />
+            <Text style={styles.emptyTitle}>Search for People You Know</Text>
             <Text style={styles.emptyDesc}>Find friends and add them to your circle.</Text>
           </View>
         )}
@@ -113,8 +114,8 @@ export default function SearchScreen() {
 
         {showNoResults && !loading && (
           <View style={styles.emptyState}>
-            <Text style={styles.emptyIcon}>○</Text>
-            <Text style={styles.emptyTitle}>No one found for '{query}'</Text>
+            <Ionicons name="search-outline" size={30} color={colors.textMuted} style={styles.emptyIcon} />
+            <Text style={styles.emptyTitle}>No One Found for '{query}'</Text>
             <Text style={styles.emptyDesc}>Try a different name or username.</Text>
           </View>
         )}
@@ -140,7 +141,7 @@ export default function SearchScreen() {
                   <ActivityIndicator size="small" color={colors.auraPurple} />
                 ) : (
                   <Text style={[styles.addBtnText, added && styles.addBtnTextAdded]}>
-                    {added ? 'Added ✓' : 'Add to circle'}
+                    {added ? 'Added' : 'Add to Circle'}
                   </Text>
                 )}
               </TouchableOpacity>

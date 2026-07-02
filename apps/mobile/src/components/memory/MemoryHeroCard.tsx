@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
 import { Image } from 'expo-image';
+import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import type { Moment } from '@momeants/types';
@@ -47,7 +48,8 @@ export function MemoryHeroCard({ moment }: Props) {
         <View style={styles.content}>
           {moment.isResurfaced && moment.resurfaceLabel && (
             <View style={styles.resurfaceBadge}>
-              <Text style={styles.resurfaceText}>✦ {moment.resurfaceLabel}</Text>
+              <Ionicons name="sparkles" size={11} color={colors.auraPurple} />
+              <Text style={styles.resurfaceText}>{moment.resurfaceLabel}</Text>
             </View>
           )}
           <Text style={styles.date}>{dateLabel}</Text>
@@ -88,6 +90,9 @@ const styles = StyleSheet.create({
   },
   resurfaceBadge: {
     alignSelf: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
     backgroundColor: 'rgba(181, 124, 255, 0.2)',
     borderRadius: radii.full,
     borderWidth: 1,

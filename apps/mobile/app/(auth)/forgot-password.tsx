@@ -10,6 +10,7 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -56,9 +57,10 @@ export default function ForgotPasswordScreen() {
             style={styles.back}
             onPress={() => router.back()}
             accessibilityRole="button"
-            accessibilityLabel="Go back"
+            accessibilityLabel="Go Back"
           >
-            <Text style={styles.backText}>← Back</Text>
+            <Ionicons name="chevron-back" size={16} color={colors.textMuted} />
+            <Text style={styles.backText}>Back</Text>
           </TouchableOpacity>
 
           <View style={styles.content}>
@@ -128,7 +130,7 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   safe: { flex: 1 },
   kav: { flex: 1 },
-  back: { padding: spacing.lg },
+  back: { padding: spacing.lg, flexDirection: 'row', alignItems: 'center', gap: 4 },
   backText: { color: colors.textMuted, fontSize: fontSize.body, fontFamily: fontFamily.sans },
   content: {
     flex: 1,

@@ -7,8 +7,10 @@ import { colors, radii, fontFamily, fontSize, spacing } from '@momeants/design';
 
 const OPTIONS: { value: MomentVisibility; label: string; description: string; icon: string }[] = [
   { value: 'private', label: 'Only Me', description: 'Your memory, kept close.', icon: 'lock-closed-outline' },
-  { value: 'close_circle', label: 'Close Circle', description: 'People who matter most.', icon: '◎' },
-  { value: 'selected_people', label: 'Selected People', description: 'Choose who sees this.', icon: '○' },
+  { value: 'close_circle', label: 'Close Circle', description: 'People who matter most.', icon: 'people-circle-outline' },
+  { value: 'selected_people', label: 'Selected People', description: 'Choose who sees this.', icon: 'person-add-outline' },
+  // 'public' pending addition to MomentVisibility union in @momeants/types
+  { value: 'public', label: 'Public', description: 'Anyone on Momeants can find this.', icon: 'globe-outline' },
 ];
 
 interface Props {

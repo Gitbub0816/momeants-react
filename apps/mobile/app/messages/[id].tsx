@@ -195,9 +195,9 @@ export default function ConversationScreen() {
                 onPress={send}
                 disabled={!text.trim()}
                 accessibilityRole="button"
-                accessibilityLabel="Send message"
+                accessibilityLabel="Send Message"
               >
-                <Text style={styles.sendIcon}>↑</Text>
+                <Ionicons name="arrow-up" size={20} color={colors.textPrimary} />
               </TouchableOpacity>
             </View>
           </SafeAreaView>

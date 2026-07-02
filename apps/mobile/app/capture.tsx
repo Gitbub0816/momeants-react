@@ -213,14 +213,24 @@ export default function CaptureScreen() {
       try {
         await api.createMoment(momentInput);
         router.replace('/(tabs)/home');
-      } catch {
-        // Queue for retry when connectivity returns
-        await enqueueMoment(momentInput);
-        Alert.alert(
-          'Saved for later',
-          'No connection — your moment is saved and will upload automatically when you reconnect.',
-          [{ text: 'OK', onPress: () => router.replace('/(tabs)/home') }]
-        );
+      } catch (err) {
+        // Only treat genuine connectivity failures as "save for later". Any
+        // other error (RLS, validation, storage, server) must surface so the
+        // user is never told a broken moment succeeded.
+        const message = err instanceof Error ? err.message : String(err);
+        const isNetworkError = /network request failed|network error|failed to fetch|timed? ?out|offline/i.test(message);
+        if (isNetworkError) {
+          await enqueueMoment(momentInput);
+          Alert.alert(
+            'Saved for later',
+            'No connection — your moment is saved and will upload automatically when you reconnect.',
+            [{ text: 'OK', onPress: () => router.replace('/(tabs)/home') }]
+          );
+        } else {
+          Alert.alert('Could not save moment', message || 'Something went wrong. Please try again.');
+          setSaving(false);
+          setStep('privacy');
+        }
       }
     } catch {
       Alert.alert('Could not save', 'Please try again.');
@@ -239,7 +249,7 @@ export default function CaptureScreen() {
             style={styles.closeBtn}
             accessibilityLabel="Close"
           >
-            <Text style={styles.closeBtnText}>✕</Text>
+            <Ionicons name="close" size={22} color={colors.textSecondary} />
           </TouchableOpacity>
 
           <View style={styles.photoCenter}>
@@ -310,12 +320,12 @@ export default function CaptureScreen() {
 
         <View style={styles.composerHeader}>
           <TouchableOpacity onPress={() => router.back()} style={styles.closeSmall} accessibilityLabel="Close">
-            <Text style={styles.closeSmallText}>✕</Text>
+            <Ionicons name="close" size={20} color={colors.textSecondary} />
           </TouchableOpacity>
 
           {step !== 'mood' && (
             <TouchableOpacity onPress={goBack} style={styles.backSmall} accessibilityLabel="Back">
-              <Text style={styles.closeSmallText}>←</Text>
+              <Ionicons name="chevron-back" size={20} color={colors.textSecondary} />
             </TouchableOpacity>
           )}
         </View>
@@ -356,7 +366,7 @@ export default function CaptureScreen() {
                       accessibilityLabel={`Remove ${p.displayName}`}
                     >
                       <Text style={styles.chipText}>{p.displayName}</Text>
-                      <Text style={styles.chipRemove}> ✕</Text>
+                      <Ionicons name="close" size={12} color={colors.textSecondary} style={{ marginLeft: 4 }} />
                     </TouchableOpacity>
                   ))}
                 </ScrollView>
@@ -384,7 +394,7 @@ export default function CaptureScreen() {
                       accessibilityLabel={member.displayName}
                     >
                       <View style={[styles.memberCheck, isSelected && styles.memberCheckActive]}>
-                        {isSelected && <Text style={styles.memberCheckMark}>✓</Text>}
+                        {isSelected && <Ionicons name="checkmark" size={16} color={colors.auraPurple} />}
                       </View>
                       <Text style={[styles.memberName, isSelected && styles.memberNameActive]}>
                         {member.displayName}

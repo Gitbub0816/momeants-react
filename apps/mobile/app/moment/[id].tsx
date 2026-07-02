@@ -140,12 +140,12 @@ export default function MomentDetailScreen() {
           <TouchableOpacity
             onPress={() => router.back()}
             style={styles.topBtn}
-            accessibilityLabel="Go back"
+            accessibilityLabel="Go Back"
           >
-            <Text style={styles.topBtnIcon}>←</Text>
+            <Ionicons name="chevron-back" size={22} color={colors.textPrimary} />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.topBtn} onPress={openShare} accessibilityLabel="Share moment">
-            <Text style={styles.topBtnIcon}>↗</Text>
+          <TouchableOpacity style={styles.topBtn} onPress={openShare} accessibilityLabel="Share Moment">
+            <Ionicons name="share-outline" size={20} color={colors.textPrimary} />
           </TouchableOpacity>
           <TouchableOpacity
               style={styles.topBtn}
@@ -157,9 +157,9 @@ export default function MomentDetailScreen() {
                   { text: 'Spam', onPress: () => api.reportContent({ momentId: moment.id, reason: 'spam' }).catch(() => {}) },
                 ]);
               }}
-              accessibilityLabel="Report moment"
+              accessibilityLabel="Report Moment"
             >
-              <Text style={styles.topBtnIcon}>⚑</Text>
+              <Ionicons name="flag-outline" size={19} color={colors.textPrimary} />
             </TouchableOpacity>
         </View>
 
@@ -175,7 +175,8 @@ export default function MomentDetailScreen() {
           <View style={styles.contentOverlay}>
             {moment.isResurfaced && moment.resurfaceLabel && (
               <View style={styles.resurfaceBadge}>
-                <Text style={styles.resurfaceText}>✦ {moment.resurfaceLabel}</Text>
+                <Ionicons name="sparkles" size={11} color={colors.auraPurple} />
+                <Text style={styles.resurfaceText}>{moment.resurfaceLabel}</Text>
               </View>
             )}
             <Text style={styles.dateLabel}>{date.toUpperCase()}</Text>
@@ -216,7 +217,11 @@ export default function MomentDetailScreen() {
                     accessibilityRole="button"
                     accessibilityLabel={`React with ${emoji}`}
                   >
-                    <Text style={styles.reactionEmoji}>{emoji}</Text>
+                    <Ionicons
+                      name={emoji as keyof typeof Ionicons.glyphMap}
+                      size={18}
+                      color={reaction?.reactedByMe ? colors.auraLavender : colors.textSecondary}
+                    />
                     {reaction && reaction.count > 0 ? (
                       <Text style={styles.reactionCount}>{reaction.count}</Text>
                     ) : null}
@@ -279,7 +284,12 @@ export default function MomentDetailScreen() {
                 accessibilityRole="button"
                 accessibilityLabel="Send comment"
               >
-                <Text style={[styles.commentSendText, (!commentText.trim() || submitting) && { opacity: 0.4 }]}>→</Text>
+                <Ionicons
+                  name="arrow-forward"
+                  size={20}
+                  color={colors.auraPurple}
+                  style={(!commentText.trim() || submitting) ? { opacity: 0.4 } : undefined}
+                />
               </TouchableOpacity>
             </View>
           </View>
@@ -291,7 +301,7 @@ export default function MomentDetailScreen() {
         <Pressable style={styles.modalBackdrop} onPress={() => setShareVisible(false)}>
           <Pressable style={styles.shareSheet} onPress={(e) => e.stopPropagation()}>
             <View style={styles.shareHandle} />
-            <Text style={styles.shareTitle}>Share with…</Text>
+            <Text style={styles.shareTitle}>Share With…</Text>
             <ScrollView showsVerticalScrollIndicator={false} style={{ maxHeight: 300 }}>
               {circleMembers.map((m) => {
                 const done = sharedTo.has(m.id);
@@ -306,7 +316,12 @@ export default function MomentDetailScreen() {
                   >
                     <CircleAvatar name={m.displayName} avatarUri={m.avatarUri} size={40} />
                     <Text style={styles.shareName}>{m.displayName}</Text>
-                    {done && <Text style={styles.shareDone}>Shared ✓</Text>}
+                    {done && (
+                      <View style={styles.shareDoneRow}>
+                        <Ionicons name="checkmark" size={13} color={colors.auraPurple} />
+                        <Text style={styles.shareDone}>Shared</Text>
+                      </View>
+                    )}
                   </TouchableOpacity>
                 );
               })}
@@ -353,6 +368,9 @@ const styles = StyleSheet.create({
   },
   resurfaceBadge: {
     alignSelf: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
     backgroundColor: 'rgba(181, 124, 255, 0.2)',
     borderRadius: radii.full,
     borderWidth: 1,
@@ -360,6 +378,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 4,
   },
+  shareDoneRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   resurfaceText: { color: colors.auraPurple, fontFamily: fontFamily.sansMedium, fontSize: fontSize.micro },
   dateLabel: {
     color: colors.textMuted,

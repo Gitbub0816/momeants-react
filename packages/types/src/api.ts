@@ -65,6 +65,8 @@ export interface MomentsApi {
   markConversationRead?(conversationId: string): Promise<void>;
   sendMessage(conversationId: string, text: string): Promise<Message>;
   createConversation(participantIds: string[], cliqueId?: string): Promise<Conversation>;
+  /** Start or reuse a 1:1 direct conversation with the given user id. */
+  getOrCreateDirectConversation?(otherUserId: string): Promise<Conversation>;
 
   // Calendar
   listCalendarEvents(): Promise<CalendarEvent[]>;

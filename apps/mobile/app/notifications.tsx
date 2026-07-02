@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, ActivityIndicator } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { ScreenShell, GlassCard } from '../src/components/core';
 import { useApi } from '../src/context/ApiContext';
@@ -38,8 +39,8 @@ export default function NotificationsScreen() {
   return (
     <ScreenShell>
       <View style={styles.topBar}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.back} accessibilityLabel="Go back">
-          <Text style={styles.backIcon}>←</Text>
+        <TouchableOpacity onPress={() => router.back()} style={styles.back} accessibilityRole="button" accessibilityLabel="Go Back">
+          <Ionicons name="chevron-back" size={24} color={colors.textSecondary} />
         </TouchableOpacity>
         <Text style={styles.title}>Notifications</Text>
         <View style={{ width: 44 }} />
@@ -59,8 +60,8 @@ export default function NotificationsScreen() {
         >
           {notifications.length === 0 ? (
             <View style={styles.empty}>
-              <Text style={styles.emptyIcon}>◎</Text>
-              <Text style={styles.emptyTitle}>All quiet</Text>
+              <Ionicons name="notifications-off-outline" size={30} color={colors.textMuted} style={styles.emptyIcon} />
+              <Text style={styles.emptyTitle}>All Quiet</Text>
               <Text style={styles.emptyDesc}>Memories will glow here when they resurface.</Text>
             </View>
           ) : (

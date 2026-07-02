@@ -171,9 +171,10 @@ export default function SparkDetailScreen() {
                     onPress={handleNext}
                     activeOpacity={0.8}
                     accessibilityRole="button"
-                    accessibilityLabel="Next prompt"
+                    accessibilityLabel="Next Prompt"
                   >
-                    <Text style={styles.nextBtnText}>Next Prompt →</Text>
+                    <Text style={styles.nextBtnText}>Next Prompt</Text>
+                    <Ionicons name="arrow-forward" size={15} color={colors.textPrimary} />
                   </TouchableOpacity>
                 )}
               </View>
@@ -305,6 +306,9 @@ const styles = StyleSheet.create({
   },
   nextBtn: {
     alignSelf: 'center',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
     paddingHorizontal: spacing.xl,
     paddingVertical: spacing.sm,
     backgroundColor: 'rgba(181,124,255,0.15)',

@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import * as Sentry from '../../utils/crashReporter';
 import { colors } from '@momeants/design';
 import { spacing, radii } from '@momeants/design';
@@ -41,8 +42,8 @@ export class ErrorBoundary extends React.Component<Props, State> {
       if (this.props.fallback) return this.props.fallback;
       return (
         <View style={styles.container}>
-          <Text style={styles.icon}>✦</Text>
-          <Text style={styles.title}>Something went wrong</Text>
+          <Ionicons name="alert-circle-outline" size={32} color={colors.auraPurple} style={styles.icon} />
+          <Text style={styles.title}>Something Went Wrong</Text>
           <Text style={styles.detail} numberOfLines={3}>
             {this.state.error?.message ?? 'An unexpected error occurred.'}
           </Text>
@@ -50,9 +51,9 @@ export class ErrorBoundary extends React.Component<Props, State> {
             style={styles.button}
             onPress={this.reset}
             accessibilityRole="button"
-            accessibilityLabel="Try again"
+            accessibilityLabel="Try Again"
           >
-            <Text style={styles.buttonText}>Try again</Text>
+            <Text style={styles.buttonText}>Try Again</Text>
           </TouchableOpacity>
         </View>
       );

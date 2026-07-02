@@ -55,8 +55,8 @@ export default function OtherProfileScreen() {
     return (
       <ScreenShell>
         <View style={styles.topBar}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.back} accessibilityLabel="Go back">
-            <Text style={styles.backIcon}>←</Text>
+          <TouchableOpacity onPress={() => router.back()} style={styles.back} accessibilityRole="button" accessibilityLabel="Go Back">
+            <Ionicons name="chevron-back" size={24} color={colors.textSecondary} />
           </TouchableOpacity>
         </View>
         <View style={styles.skeletonPad}>
@@ -74,8 +74,8 @@ export default function OtherProfileScreen() {
   return (
     <ScreenShell>
       <View style={styles.topBar}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.back} accessibilityLabel="Go back">
-          <Text style={styles.backIcon}>←</Text>
+        <TouchableOpacity onPress={() => router.back()} style={styles.back} accessibilityRole="button" accessibilityLabel="Go Back">
+          <Ionicons name="chevron-back" size={24} color={colors.textSecondary} />
         </TouchableOpacity>
         <TouchableOpacity
           onPress={handleCircleToggle}
@@ -88,7 +88,7 @@ export default function OtherProfileScreen() {
             <ActivityIndicator size="small" color={colors.auraPurple} />
           ) : (
             <Text style={[styles.circleBtnText, inCircle && styles.circleBtnTextIn]}>
-              {inCircle ? 'In your circle ✓' : '+ Add to circle'}
+              {inCircle ? 'In Your Circle' : '+ Add to Circle'}
             </Text>
           )}
         </TouchableOpacity>
@@ -137,7 +137,7 @@ export default function OtherProfileScreen() {
             ))}
           </View>
           <View style={styles.privateNote}>
-            <Text style={styles.privateIcon}>✦</Text>
+            <Ionicons name="sparkles" size={16} color={colors.auraLavender} style={styles.privateIcon} />
             <Text style={styles.privateText}>
               Moments shared with you will appear here.
             </Text>

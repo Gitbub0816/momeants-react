@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, StyleSheet, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { ScreenShell, MomeantsButton } from '../../src/components/core';
 import { useAuth } from '../../src/context/AuthContext';
@@ -35,8 +36,8 @@ export default function SignInScreen() {
     <ScreenShell>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.flex}>
         <View style={styles.container}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.back} accessibilityLabel="Go back">
-            <Text style={styles.backIcon}>←</Text>
+          <TouchableOpacity onPress={() => router.back()} style={styles.back} accessibilityRole="button" accessibilityLabel="Go Back">
+            <Ionicons name="chevron-back" size={24} color={colors.textSecondary} />
           </TouchableOpacity>
 
           <View style={styles.header}>
@@ -73,7 +74,7 @@ export default function SignInScreen() {
           </View>
 
           <View style={styles.actions}>
-            <MomeantsButton label="Sign in" onPress={handleSignIn} loading={loading} />
+            <MomeantsButton label="Sign In" onPress={handleSignIn} loading={loading} />
             <TouchableOpacity onPress={() => router.push('/(auth)/forgot-password')} style={styles.switchLink}>
               <Text style={styles.switchText}>Forgot your password? <Text style={styles.switchTextAccent}>Reset it</Text></Text>
             </TouchableOpacity>

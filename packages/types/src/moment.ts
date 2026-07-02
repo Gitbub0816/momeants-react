@@ -9,7 +9,7 @@ export type MoodTag =
   | 'Cozy'
   | 'Adventurous';
 
-export type MomentVisibility = 'private' | 'close_circle' | 'selected_people';
+export type MomentVisibility = 'private' | 'close_circle' | 'selected_people' | 'public';
 
 export interface MomentPerson {
   id: string;

@@ -100,7 +100,7 @@ function CaptureButton({ onPress }: { onPress: () => void }) {
       <SpringPressable
         onPress={onPress}
         accessibilityRole="button"
-        accessibilityLabel="Capture a moment"
+        accessibilityLabel="Capture a Moment"
         pressScale={0.88}
         haptic={false}
       >

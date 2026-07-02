@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, Switch, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { ScreenShell, GlassCard, MomeantsButton } from '../src/components/core';
 import { useApi } from '../src/context/ApiContext';
@@ -62,8 +63,8 @@ export default function ResurfacingControlsScreen() {
     <ScreenShell>
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         <View style={styles.topBar}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.back} accessibilityLabel="Go back">
-            <Text style={styles.backIcon}>←</Text>
+          <TouchableOpacity onPress={() => router.back()} style={styles.back} accessibilityRole="button" accessibilityLabel="Go Back">
+            <Ionicons name="chevron-back" size={24} color={colors.textSecondary} />
           </TouchableOpacity>
         </View>
 
@@ -102,13 +103,14 @@ export default function ResurfacingControlsScreen() {
                   <TouchableOpacity
                     key={person.id}
                     onPress={() => togglePerson(person.id)}
-                    style={[styles.chip, hidden && styles.chipHidden]}
+                    style={[styles.chip, hidden && styles.chipHidden, hidden && { flexDirection: 'row', alignItems: 'center', gap: 4 }]}
                     accessibilityRole="checkbox"
                     accessibilityLabel={person.displayName}
                     accessibilityState={{ checked: hidden }}
                   >
+                    {hidden && <Ionicons name="close" size={13} color={colors.textMuted} />}
                     <Text style={[styles.chipText, hidden && styles.chipTextHidden]}>
-                      {hidden ? '✕ ' : ''}{person.displayName}
+                      {person.displayName}
                     </Text>
                   </TouchableOpacity>
                 );

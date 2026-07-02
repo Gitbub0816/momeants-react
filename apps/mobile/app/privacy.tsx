@@ -15,26 +15,32 @@ import { ScreenShell, GlassCard } from '../src/components/core';
 import { useApi } from '../src/context/ApiContext';
 import { colors, fontFamily, fontSize, spacing, radii } from '@momeants/design';
 
-type Visibility = 'close_circle' | 'clique' | 'private';
+type Visibility = 'close_circle' | 'clique' | 'private' | 'public';
 
 const VISIBILITY_OPTIONS: { value: Visibility; label: string; description: string; icon: string }[] = [
   {
     value: 'close_circle',
-    label: 'Close circle',
+    label: 'Close Circle',
     description: 'Shared with the people you\'ve added to your circle',
-    icon: '◎',
+    icon: 'people-circle-outline',
   },
   {
     value: 'clique',
-    label: 'Specific clique',
+    label: 'Specific Clique',
     description: 'Only visible to members of a chosen clique',
     icon: 'people-outline',
   },
   {
     value: 'private',
-    label: 'Just me',
+    label: 'Just Me',
     description: 'Only you can see this moment',
     icon: 'lock-closed-outline',
+  },
+  {
+    value: 'public',
+    label: 'Public',
+    description: 'Anyone on Momeants can find this moment',
+    icon: 'globe-outline',
   },
 ];
 
@@ -97,16 +103,17 @@ export default function PrivacyScreen() {
           <TouchableOpacity
             onPress={() => router.back()}
             style={styles.backBtn}
-            accessibilityLabel="Go back"
+            accessibilityRole="button"
+            accessibilityLabel="Go Back"
           >
-            <Text style={styles.backIcon}>←</Text>
+            <Glyph value="chevron-back" size={24} color={colors.textSecondary} />
           </TouchableOpacity>
           <Text style={styles.title}>Privacy</Text>
         </View>
 
         {/* Default visibility */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Default moment visibility</Text>
+          <Text style={styles.sectionTitle}>Default Moment Visibility</Text>
           <Text style={styles.sectionSub}>Who sees your moments unless you change it per capture.</Text>
           <GlassCard style={styles.card}>
             {VISIBILITY_OPTIONS.map((opt, i) => (
@@ -140,7 +147,7 @@ export default function PrivacyScreen() {
           <GlassCard style={styles.card}>
             {[
               {
-                label: 'Allow resurfacing',
+                label: 'Allow Resurfacing',
                 description: 'Let Momeants surface old memories as reminders',
                 value: resurfaceConsent,
                 toggle: () => {
@@ -151,7 +158,7 @@ export default function PrivacyScreen() {
                 },
               },
               {
-                label: 'Show activity to circle',
+                label: 'Show Activity to Circle',
                 description: 'Let circle members see when you last added a moment',
                 value: activityVisible,
                 toggle: () => {
@@ -182,11 +189,11 @@ export default function PrivacyScreen() {
 
         {/* Data */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Your data</Text>
+          <Text style={styles.sectionTitle}>Your Data</Text>
           <GlassCard style={styles.card}>
             {[
-              { label: 'Download my data', icon: '↓', action: handleDownloadData },
-              { label: 'Delete account', icon: '⚠', danger: true, route: '/delete-account' },
+              { label: 'Download My Data', icon: 'download-outline', action: handleDownloadData },
+              { label: 'Delete Account', icon: 'warning-outline', danger: true, route: '/delete-account' },
             ].map((item, i) => (
               <TouchableOpacity
                 key={item.label}
@@ -201,7 +208,7 @@ export default function PrivacyScreen() {
               >
                 <Glyph value={item.icon} size={18} color={item.danger ? colors.danger : colors.textSecondary} />
                 <Text style={[styles.optionLabel, item.danger && { color: colors.danger }]}>{item.label}</Text>
-                <Text style={styles.chevron}>›</Text>
+                <Glyph value="chevron-forward" size={18} color={colors.textMuted} />
               </TouchableOpacity>
             ))}
           </GlassCard>

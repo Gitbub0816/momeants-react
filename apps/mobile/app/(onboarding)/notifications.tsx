@@ -40,8 +40,8 @@ export default function NotificationsScreen() {
         </View>
 
         <View style={styles.actions}>
-          <MomeantsButton label="Allow notifications" onPress={() => finish(true)} />
-          <MomeantsButton label="Not now" onPress={() => finish(false)} variant="quiet" />
+          <MomeantsButton label="Allow Notifications" onPress={() => finish(true)} />
+          <MomeantsButton label="Not Now" onPress={() => finish(false)} variant="quiet" />
         </View>
       </View>
     </ScreenShell>

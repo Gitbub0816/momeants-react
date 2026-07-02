@@ -23,11 +23,11 @@ export default function ConnectPeopleScreen() {
 
         <View style={styles.actions}>
           <MomeantsButton
-            label="Find people I know"
+            label="Find People I Know"
             onPress={() => router.push('/(onboarding)/notifications')}
           />
           <MomeantsButton
-            label="Skip for now"
+            label="Skip for Now"
             onPress={() => router.push('/(onboarding)/notifications')}
             variant="quiet"
           />

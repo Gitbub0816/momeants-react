@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, StyleSheet, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { ScreenShell, MomeantsButton } from '../../src/components/core';
 import { useAuth } from '../../src/context/AuthContext';
@@ -35,12 +36,12 @@ export default function CreateAccountScreen() {
     <ScreenShell>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.flex}>
         <View style={styles.container}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.back} accessibilityLabel="Go back">
-            <Text style={styles.backIcon}>←</Text>
+          <TouchableOpacity onPress={() => router.back()} style={styles.back} accessibilityRole="button" accessibilityLabel="Go Back">
+            <Ionicons name="chevron-back" size={24} color={colors.textSecondary} />
           </TouchableOpacity>
 
           <View style={styles.header}>
-            <Text style={styles.title}>Create your account</Text>
+            <Text style={styles.title}>Create Your Account</Text>
             <Text style={styles.subtitle}>You're starting something meaningful.</Text>
           </View>
 

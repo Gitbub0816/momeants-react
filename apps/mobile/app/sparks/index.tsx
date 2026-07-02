@@ -9,25 +9,17 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
-import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import type { SparkDelivery } from '@momeants/types';
 import { ScreenShell } from '../../src/components/core/ScreenShell';
 import { SparkCard } from '../../src/components/spark/SparkCard';
+import { SparkPill } from '../../src/components/spark/SparkPill';
+import { SpringPressable } from '../../src/components/core/SpringPressable';
 import { useApi } from '../../src/context/ApiContext';
-import { colors, fontFamily, fontSize, spacing, radii, gradients } from '@momeants/design';
+import { colors, fontFamily, fontSize, spacing, radii, spring } from '@momeants/design';
 
 const CATEGORY_FILTERS = ['All', 'Conversation', 'Family', 'Couple', 'Creative', 'Memory', 'Photo'];
-
-const CATEGORY_COLORS: Record<string, string> = {
-  conversation: '#78A7FF',
-  family: '#FFB38A',
-  couple: '#FF6E91',
-  creative: '#78A7FF',
-  memory: '#B57CFF',
-  photo: '#FF7AC8',
-  relationship: '#B57CFF',
-  holiday: '#FFD28A',
-};
 
 export default function SparksScreen() {
   const api = useApi();
@@ -93,19 +85,23 @@ export default function SparksScreen() {
         }
       >
         {/* Header */}
-        <View style={styles.header}>
-          <TouchableOpacity
+        <Animated.View
+          entering={FadeInDown.springify().damping(spring.damping).stiffness(spring.stiffness)}
+          style={styles.header}
+        >
+          <SpringPressable
             onPress={() => router.back()}
             style={styles.backBtn}
-            accessibilityLabel="Go back"
+            accessibilityRole="button"
+            accessibilityLabel="Go Back"
           >
-            <Text style={styles.backIcon}>←</Text>
-          </TouchableOpacity>
+            <Ionicons name="chevron-back" size={24} color={colors.textSecondary} />
+          </SpringPressable>
           <View style={styles.headerText}>
             <Text style={styles.title}>Sparks</Text>
             <Text style={styles.subtitle}>Little prompts to help you connect.</Text>
           </View>
-        </View>
+        </Animated.View>
 
         {/* Stats bar */}
         <View style={styles.statsRow}>
@@ -142,7 +138,7 @@ export default function SparksScreen() {
 
         {/* Category filter */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Browse by category</Text>
+          <Text style={styles.sectionTitle}>Browse By Category</Text>
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -171,34 +167,16 @@ export default function SparksScreen() {
         {/* History / past sparks */}
         {history.length > 0 && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Past sparks</Text>
+            <Text style={styles.sectionTitle}>Past Sparks</Text>
             <View style={styles.historyList}>
-              {history.map((delivery) => {
-                const cat = delivery.spark?.category ?? 'conversation';
-                const color = CATEGORY_COLORS[cat] ?? colors.auraPurple;
-                return (
-                  <TouchableOpacity
-                    key={delivery.id}
-                    style={[styles.historyCard, { borderLeftColor: color }]}
-                    activeOpacity={0.8}
-                    onPress={() => router.push(`/spark/${delivery.id}`)}
-                    accessibilityRole="button"
-                    accessibilityLabel={delivery.spark?.title ?? 'Spark'}
-                  >
-                    <View style={styles.historyTop}>
-                      <Text style={styles.historyTitle} numberOfLines={1}>
-                        {delivery.spark?.title ?? 'Spark'}
-                      </Text>
-                      <View style={[styles.statusBadge, delivery.status === 'completed' ? styles.statusDone : styles.statusDismissed]}>
-                        <Text style={[styles.statusText, { color: delivery.status === 'completed' ? '#4CAF50' : colors.textMuted }]}>
-                          {delivery.status}
-                        </Text>
-                      </View>
-                    </View>
-                    <Text style={styles.historyCat}>{cat}</Text>
-                  </TouchableOpacity>
-                );
-              })}
+              {history.map((delivery, i) => (
+                <SparkPill
+                  key={delivery.id}
+                  delivery={delivery}
+                  index={i}
+                  onPress={() => router.push(`/spark/${delivery.id}`)}
+                />
+              ))}
             </View>
           </View>
         )}

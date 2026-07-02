@@ -6,10 +6,10 @@ import { ScreenShell, MomeantsButton, GlassCard } from '../../src/components/cor
 import { colors, fontFamily, fontSize, spacing } from '@momeants/design';
 
 const PROMISES = [
-  { icon: 'lock-closed-outline', title: 'Private by default', body: 'Every moment you save is private until you choose otherwise.' },
-  { icon: '◎', title: 'No public feed', body: 'Your memories aren\'t fodder for strangers. They\'re for the people you love.' },
-  { icon: '○', title: 'No follower counts', body: 'We don\'t measure your relationships in numbers.' },
-  { icon: '✦', title: 'You own your memories', body: 'Export or delete everything, anytime. No questions asked.' },
+  { icon: 'lock-closed-outline', title: 'Private By Default', body: 'Every moment you save is private until you choose otherwise.' },
+  { icon: 'eye-off-outline', title: 'No Public Feed', body: 'Your memories aren\'t fodder for strangers. They\'re for the people you love.' },
+  { icon: 'people-outline', title: 'No Follower Counts', body: 'We don\'t measure your relationships in numbers.' },
+  { icon: 'sparkles-outline', title: 'You Own Your Memories', body: 'Export or delete everything, anytime. No questions asked.' },
 ];
 
 export default function PrivacyPromiseScreen() {
@@ -20,7 +20,7 @@ export default function PrivacyPromiseScreen() {
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         <Text style={styles.step}>4 of 6</Text>
         <View style={styles.header}>
-          <Text style={styles.title}>Our privacy promise</Text>
+          <Text style={styles.title}>Our Privacy Promise</Text>
           <Text style={styles.subtitle}>Before you continue, here's what Momeants will never do.</Text>
         </View>
 
@@ -37,7 +37,7 @@ export default function PrivacyPromiseScreen() {
         </View>
 
         <MomeantsButton
-          label="I understand, continue"
+          label="I Understand, Continue"
           onPress={() => router.push('/(onboarding)/connect-people')}
           style={styles.cta}
         />

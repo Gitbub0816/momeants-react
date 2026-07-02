@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity, RefreshControl } from 'react-native';
 import { Image } from 'expo-image';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useRouter } from 'expo-router';
 import type { TimelineGroup } from '@momeants/types';
-import { ScreenShell, EmptyState, Skeleton } from '../../src/components/core';
+import { ScreenShell, EmptyState, Skeleton, SpringPressable } from '../../src/components/core';
 import { useApi } from '../../src/context/ApiContext';
-import { colors, fontFamily, fontSize, spacing, radii } from '@momeants/design';
+import { colors, fontFamily, fontSize, spacing, radii, spring } from '@momeants/design';
 
 const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
@@ -60,7 +61,7 @@ export default function TimelineScreen() {
         </View>
         <EmptyState
           icon="calendar-outline"
-          title="No memories yet"
+          title="No Memories Yet"
           body="Your moments will appear here, grouped by day."
         />
       </ScreenShell>
@@ -101,13 +102,19 @@ export default function TimelineScreen() {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.auraPurple} />
         }
       >
-        {groups.map((group) => (
-          <View key={group.isoDate} style={styles.group}>
+        {groups.map((group, gi) => (
+          <Animated.View
+            key={group.isoDate}
+            entering={FadeInDown.delay(gi * 70).springify().damping(spring.damping).stiffness(spring.stiffness)}
+            style={styles.group}
+          >
             <Text style={styles.dateLabel}>{group.dateLabel}</Text>
             <View style={styles.momentRow}>
               {group.moments.map((moment) => (
-                <TouchableOpacity
+                <SpringPressable
                   key={moment.id}
+                  pressScale={0.97}
+                  haptic={false}
                   onPress={() => router.push(`/moment/${moment.id}`)}
                   style={styles.momentThumb}
                   accessibilityRole="button"
@@ -119,10 +126,10 @@ export default function TimelineScreen() {
                     contentFit="cover"
                     transition={200}
                   />
-                </TouchableOpacity>
+                </SpringPressable>
               ))}
             </View>
-          </View>
+          </Animated.View>
         ))}
         <View style={styles.tabBarSpacer} />
       </ScrollView>
@@ -165,11 +172,10 @@ const styles = StyleSheet.create({
   scroll: { paddingHorizontal: spacing.lg, gap: spacing.xl },
   group: { gap: spacing.sm },
   dateLabel: {
-    color: colors.textMuted,
-    fontFamily: fontFamily.sansMedium,
-    fontSize: fontSize.caption,
-    letterSpacing: 0.8,
-    textTransform: 'uppercase',
+    color: colors.textSecondary,
+    fontFamily: fontFamily.serif,
+    fontSize: fontSize.section,
+    letterSpacing: 0.2,
   },
   momentRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
   momentThumb: {

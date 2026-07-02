@@ -120,7 +120,7 @@ export default function MessagesScreen() {
       {conversations.length === 0 ? (
         <EmptyState
           icon="chatbubble-ellipses-outline"
-          title="No messages yet"
+          title="No Messages Yet"
           body="Share a moment or start a Spark with someone to begin a conversation."
         />
       ) : (

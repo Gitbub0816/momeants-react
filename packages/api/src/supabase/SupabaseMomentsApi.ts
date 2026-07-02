@@ -160,11 +160,33 @@ function rowToUserProfile(p: any, extras: { momentCount?: number; peopleCount?: 
 // ─── SUPABASE MOMENTS API ────────────────────────────────────────────────────
 
 export class SupabaseMomentsApi implements MomentsApi {
-  constructor(private readonly sb: SB) {}
+  // Cached session id, kept fresh via onAuthStateChange. Avoids reaching into
+  // the client's private `auth._session` field (unreliable / undocumented).
+  private cachedUserId: string | null = null;
 
-  private get userId(): string {
-    const session = (this.sb as any).auth._session;
-    return session?.user?.id ?? '';
+  constructor(private readonly sb: SB) {
+    // Seed the cache and keep it updated on every auth transition.
+    this.sb.auth.getSession().then(({ data }) => {
+      this.cachedUserId = data.session?.user?.id ?? null;
+    });
+    this.sb.auth.onAuthStateChange((_event, session) => {
+      this.cachedUserId = session?.user?.id ?? null;
+    });
+  }
+
+  /**
+   * Resolve the current user id. Prefers the cached value from
+   * onAuthStateChange, falling back to an authoritative getSession() call so
+   * that a call made before the cache is warm still succeeds.
+   */
+  private async requireUserId(): Promise<string> {
+    if (this.cachedUserId) return this.cachedUserId;
+    const { data, error } = await this.sb.auth.getSession();
+    if (error) throw error;
+    const uid = data.session?.user?.id;
+    if (!uid) throw new Error('Not authenticated');
+    this.cachedUserId = uid;
+    return uid;
   }
 
   // ── Auth ──────────────────────────────────────────────────────────────────
@@ -189,7 +211,7 @@ export class SupabaseMomentsApi implements MomentsApi {
     const { data: session } = await this.sb.auth.getSession();
     const userId = session.session!.user.id;
 
-    await this.sb.from('profiles').upsert({
+    const { error: profileError } = await this.sb.from('profiles').upsert({
       id: userId,
       display_name: data.fullName,
       username: data.username,
@@ -199,14 +221,16 @@ export class SupabaseMomentsApi implements MomentsApi {
       avatar_url: data.avatarUri,
       onboarded_at: new Date().toISOString(),
     });
+    if (profileError) throw profileError;
 
     // Upsert resurfacing rules
-    await this.sb.from('resurfacing_rules').upsert({
+    const { error: rulesError } = await this.sb.from('resurfacing_rules').upsert({
       user_id: userId,
       hide_people_ids: [],
       hide_place_labels: [],
       hide_date_ranges: [],
     });
+    if (rulesError) throw rulesError;
 
     return this.getProfile(userId);
   }
@@ -277,7 +301,7 @@ export class SupabaseMomentsApi implements MomentsApi {
     const userId = session.session!.user.id;
 
     const d = data as Partial<OnboardingData> & { displayName?: string; tagline?: string; resurfaceConsent?: boolean; activityVisible?: boolean };
-    await (this.sb.from('profiles') as any).update({
+    const { error: updateError } = await (this.sb.from('profiles') as any).update({
       ...((d.fullName || d.displayName) && { display_name: d.fullName ?? d.displayName }),
       ...(d.username && { username: d.username }),
       ...(d.city !== undefined && { city: d.city }),
@@ -288,6 +312,7 @@ export class SupabaseMomentsApi implements MomentsApi {
       ...(d.resurfaceConsent !== undefined && { resurface_consent: d.resurfaceConsent }),
       ...(d.activityVisible !== undefined && { activity_visible: d.activityVisible }),
     }).eq('id', userId);
+    if (updateError) throw updateError;
 
     return this.getProfile(userId);
   }
@@ -315,25 +340,27 @@ export class SupabaseMomentsApi implements MomentsApi {
 
     // Insert moods
     if (input.moods.length) {
-      await this.sb.from('moment_moods').insert(
+      const { error: moodsError } = await this.sb.from('moment_moods').insert(
         input.moods.map((mood, i) => ({ moment_id: moment.id, mood, sort_order: i }))
       );
+      if (moodsError) throw moodsError;
     }
 
     // Insert people
     if (input.people.length) {
-      await this.sb.from('moment_people').insert(
+      const { error: peopleError } = await this.sb.from('moment_people').insert(
         input.people.map((p) => ({
           moment_id: moment.id,
           profile_id: p.id !== p.name ? p.id : null,
           name_label: p.name,
         }))
       );
+      if (peopleError) throw peopleError;
     }
 
     // Insert location
     if (input.location) {
-      await this.sb.from('moment_locations').insert({
+      const { error: locError } = await this.sb.from('moment_locations').insert({
         moment_id: moment.id,
         label: input.location.label,
         city: input.location.city,
@@ -341,6 +368,7 @@ export class SupabaseMomentsApi implements MomentsApi {
         lat: input.location.lat,
         lng: input.location.lng,
       });
+      if (locError) throw locError;
     }
 
     return this.getMoment(moment.id);
@@ -658,10 +686,14 @@ export class SupabaseMomentsApi implements MomentsApi {
   async addToCircle(userId: string): Promise<void> {
     const { data: { user } } = await this.sb.auth.getUser();
     if (!user) throw new Error('Not authenticated');
-    const { error } = await this.sb.from('circle_members').upsert({
-      owner_id: user.id,
-      member_id: userId,
-    });
+    // Use ON CONFLICT DO NOTHING (ignoreDuplicates) rather than a merge upsert:
+    // a merge upsert compiles to ON CONFLICT DO UPDATE, which requires an UPDATE
+    // RLS policy on circle_members (there isn't one), so the write was being
+    // blocked by RLS and the add silently failed.
+    const { error } = await this.sb.from('circle_members').upsert(
+      { owner_id: user.id, member_id: userId },
+      { onConflict: 'owner_id,member_id', ignoreDuplicates: true }
+    );
     if (error) throw error;
   }
 
@@ -707,26 +739,31 @@ export class SupabaseMomentsApi implements MomentsApi {
   async acceptConnectionRequest(fromUserId: string): Promise<void> {
     const { data: { user } } = await this.sb.auth.getUser();
     if (!user) throw new Error('Not authenticated');
-    await this.sb
+    const { error: updateError } = await this.sb
       .from('connection_requests')
       .update({ status: 'accepted' })
       .eq('from_user_id', fromUserId)
       .eq('to_user_id', user.id);
-    // Add both directions to circle
-    await Promise.all([
-      this.sb.from('circle_members').upsert({ owner_id: user.id, member_id: fromUserId }),
-      this.sb.from('circle_members').upsert({ owner_id: fromUserId, member_id: user.id }),
-    ]);
+    if (updateError) throw updateError;
+    // Add the requester to my circle. (The reverse direction is blocked by RLS
+    // since I'm not the owner; the other user's own accept flow / their circle
+    // insert handles their side.)
+    const { error: circleError } = await this.sb.from('circle_members').upsert(
+      { owner_id: user.id, member_id: fromUserId },
+      { onConflict: 'owner_id,member_id', ignoreDuplicates: true }
+    );
+    if (circleError) throw circleError;
   }
 
   async declineConnectionRequest(fromUserId: string): Promise<void> {
     const { data: { user } } = await this.sb.auth.getUser();
     if (!user) throw new Error('Not authenticated');
-    await this.sb
+    const { error } = await this.sb
       .from('connection_requests')
       .update({ status: 'declined' })
       .eq('from_user_id', fromUserId)
       .eq('to_user_id', user.id);
+    if (error) throw error;
   }
 
   // ── Cliques ───────────────────────────────────────────────────────────────
@@ -752,34 +789,39 @@ export class SupabaseMomentsApi implements MomentsApi {
       .single();
     if (error) throw error;
     if (memberIds.length) {
-      await this.sb.from('clique_members').insert(
+      const { error: membersError } = await this.sb.from('clique_members').insert(
         memberIds.map((uid) => ({ clique_id: clique.id, user_id: uid }))
       );
+      if (membersError) throw membersError;
     }
     return this.getCliqueById(clique.id);
   }
 
   async updateClique(id: string, data: { name?: string; memberIds?: string[]; emoji?: string; type?: CliqueType }): Promise<Clique> {
     if (data.name || data.emoji || data.type) {
-      await this.sb.from('cliques').update({
+      const { error: cliqueError } = await this.sb.from('cliques').update({
         ...(data.name ? { name: data.name } : {}),
         ...(data.emoji !== undefined ? { emoji: data.emoji } : {}),
         ...(data.type ? { type: data.type } : {}),
       }).eq('id', id);
+      if (cliqueError) throw cliqueError;
     }
     if (data.memberIds) {
-      await this.sb.from('clique_members').delete().eq('clique_id', id);
+      const { error: delError } = await this.sb.from('clique_members').delete().eq('clique_id', id);
+      if (delError) throw delError;
       if (data.memberIds.length) {
-        await this.sb.from('clique_members').insert(
+        const { error: insError } = await this.sb.from('clique_members').insert(
           data.memberIds.map((uid) => ({ clique_id: id, user_id: uid }))
         );
+        if (insError) throw insError;
       }
     }
     return this.getCliqueById(id);
   }
 
   async deleteClique(id: string): Promise<void> {
-    await this.sb.from('cliques').delete().eq('id', id);
+    const { error } = await this.sb.from('cliques').delete().eq('id', id);
+    if (error) throw error;
   }
 
   private async getCliqueById(id: string): Promise<Clique> {
@@ -1010,9 +1052,10 @@ export class SupabaseMomentsApi implements MomentsApi {
       .select()
       .single();
     if (error) throw error;
-    // Touch conversation updated_at
+    // Touch conversation updated_at (best-effort ordering hint).
     await this.sb.from('conversations').update({ updated_at: new Date().toISOString() }).eq('id', conversationId);
     return {
+
       id: data.id,
       conversationId,
       senderId: user.id,
@@ -1037,7 +1080,9 @@ export class SupabaseMomentsApi implements MomentsApi {
     const { data: { user } } = await this.sb.auth.getUser();
     if (!user) throw new Error('Not authenticated');
 
-    const type = cliqueId ? 'group' : participantIds.length > 1 ? 'group' : 'direct';
+    // NB: the conversations.type CHECK constraint only allows 'dm' | 'group'.
+    // Inserting 'direct' violated the constraint and made every create fail.
+    const type = cliqueId ? 'group' : participantIds.length > 1 ? 'group' : 'dm';
 
     const insertPayload: Record<string, unknown> = { type };
     if (cliqueId) insertPayload['clique_id'] = cliqueId;
@@ -1059,6 +1104,42 @@ export class SupabaseMomentsApi implements MomentsApi {
     const result = await this.getConversation(convo.id);
     if (!result) throw new Error('Failed to fetch created conversation');
     return result;
+  }
+
+  /**
+   * Start (or reuse) a 1:1 direct conversation with the given user. If an
+   * existing direct conversation between exactly the two of us already exists it
+   * is returned; otherwise a new one is created. Errors are surfaced.
+   */
+  async getOrCreateDirectConversation(otherUserId: string): Promise<Conversation> {
+    const myId = await this.requireUserId();
+    if (otherUserId === myId) throw new Error('Cannot start a conversation with yourself');
+
+    // Find direct conversations I'm a participant in, then pick one whose only
+    // other participant is otherUserId.
+    const { data: myConvos, error: myConvosError } = await this.sb
+      .from('conversations')
+      .select('id, type, conversation_participants(user_id)')
+      .eq('type', 'dm')
+      .eq('conversation_participants.user_id', myId);
+    if (myConvosError) throw myConvosError;
+
+    for (const c of (myConvos ?? []) as any[]) {
+      // Re-fetch full participant list for this conversation (the filtered
+      // embed above only guarantees my row is present).
+      const { data: parts, error: partsError } = await this.sb
+        .from('conversation_participants')
+        .select('user_id')
+        .eq('conversation_id', c.id);
+      if (partsError) throw partsError;
+      const ids = (parts ?? []).map((p: any) => p.user_id).sort();
+      if (ids.length === 2 && ids.includes(myId) && ids.includes(otherUserId)) {
+        const existing = await this.getConversation(c.id);
+        if (existing) return existing;
+      }
+    }
+
+    return this.createConversation([otherUserId]);
   }
 
   // ── Notifications ─────────────────────────────────────────────────────────
@@ -1177,15 +1258,24 @@ export class SupabaseMomentsApi implements MomentsApi {
   // ── Storage ───────────────────────────────────────────────────────────────
 
   private async uploadImage(localUri: string, userId: string): Promise<string> {
-    const ext = localUri.split('.').pop() ?? 'jpg';
+    const rawExt = (localUri.split('.').pop() ?? 'jpg').toLowerCase().split('?')[0];
+    const ext = rawExt === 'jpeg' ? 'jpg' : rawExt;
+    const contentType = ext === 'png' ? 'image/png' : ext === 'webp' ? 'image/webp' : 'image/jpeg';
     const path = `${userId}/${Date.now()}.${ext}`;
 
+    // Read the local file. In React Native, `Blob` from `fetch(file://).blob()`
+    // is frequently zero-length, which uploads an empty (broken) image. Reading
+    // into an ArrayBuffer is reliable and is what supabase-js expects on RN.
     const response = await fetch(localUri);
-    const blob = await response.blob();
+    if (!response.ok) throw new Error(`Failed to read image file (${response.status})`);
+    const arrayBuffer = await response.arrayBuffer();
+    if (!arrayBuffer || arrayBuffer.byteLength === 0) {
+      throw new Error('Selected image is empty or could not be read.');
+    }
 
     const { error } = await this.sb.storage
       .from('moments')
-      .upload(path, blob, { contentType: `image/${ext}`, upsert: false });
+      .upload(path, arrayBuffer, { contentType, upsert: false });
     if (error) throw error;
 
     const { data } = this.sb.storage.from('moments').getPublicUrl(path);

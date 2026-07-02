@@ -9,41 +9,66 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { Image } from 'expo-image';
+import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import type { CircleMember } from '@momeants/types';
 
 type ConnectionRequest = { userId: string; displayName: string; avatarUri?: string; sentAt: string };
-import { ScreenShell, EmptyState, Skeleton } from '../../src/components/core';
+import { ScreenShell, EmptyState, Skeleton, SpringPressable } from '../../src/components/core';
 import { useApi } from '../../src/context/ApiContext';
-import { colors, fontFamily, fontSize, spacing, radii } from '@momeants/design';
+import { colors, fontFamily, fontSize, spacing, radii, gradients, spring } from '@momeants/design';
 
-function MemberRow({ member }: { member: CircleMember }) {
+function MemberRow({ member, index }: { member: CircleMember; index: number }) {
   const router = useRouter();
   return (
-    <TouchableOpacity
-      style={styles.memberRow}
-      activeOpacity={0.8}
-      onPress={async () => {
-        await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-        router.push(`/profile/${member.id}`);
-      }}
-      accessibilityRole="button"
-      accessibilityLabel={member.displayName}
+    <Animated.View
+      entering={FadeInDown.delay(index * 60).springify().damping(spring.damping).stiffness(spring.stiffness)}
     >
-      {member.avatarUri ? (
-        <Image source={{ uri: member.avatarUri }} style={styles.avatar} contentFit="cover" />
-      ) : (
-        <View style={styles.avatarFallback}>
-          <Text style={styles.avatarInitial}>{member.displayName[0]}</Text>
+      <SpringPressable
+        style={styles.memberRow}
+        haptic={false}
+        onPress={async () => {
+          await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+          router.push(`/profile/${member.id}`);
+        }}
+        accessibilityRole="button"
+        accessibilityLabel={member.displayName}
+      >
+        <LinearGradient
+          colors={member.hasNewMoment ? gradients.aura : ['rgba(255,255,255,0.12)', 'rgba(255,255,255,0.04)']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.avatarRing}
+        >
+          {member.avatarUri ? (
+            <Image source={{ uri: member.avatarUri }} style={styles.avatar} contentFit="cover" />
+          ) : (
+            <View style={styles.avatarFallback}>
+              <Text style={styles.avatarInitial}>{member.displayName[0]}</Text>
+            </View>
+          )}
+        </LinearGradient>
+        <View style={styles.memberInfo}>
+          <Text style={styles.memberName}>{member.displayName}</Text>
+          {member.username ? <Text style={styles.memberUsername}>@{member.username}</Text> : null}
         </View>
-      )}
-      <View style={styles.memberInfo}>
-        <Text style={styles.memberName}>{member.displayName}</Text>
-        {member.username ? <Text style={styles.memberUsername}>@{member.username}</Text> : null}
-      </View>
-      {member.hasNewMoment && <View style={styles.newDot} />}
-    </TouchableOpacity>
+        {member.hasNewMoment && <View style={styles.newDot} />}
+        <SpringPressable
+          style={styles.messageBtn}
+          onPress={async () => {
+            await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            router.push(`/messages/${member.id}`);
+          }}
+          accessibilityRole="button"
+          accessibilityLabel={`Message ${member.displayName}`}
+        >
+          <Ionicons name="chatbubble-outline" size={18} color={colors.auraLavender} />
+        </SpringPressable>
+      </SpringPressable>
+    </Animated.View>
   );
 }
 
@@ -80,7 +105,7 @@ function RequestRow({
           accessibilityRole="button"
           accessibilityLabel="Decline"
         >
-          <Text style={styles.declineText}>✕</Text>
+          <Ionicons name="close" size={16} color={colors.textMuted} />
         </TouchableOpacity>
       </View>
     </View>
@@ -161,7 +186,7 @@ export default function CircleScreen() {
             accessibilityRole="button"
             accessibilityLabel="Find people"
           >
-            <Text style={styles.findBtnText}>+ Find people</Text>
+            <Text style={styles.findBtnText}>+ Find People</Text>
           </TouchableOpacity>
         </View>
 
@@ -182,9 +207,9 @@ export default function CircleScreen() {
         {members.length === 0 ? (
           <EmptyState
             icon="people-outline"
-            title="Your circle is empty"
+            title="Your Circle Is Empty"
             body="Find people you know and add them to your circle."
-            actionLabel="Find people"
+            actionLabel="Find People"
             onAction={() => {
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
               router.push('/search');
@@ -192,8 +217,8 @@ export default function CircleScreen() {
           />
         ) : (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Your people</Text>
-            {members.map((m) => <MemberRow key={m.id} member={m} />)}
+            <Text style={styles.sectionTitle}>Your People</Text>
+            {members.map((m, i) => <MemberRow key={m.id} member={m} index={i} />)}
           </View>
         )}
 
@@ -252,14 +277,32 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255,255,255,0.07)',
     minHeight: 56,
   },
-  avatar: { width: 40, height: 40, borderRadius: 20 },
+  avatarRing: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    padding: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  avatar: { width: 44, height: 44, borderRadius: 22 },
   avatarFallback: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(20,24,44,0.95)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  messageBtn: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(181,124,255,0.18)',
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: 'rgba(181,124,255,0.10)',
+    borderWidth: 1,
+    borderColor: 'rgba(181,124,255,0.22)',
   },
   avatarInitial: { color: colors.auraPurple, fontSize: fontSize.body, fontFamily: fontFamily.serif },
   memberInfo: { flex: 1 },
