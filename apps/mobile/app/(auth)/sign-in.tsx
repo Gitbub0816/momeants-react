@@ -24,7 +24,8 @@ export default function SignInScreen() {
       await signIn(email.trim(), password);
       router.replace('/(tabs)/home');
     } catch (e) {
-      setError('Incorrect email or password.');
+      const msg = e instanceof Error ? e.message : 'Incorrect email or password.';
+      setError(msg || 'Incorrect email or password.');
     } finally {
       setLoading(false);
     }

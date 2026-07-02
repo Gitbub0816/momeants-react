@@ -24,7 +24,8 @@ export default function CreateAccountScreen() {
       await signUp(email.trim(), password);
       router.replace('/(onboarding)/your-name');
     } catch (e) {
-      setError('Something went wrong. Please try again.');
+      const msg = e instanceof Error ? e.message : 'Something went wrong. Please try again.';
+      setError(msg || 'Something went wrong. Please try again.');
     } finally {
       setLoading(false);
     }
