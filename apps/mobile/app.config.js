@@ -92,7 +92,7 @@ module.exports = {
     typedRoutes: true,
   },
   updates: {
-    url: 'https://u.expo.dev/momeants',
+    url: 'https://u.expo.dev/4677228d-8e60-4acb-91fa-b38aaf83c269',
   },
   extra: {
     eas: {
